@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Videobooth</title>
+    <!-- MediaPipe Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --accent: #E11D48; /* Default */
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: radial-gradient(circle at center, #2c3e50, #000000); color: #fff; margin: 0; padding: 15px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .booth-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); padding: 25px 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
+        .logo-header { font-size: 24px; font-weight: 800; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); text-shadow: 0 2px 10px rgba(225, 29, 72, 0.3); }
+        video { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 12px; background: #111; margin-bottom: 20px; border: 4px solid #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: block; }
+        #webcam { transform: scaleX(-1); }
+        #preview { transform: none; }
+        .panel { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        input { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #444; font-size: 15px; background: #222; color: #fff; outline: none; transition: border 0.3s; margin: 0; }
+        input:focus { border-color: var(--accent); }
+        button { padding: 14px 20px; font-size: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--accent); color: white; width: 100%; transition: 0.3s transform, 0.3s filter; margin: 0; }
+        button:hover { filter: brightness(0.85); transform: translateY(-2px); }
+        button:disabled { background: #555; cursor: not-allowed; transform: none; filter: none; }
+        .hidden { display: none !important; }
+        #countdown { font-size: 50px; color: var(--accent); font-weight: 900; margin: 10px 0; text-shadow: 0 0 15px rgba(225,29,72,0.6); }
+        .controls-row { display: flex; gap: 10px; width: 100%; margin-top: 5px; }
+        .controls-row button { flex: 1; padding: 12px; font-size: 14px; }
+        #output_canvas, #drawing_canvas { position: absolute; top: 4px; left: 4px; width: calc(100% - 8px); height: calc(100% - 8px); aspect-ratio: 9/16; border-radius: 10px; z-index: 10; pointer-events: none; transform: scaleX(-1); object-fit: cover; }
+        #drawing_canvas { z-index: 11; }
+    </style>
+</head>
+<body>
+
+    <div class="booth-container">
+        <div class="logo-header">✨ Imajiwa Videobooth</div>
+
+        <!-- START PAGE -->
+        <div class="panel" id="start-panel">
+            <h3 style="margin-top:0; margin-bottom:5px;">Selamat Datang!</h3>
+            <p style="font-size: 13px; color: #aaa; margin-top:0;">Silakan isi data untuk menerima video Anda.</p>
+            <input type="text" id="name" placeholder="Nama Anda" required>
+            <input type="text" id="phone" placeholder="No. WhatsApp / Email" required>
+            <button id="btn-start" onclick="startCamera()">Mulai Kamera</button>
+        </div>
+
+        <!-- RECORDING & PREVIEW PAGE -->
+        <div id="video-panel" class="hidden">
+            <div id="model-selector-container" class="hidden" style="margin-bottom: 15px; display:flex; justify-content: space-between; align-items:center; background: #222; padding: 10px 15px; border-radius: 8px;">
+                <label for="model-complexity" style="font-size: 13px; color: #ddd;">Model Pelacakan:</label>
+                <select id="model-complexity" style="padding: 6px; border-radius: 5px; background: #333; color: white; border: 1px solid #555; outline:none; cursor:pointer;">
+                    <option value="0">Performa (Cepat)</option>
+                    <option value="1" selected>Akurasi (Detail)</option>
+                </select>
+            </div>
+
+            <!-- Tempat menaruh desain frame overlay statis jika ingin via CSS absolute (opsional) -->
+            <div style="position: relative; display: inline-block; width: 100%;">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="output_canvas" class="hidden"></canvas>
+                <canvas id="drawing_canvas" class="hidden"></canvas>
+                <video id="preview" class="hidden" controls playsinline></video>
+            </div>
+            
+            <div id="countdown" class="hidden">15</div>
+
+            <div class="controls-row">
+                <button id="btn-record" onclick="startRecording()">🔴 Rekam Video (15s)</button>
+                <button id="btn-cleardraw" onclick="clearDrawing()" style="background:#5B21B6;">Hapus Coretan</button>
+                <button id="btn-retake" class="hidden" onclick="retakeVideo()" style="background:#4B5563;">Ulangi</button>
+                <button id="btn-submit" class="hidden" onclick="submitVideo()" style="background:#10B981;">Kirim Video</button>
+            </div>
+            <p id="status-msg" style="margin-top: 20px; font-size: 14px; color: #A7F3D0; font-weight: 600; min-height: 20px;"></p>
+        </div>
+    </div>
+
+    <script>
+        // --- MEMUAT TEMA DARI CONFIG (FUNGSI DINAMIS WEDDING) ---
+        async function applyTheme() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+                
+                // Ubah Teks Utama
+                document.querySelector('.logo-header').innerHTML = data.title;
+                document.querySelector('#start-panel p').innerHTML = data.subtitle;
+
+                // Ubah Latar (Prioritaskan Gambar jika ada, else Gradasi)
+                if (data.bgImageUrl && data.bgImageUrl.trim() !== '') {
+                    document.body.style.background = `url('${data.bgImageUrl}') center/cover no-repeat fixed`;
+                } else {
+                    document.body.style.background = `radial-gradient(circle at center, ${data.bgColor1}, ${data.bgColor2})`;
+                }
+                
+                // Ubah Aksen
+                document.documentElement.style.setProperty('--accent', data.accentColor);
+
+                // Ubah Font HTML jika ada
+                if (data.fontUrl && data.fontFamily) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = data.fontUrl;
+                    document.head.appendChild(link);
+                    document.body.style.fontFamily = data.fontFamily;
+                }
+            } catch(e) { console.error("Gagal muat tema:", e); }
+        }
+        applyTheme();
+        // --------------------------------------------------------
+
+        let stream;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let videoBlob;
+        const recordDuration = 15000; // 15 detik
+
+        const webcamEl = document.getElementById('webcam');
+        const previewEl = document.getElementById('preview');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement ? canvasElement.getContext('2d') : null;
+        
+        const drawingElement = document.getElementById('drawing_canvas');
+        const drawingCtx = drawingElement ? drawingElement.getContext('2d') : null;
+
+        // --- HAND TRACKING LOGIC ---
+        let handsTracking = null;
+        let isProcessingFrames = false;
+        
+        // Drawing state
+        let prevDrawX = null;
+        let prevDrawY = null;
+        let smoothedX = null;
+        let smoothedY = null;
+        const SMOOTH_ALPHA = 0.35; // Faktor kemulusan (0.1 sangat mulus tapi telat, 0.9 sangat responsif tapi bergetar)
+        
+        function clearDrawing() {
+            if(drawingCtx && drawingElement) {
+                drawingCtx.clearRect(0, 0, drawingElement.width, drawingElement.height);
+            }
+        }
+
+        function initHandTracking() {
+            if (handsTracking) return;
+            handsTracking = new Hands({locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }});
+            handsTracking.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            handsTracking.onResults(onResults);
+            
+            document.getElementById('model-complexity').addEventListener('change', (e) => {
+                const val = parseInt(e.target.value);
+                handsTracking.setOptions({ modelComplexity: val });
+                statusMsg.innerText = "🔄 Model pelacakan: " + (val === 1 ? "Akurasi" : "Performa");
+                statusMsg.style.color = "#A7F3D0";
+                setTimeout(() => { if(statusMsg.innerText.includes("Model pelacakan")) statusMsg.innerText=""; }, 2200);
+            });
+        }
+
+        function onResults(results) {
+            if (!previewEl.classList.contains('hidden')) return;
+            
+            canvasElement.width = webcamEl.videoWidth;
+            canvasElement.height = webcamEl.videoHeight;
+            
+            // Only set drawing canvas size once to prevent clearing it
+            if (drawingElement.width !== webcamEl.videoWidth) {
+                drawingElement.width = webcamEl.videoWidth;
+                drawingElement.height = webcamEl.videoHeight;
+            }
+            
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                
+                // Draw skeleton (Opsional: you can disable this if you only want the drawing)
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: 'rgba(0, 255, 0, 0.4)', lineWidth: 2});
+                drawLandmarks(canvasCtx, landmarks, {color: 'rgba(255, 0, 0, 0.4)', lineWidth: 1});
+                
+                // AIR DRAWING LOGIC (Satu Jari Telunjuk Tegak - seperti memegang pensil)
+                const indexTip  = landmarks[8];   // Ujung telunjuk
+                const indexDip  = landmarks[7];   // Ruas kedua telunjuk
+                const indexMcp  = landmarks[5];   // Pangkal telunjuk
+                const middleTip = landmarks[12];  // Ujung jari tengah
+                const ringTip   = landmarks[16];  // Ujung jari manis
+                const pinkyTip  = landmarks[20];  // Ujung kelingking
+                const thumbTip  = landmarks[4];   // Ujung jempol
+                const wrist     = landmarks[0];   // Pergelangan
+
+                // Telunjuk BERDIRI: Ujungnya harus di atas pangkalnya (y lebih kecil = lebih atas)
+                const indexUp = indexTip.y < indexMcp.y - 0.04;
+                
+                // Jari lain TERLIPAT: Ujungnya harus di bawah pangkal telunjuk (sebagai referensi)
+                const middleDown = middleTip.y > landmarks[10].y; // Ujung tengah < pangkal tengah
+                const ringDown   = ringTip.y   > landmarks[14].y;
+                const pinkyDown  = pinkyTip.y  > landmarks[18].y;
+
+                // "Pen Down": Hanya telunjuk yang tegak, jari lain terlipat
+                const isDrawingPose = indexUp && middleDown && ringDown && pinkyDown;
+                
+                const currX = indexTip.x * drawingElement.width;
+                const currY = indexTip.y * drawingElement.height;
+                
+                if (isDrawingPose) {
+                    if (smoothedX === null) {
+                        smoothedX = currX;
+                        smoothedY = currY;
+                    } else {
+                        smoothedX = (currX * SMOOTH_ALPHA) + (smoothedX * (1 - SMOOTH_ALPHA));
+                        smoothedY = (currY * SMOOTH_ALPHA) + (smoothedY * (1 - SMOOTH_ALPHA));
+                    }
+
+                    if (prevDrawX !== null && prevDrawY !== null) {
+                        drawingCtx.beginPath();
+                        drawingCtx.moveTo(prevDrawX, prevDrawY);
+                        drawingCtx.lineTo(smoothedX, smoothedY);
+                        
+                        // Neon Stroke Style
+                        drawingCtx.strokeStyle = "#ffffff";
+                        drawingCtx.lineWidth = 14;
+                        drawingCtx.lineCap = "round";
+                        drawingCtx.lineJoin = "round";
+                        
+                        drawingCtx.shadowColor = "rgba(255, 255, 255, 0.9)";
+                        drawingCtx.shadowBlur = 20;
+                        
+                        drawingCtx.stroke();
+                    }
+                    prevDrawX = smoothedX;
+                    prevDrawY = smoothedY;
+                } else {
+                    // Pen Up (Hover mode)
+                    prevDrawX = null;
+                    prevDrawY = null;
+                    smoothedX = null;
+                    smoothedY = null;
+                }
+            } else {
+                prevDrawX = null;
+                prevDrawY = null;
+            }
+            canvasCtx.restore();
+        }
+
+        async function processVideoFrame() {
+            if (!isProcessingFrames) return;
+            if (webcamEl.videoWidth > 0 && !webcamEl.paused && !webcamEl.ended) {
+                await handsTracking.send({image: webcamEl});
+            }
+            requestAnimationFrame(processVideoFrame);
+        }
+        // ---------------------------
+        const countdownEl = document.getElementById('countdown');
+        const startPanel = document.getElementById('start-panel');
+        const videoPanel = document.getElementById('video-panel');
+        const btnRecord = document.getElementById('btn-record');
+        const btnRetake = document.getElementById('btn-retake');
+        const btnSubmit = document.getElementById('btn-submit');
+        const statusMsg = document.getElementById('status-msg');
+
+        async function startCamera() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            if (!name || !phone) return alert("Mohon lengkapi Nama dan No WhatsApp");
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 1080 }, height: { ideal: 1920 }, facingMode: "user" },
+                    audio: true 
+                });
+                webcamEl.srcObject = stream;
+                
+                startPanel.classList.add('hidden');
+                videoPanel.classList.remove('hidden');
+                
+                // Tampilkan Tracker & Inisialisasi
+                document.getElementById('model-selector-container').classList.remove('hidden');
+                canvasElement.classList.remove('hidden');
+                drawingElement.classList.remove('hidden');
+                initHandTracking();
+                isProcessingFrames = true;
+                webcamEl.onloadedmetadata = () => {
+                    webcamEl.play();
+                    processVideoFrame();
+                };
+            } catch (err) {
+                alert("Gagal mengakses kamera/mic: " + err.message);
+            }
+        }
+
+        // --- RECORDING COMPOSITE STREAM ---
+        const recordedCanvasContainer = document.createElement('canvas');
+        const recordedCanvasCtx = recordedCanvasContainer.getContext('2d');
+        let isRecordingNow = false;
+
+        function renderCompositeLoop() {
+            if (!isRecordingNow) return;
+            
+            recordedCanvasContainer.width = webcamEl.videoWidth;
+            recordedCanvasContainer.height = webcamEl.videoHeight;
+            
+            // Draw Mirrored Composite to match what user sees
+            recordedCanvasCtx.save();
+            recordedCanvasCtx.translate(recordedCanvasContainer.width, 0);
+            recordedCanvasCtx.scale(-1, 1);
+            
+            // 1. Draw WebCam Video
+            recordedCanvasCtx.drawImage(webcamEl, 0, 0, recordedCanvasContainer.width, recordedCanvasContainer.height);
+            // 2. Draw Skeleton (Opsional, di-comment agar tidak ikut terekam)
+            // recordedCanvasCtx.drawImage(canvasElement, 0, 0); 
+            // 3. Draw Neon Drawing
+            recordedCanvasCtx.drawImage(drawingElement, 0, 0);
+            
+            recordedCanvasCtx.restore();
+            
+            requestAnimationFrame(renderCompositeLoop);
+        }
+
+        function startRecording() {
+            recordedChunks = [];
+            // Gunakan codec MP4 jika didukung browser (bawaan biasanya webm)
+            const options = MediaRecorder.isTypeSupported('video/webm;codecs=h264') 
+                ? { mimeType: 'video/webm;codecs=h264' } 
+                : { mimeType: 'video/webm' };
+            
+            // Mulai merender kanvas gabungan
+            isRecordingNow = true;
+            renderCompositeLoop();
+            
+            // Ambil stream dari kanvas (video) dan mikrofon (audio)
+            const compositeStream = recordedCanvasContainer.captureStream(30);
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) {
+                compositeStream.addTrack(audioTrack);
+            }
+                
+            mediaRecorder = new MediaRecorder(compositeStream, options);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) recordedChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                isRecordingNow = false; // Hentikan loop render kanvas
+                videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                const videoUrl = URL.createObjectURL(videoBlob);
+                
+                webcamEl.classList.add('hidden');
+                canvasElement.classList.add('hidden');
+                drawingElement.classList.add('hidden');
+                previewEl.src = videoUrl;
+                previewEl.classList.remove('hidden');
+                
+                btnRecord.classList.add('hidden');
+                document.getElementById('btn-cleardraw').classList.add('hidden');
+                btnRetake.classList.remove('hidden');
+                btnSubmit.classList.remove('hidden');
+                countdownEl.classList.add('hidden');
+            };
+
+            // Start UInya
+            mediaRecorder.start();
+            btnRecord.disabled = true;
+            btnRecord.innerText = "Merekam...";
+            countdownEl.classList.remove('hidden');
+
+            let timeLeft = recordDuration / 1000;
+            countdownEl.innerText = timeLeft;
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                countdownEl.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    mediaRecorder.stop();
+                }
+            }, 1000);
+        }
+
+        function retakeVideo() {
+            videoBlob = null;
+            previewEl.classList.add('hidden');
+            webcamEl.classList.remove('hidden');
+            canvasElement.classList.remove('hidden');
+            drawingElement.classList.remove('hidden');
+            
+            btnRetake.classList.add('hidden');
+            btnSubmit.classList.add('hidden');
+            btnRecord.classList.remove('hidden');
+            document.getElementById('btn-cleardraw').classList.remove('hidden');
+            btnRecord.disabled = false;
+            btnRecord.innerText = "🔴 Rekam Video (15s)";
+            statusMsg.innerText = "";
+            statusMsg.style.color = "#A7F3D0";
+            clearDrawing(); // Reset coretan
+        }
+
+        async function submitVideo() {
+            if (!videoBlob) return alert("Belum ada video yang direkam!");
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Mengirim...";
+            statusMsg.innerText = "Sedang dikirim ke server...";
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('phone', document.getElementById('phone').value);
+            // Simpan sebagai mp4 walau container aslinya webm, di backend FFmpeg akan konversi
+            formData.append('video', videoBlob, 'recording.mp4'); 
+
+            try {
+                const response = await fetch('/api/videobooth/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusMsg.innerText = "✅ Berhasil! Video sedang diproses. Silakan cek WhatsApp Anda sebentar lagi.";
+                    
+                    // Reset ke awal setelah 3 detik
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3500);
+                } else {
+                    statusMsg.innerText = "❌ Gagal: " + result.message;
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Coba Kirim Lagi";
+                }
+            } catch (err) {
+                statusMsg.innerText = "❌ Terjadi kesalahan jaringan.";
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Coba Kirim Lagi";
+            }
+        }
+    </script>
+</body>
+</html>

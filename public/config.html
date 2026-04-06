@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Configurator</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background: #f3f4f6; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .config-card { background: #fff; width: 100%; max-width: 500px; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #111; text-align: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; }
+        label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-top: 15px; margin-bottom: 5px; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+        input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; padding: 0; background: none; }
+        .colors { display: flex; gap: 15px; }
+        .colors > div { flex: 1; }
+        button { margin-top: 25px; padding: 12px; font-size: 15px; font-weight: bold; background: #2563eb; color: #fff; border: none; border-radius: 6px; width: 100%; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .success { color: #047857; text-align: center; font-size: 14px; margin-top: 15px; display: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="config-card">
+    <h2>🛠️ Preset Tema Event</h2>
+    
+    <label>Judul Videobooth (Title)</label>
+    <input type="text" id="title" placeholder="Cth: Aldi & Rina Wedding">
+
+    <label>Kalimat Sapaan (Subtitle)</label>
+    <input type="text" id="subtitle" placeholder="Cth: Silakan rekam momen kebahagiaan kami!">
+
+    <div class="colors">
+        <div>
+            <label>Warna Layar Atas</label>
+            <input type="color" id="bgColor1">
+        </div>
+        <div>
+            <label>Warna Layar Bawah</label>
+            <input type="color" id="bgColor2">
+        </div>
+        <div>
+            <label>Warna Tombol (Aksen)</label>
+            <input type="color" id="accentColor">
+        </div>
+    </div>
+
+    <label>URL Gambar Latar Belakang (Timpa warna di atas)</label>
+    <input type="text" id="bgImageUrl" placeholder="Cth: https://example.com/background.jpg">
+
+    <label>URL Google Fonts (Opsional)</label>
+    <input type="text" id="fontUrl" placeholder="Cth: https://fonts.googleapis.com/css2?family=Playfair+Display...">
+
+    <label>Nama Font (CSS Font-Family)</label>
+    <input type="text" id="fontFamily" placeholder="Cth: 'Playfair Display', serif">
+
+    <button onclick="saveConfig()">Simpan & Terapkan di Layar Kiosk</button>
+    <div class="success" id="successMsg">✅ Pengaturan berhasil diperbarui! Silakan refresh layar Videobooth.</div>
+</div>
+
+<script>
+    // Ambil data terbaru dari server saat menu dicheck
+    fetch('/api/config')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('title').value = data.title || '';
+            document.getElementById('subtitle').value = data.subtitle || '';
+            document.getElementById('bgColor1').value = data.bgColor1 || '#2c3e50';
+            document.getElementById('bgColor2').value = data.bgColor2 || '#000000';
+            document.getElementById('bgImageUrl').value = data.bgImageUrl || '';
+            document.getElementById('accentColor').value = data.accentColor || '#E11D48';
+            document.getElementById('fontUrl').value = data.fontUrl || '';
+            document.getElementById('fontFamily').value = data.fontFamily || '';
+        });
+
+    function saveConfig() {
+        const payload = {
+            title: document.getElementById('title').value,
+            subtitle: document.getElementById('subtitle').value,
+            bgColor1: document.getElementById('bgColor1').value,
+            bgColor2: document.getElementById('bgColor2').value,
+            bgImageUrl: document.getElementById('bgImageUrl').value,
+            accentColor: document.getElementById('accentColor').value,
+            fontUrl: document.getElementById('fontUrl').value,
+            fontFamily: document.getElementById('fontFamily').value
+        };
+
+        fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(res => res.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  const msg = document.getElementById('successMsg');
+                  msg.style.display = 'block';
+                  setTimeout(() => msg.style.display = 'none', 4000);
+              }
+          });
+    }
+</script>
+
+</body>
+</html>
