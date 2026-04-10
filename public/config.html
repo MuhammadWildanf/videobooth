@@ -1,279 +1,446 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Configurator</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background: #f3f4f6; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .config-card { background: #fff; width: 100%; max-width: 500px; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; color: #111; text-align: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; }
-        label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-top: 15px; margin-bottom: 5px; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
-        input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; padding: 0; background: none; }
-        .colors { display: flex; gap: 15px; }
-        .colors > div { flex: 1; }
-        button { margin-top: 25px; padding: 12px; font-size: 15px; font-weight: bold; background: #2563eb; color: #fff; border: none; border-radius: 6px; width: 100%; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #1d4ed8; }
-        .success { color: #047857; text-align: center; font-size: 14px; margin-top: 15px; display: none; font-weight: bold; }
-        
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            background: #f3f4f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .config-card {
+            background: #fff;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #111;
+            text-align: center;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 13px;
+            color: #666;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+
+        .colors {
+            display: flex;
+            gap: 15px;
+        }
+
+        .colors>div {
+            flex: 1;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .success {
+            color: #047857;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+        }
+
         /* Toggle Switch Styling */
-        .toggle-group { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #eee; }
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2563eb; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #2563eb;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
 
         /* Preset Chips */
-        .preset-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .preset-chip { 
-            padding: 8px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;
-            border: 2px solid transparent; transition: 0.2s; background: #eee;
+        .preset-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
-        .preset-chip:hover { transform: translateY(-2px); }
-        .preset-chip.active { border-color: #2563eb; background: #dbeafe; }
+
+        .preset-chip {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            background: #eee;
+        }
+
+        .preset-chip:hover {
+            transform: translateY(-2px);
+        }
+
+        .preset-chip.active {
+            border-color: #2563eb;
+            background: #dbeafe;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="config-card">
-    <h2>🛠️ Preset Tema Event</h2>
-    
-    <label>Logo Event (PNG Transparan Disarankan)</label>
-    <div style="display: flex; gap: 10px; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1.5px dashed #ccc; margin-bottom: 5px;">
-        <img id="logoPreview" src="" alt="Logo Preview" style="max-height: 80px; max-width: 150px; background: #ddd; border-radius: 5px;">
-        <div>
-            <input type="file" id="logoFile" accept="image/*" style="font-size: 11px;">
-            <p style="font-size: 11px; color: #666; margin: 4px 0 0 0;">Upload logo baru untuk mengganti yang lama.</p>
+    <div class="config-card">
+        <h2>🛠️ Preset Tema Event</h2>
+
+        <label>Logo Event (PNG Transparan Disarankan)</label>
+        <div
+            style="display: flex; gap: 10px; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1.5px dashed #ccc; margin-bottom: 5px;">
+            <img id="logoPreview" src="" alt="Logo Preview"
+                style="max-height: 80px; max-width: 150px; background: #ddd; border-radius: 5px;">
+            <div>
+                <input type="file" id="logoFile" accept="image/*" style="font-size: 11px;">
+                <p style="font-size: 11px; color: #666; margin: 4px 0 0 0;">Upload logo baru untuk mengganti yang lama.
+                </p>
+            </div>
         </div>
+        <div id="uploadStatus" style="font-size: 12px; font-weight: bold;"></div>
+
+        <label>Video Tutorial (Muncul di Panel Kanan)</label>
+        <div
+            style="display: flex; gap: 10px; align-items: center; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1.5px dashed #3b82f6; margin-bottom: 5px;">
+            <div style="font-size: 20px;">🎬</div>
+            <div style="flex-grow: 1;">
+                <input type="file" id="tutorialFile" accept="video/*" style="font-size: 11px;">
+                <p id="tutorialPath" style="font-size: 10px; color: #3b82f6; margin: 4px 0 0 0; word-break: break-all;">
+                    Belum ada video...</p>
+            </div>
+        </div>
+
+        <label>Video Contoh Hasil (Muncul di Panel Kiri)</label>
+        <div
+            style="display: flex; gap: 10px; align-items: center; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1.5px dashed #3b82f6; margin-bottom: 5px;">
+            <div style="font-size: 20px;">🎥</div>
+            <div style="flex-grow: 1;">
+                <input type="file" id="resultFile" accept="video/*" style="font-size: 11px;">
+                <p id="resultPath" style="font-size: 10px; color: #3b82f6; margin: 4px 0 0 0; word-break: break-all;">
+                    Belum ada video...</p>
+            </div>
+        </div>
+        <label>Judul Videobooth (Title)</label>
+        <input type="text" id="title" placeholder="Cth: Aldi & Rina Wedding">
+
+        <label>Instruksi Utama (Subjudul)</label>
+        <input type="text" id="subtitle" placeholder="Cth: Silakan isi data...">
+
+        <h3 style="margin-top: 20px; color: #555;">🎨 Konten Alur UI</h3>
+        <label>Teks Ready (Sebelum Rekam)</label>
+        <textarea id="readyText" rows="2"
+            style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
+
+        <label>Teks Review (Saat Mengulas)</label>
+        <textarea id="reviewText" rows="2"
+            style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
+
+        <label>Teks Sukses (Setelah Kirim)</label>
+        <textarea id="successText" rows="3"
+            style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
+
+        <h3 style="margin-top: 25px; color: #555;">✨ Galeri Tema Wedding (Presets)</h3>
+        <div class="preset-container">
+            <div class="preset-chip" onclick="applyPreset('silk')">🤍 Silk White</div>
+            <div class="preset-chip" onclick="applyPreset('gold')">👑 Champagne Gold</div>
+            <div class="preset-chip" onclick="applyPreset('navy')">🌌 Midnight Navy</div>
+            <div class="preset-chip" onclick="applyPreset('sage')">🌿 Sage Garden</div>
+            <div class="preset-chip" onclick="applyPreset('maroon')">🍷 Royal Maroon</div>
+        </div>
+
+        <div class="colors">
+            <div>
+                <label>Warna Layar Atas</label>
+                <input type="color" id="bgColor1">
+            </div>
+            <div>
+                <label>Warna Layar Bawah</label>
+                <input type="color" id="bgColor2">
+            </div>
+            <div>
+                <label>Warna Tombol (Aksen)</label>
+                <input type="color" id="accentColor">
+            </div>
+            <div>
+                <label>Warna Bingkai (Frame)</label>
+                <input type="color" id="frameColor">
+            </div>
+        </div>
+
+        <label>URL Gambar Latar Belakang (Timpa warna di atas)</label>
+        <input type="text" id="bgImageUrl" placeholder="Cth: https://example.com/background.jpg">
+
+        <label>URL Google Fonts (Opsional)</label>
+        <input type="text" id="fontUrl" placeholder="Cth: https://fonts.googleapis.com/css2?family=Playfair+Display...">
+
+        <label>Nama Font (CSS Font-Family)</label>
+        <input type="text" id="fontFamily" placeholder="Cth: 'Playfair Display', serif">
+
+        <label>Durasi Rekaman (Detik)</label>
+        <input type="number" id="recordingDuration" placeholder="Default: 15"
+            style="width: 100%; padding: 10px; border-radius: 8px; border: 1.5px solid #ddd;">
+
+        <div class="toggle-group">
+            <div>
+                <label style="margin:0;">Aktifkan Gesture (Pinch-to-Draw)</label>
+                <small style="color:#888;">Gunakan jari telunjuk untuk menggambar di udara.</small>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="enableGesture">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <button onclick="saveConfig()">Simpan & Terapkan di Layar Kiosk</button>
+        <div class="success" id="successMsg">✅ Pengaturan berhasil diperbarui! Silakan refresh layar Videobooth.</div>
     </div>
-    <div id="uploadStatus" style="font-size: 12px; font-weight: bold;"></div>
 
-    <label>Video Tutorial (Muncul di Panel Kanan)</label>
-    <div style="display: flex; gap: 10px; align-items: center; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1.5px dashed #3b82f6; margin-bottom: 5px;">
-        <div style="font-size: 20px;">🎬</div>
-        <div style="flex-grow: 1;">
-            <input type="file" id="tutorialFile" accept="video/*" style="font-size: 11px;">
-            <p id="tutorialPath" style="font-size: 10px; color: #3b82f6; margin: 4px 0 0 0; word-break: break-all;">Belum ada video...</p>
-        </div>
-    </div>
+    <script>
+        // Ambil data terbaru dari server saat menu dicheck
+        fetch('/api/config')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('title').value = data.title || '';
+                document.getElementById('subtitle').value = data.subtitle || '';
+                document.getElementById('bgColor1').value = data.bgColor1 || '#2c3e50';
+                document.getElementById('bgColor2').value = data.bgColor2 || '#000000';
+                document.getElementById('bgImageUrl').value = data.bgImageUrl || '';
+                document.getElementById('accentColor').value = data.accentColor || '#E11D48';
+                document.getElementById('frameColor').value = data.frameColor || '#3d3d3d';
+                document.getElementById('fontUrl').value = data.fontUrl || '';
+                document.getElementById('fontFamily').value = data.fontFamily || '';
+                document.getElementById('enableGesture').checked = data.enableGesture !== false; // Default true
+                document.getElementById('successText').value = data.successText || '';
+                document.getElementById('recordingDuration').value = data.recordingDuration || 15;
 
-    <label>Video Contoh Hasil (Muncul di Panel Kiri)</label>
-    <div style="display: flex; gap: 10px; align-items: center; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1.5px dashed #3b82f6; margin-bottom: 5px;">
-        <div style="font-size: 20px;">🎥</div>
-        <div style="flex-grow: 1;">
-            <input type="file" id="resultFile" accept="video/*" style="font-size: 11px;">
-            <p id="resultPath" style="font-size: 10px; color: #3b82f6; margin: 4px 0 0 0; word-break: break-all;">Belum ada video...</p>
-        </div>
-    </div>
-    <label>Judul Videobooth (Title)</label>
-    <input type="text" id="title" placeholder="Cth: Aldi & Rina Wedding">
+                document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'Belum ada video...';
+                document.getElementById('resultPath').innerText = data.resultVideoUrl || 'Belum ada video...';
 
-    <label>Instruksi Utama (Subjudul)</label>
-    <input type="text" id="subtitle" placeholder="Cth: Silakan isi data...">
-
-    <h3 style="margin-top: 20px; color: #555;">🎨 Konten Alur UI</h3>
-    <label>Teks Ready (Sebelum Rekam)</label>
-    <textarea id="readyText" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
-    
-    <label>Teks Review (Saat Mengulas)</label>
-    <textarea id="reviewText" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
-    
-    <label>Teks Sukses (Setelah Kirim)</label>
-    <textarea id="successText" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
-
-    <h3 style="margin-top: 25px; color: #555;">✨ Galeri Tema Wedding (Presets)</h3>
-    <div class="preset-container">
-        <div class="preset-chip" onclick="applyPreset('silk')">🤍 Silk White</div>
-        <div class="preset-chip" onclick="applyPreset('gold')">👑 Champagne Gold</div>
-        <div class="preset-chip" onclick="applyPreset('navy')">🌌 Midnight Navy</div>
-        <div class="preset-chip" onclick="applyPreset('sage')">🌿 Sage Garden</div>
-        <div class="preset-chip" onclick="applyPreset('maroon')">🍷 Royal Maroon</div>
-    </div>
-
-    <div class="colors">
-        <div>
-            <label>Warna Layar Atas</label>
-            <input type="color" id="bgColor1">
-        </div>
-        <div>
-            <label>Warna Layar Bawah</label>
-            <input type="color" id="bgColor2">
-        </div>
-        <div>
-            <label>Warna Tombol (Aksen)</label>
-            <input type="color" id="accentColor">
-        </div>
-        <div>
-            <label>Warna Bingkai (Frame)</label>
-            <input type="color" id="frameColor">
-        </div>
-    </div>
-
-    <label>URL Gambar Latar Belakang (Timpa warna di atas)</label>
-    <input type="text" id="bgImageUrl" placeholder="Cth: https://example.com/background.jpg">
-
-    <label>URL Google Fonts (Opsional)</label>
-    <input type="text" id="fontUrl" placeholder="Cth: https://fonts.googleapis.com/css2?family=Playfair+Display...">
-
-    <label>Nama Font (CSS Font-Family)</label>
-    <input type="text" id="fontFamily" placeholder="Cth: 'Playfair Display', serif">
-
-    <div class="toggle-group">
-        <div>
-            <label style="margin:0;">Aktifkan Gesture (Pinch-to-Draw)</label>
-            <small style="color:#888;">Gunakan jari telunjuk untuk menggambar di udara.</small>
-        </div>
-        <label class="switch">
-            <input type="checkbox" id="enableGesture">
-            <span class="slider"></span>
-        </label>
-    </div>
-
-    <button onclick="saveConfig()">Simpan & Terapkan di Layar Kiosk</button>
-    <div class="success" id="successMsg">✅ Pengaturan berhasil diperbarui! Silakan refresh layar Videobooth.</div>
-</div>
-
-<script>
-    // Ambil data terbaru dari server saat menu dicheck
-    fetch('/api/config')
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('title').value = data.title || '';
-            document.getElementById('subtitle').value = data.subtitle || '';
-            document.getElementById('bgColor1').value = data.bgColor1 || '#2c3e50';
-            document.getElementById('bgColor2').value = data.bgColor2 || '#000000';
-            document.getElementById('bgImageUrl').value = data.bgImageUrl || '';
-            document.getElementById('accentColor').value = data.accentColor || '#E11D48';
-            document.getElementById('frameColor').value = data.frameColor || '#3d3d3d';
-            document.getElementById('fontUrl').value = data.fontUrl || '';
-            document.getElementById('fontFamily').value = data.fontFamily || '';
-            document.getElementById('enableGesture').checked = data.enableGesture !== false; // Default true
-            document.getElementById('successText').value = data.successText || '';
-            
-            document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'Belum ada video...';
-            document.getElementById('resultPath').innerText = data.resultVideoUrl || 'Belum ada video...';
-            
-            // Setel preview logo saat ini
-            if (data.logoUrl) {
-                document.getElementById('logoPreview').src = data.logoUrl;
-            }
-        });
-
-    function applyPreset(theme) {
-        const presets = {
-            silk: { bg1: '#ffffff', bg2: '#f0f0f0', accent: '#c5a059', frame: 'rgba(30, 41, 59, 0.9)', font: "'Cormorant Garamond', serif" },
-            gold: { bg1: '#fdfbfb', bg2: '#ebedee', accent: '#c5a059', frame: 'rgba(30, 41, 59, 0.95)', font: "'Cormorant Garamond', serif" },
-            navy: { bg1: '#0f172a', bg2: '#020617', accent: '#fde047', frame: 'rgba(30, 41, 59, 0.6)', font: "'Outfit', sans-serif" },
-            sage: { bg1: '#f1f5f1', bg2: '#dee6de', accent: '#5f7c5f', frame: 'rgba(30, 41, 59, 0.8)', font: "'Outfit', sans-serif" },
-            maroon: { bg1: '#4a0e0e', bg2: '#2a0505', accent: '#facc15', frame: 'rgba(30, 41, 59, 0.5)', font: "'Cormorant Garamond', serif" }
-        };
-
-        const p = presets[theme];
-        if(!p) return;
-
-        document.getElementById('bgColor1').value = p.bg1;
-        document.getElementById('bgColor2').value = p.bg2;
-        document.getElementById('accentColor').value = p.accent;
-        document.getElementById('frameColor').value = p.frame.includes('rgba') ? '#1e293b' : p.frame; // Fallback untuk picker warna
-        document.getElementById('fontFamily').value = p.font;
-        
-        // Visual feedback
-        document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-        event.target.classList.add('active');
-    }
-
-    async function saveConfig() {
-        const logoFile = document.getElementById('logoFile').files[0];
-        const statusDiv = document.getElementById('uploadStatus');
-        
-        // 1. Upload Logo jika ada yang baru dipilih
-        let finalLogoUrl = null;
-        if (logoFile) {
-            statusDiv.innerText = "⏳ Sedang mengunggah logo...";
-            statusDiv.style.color = "#2563eb";
-            
-            const formData = new FormData();
-            formData.append('logo', logoFile);
-            
-            try {
-                const uploadRes = await fetch('/api/config/logo', {
-                    method: 'POST',
-                    body: formData
-                });
-                const uploadData = await uploadRes.json();
-                if (uploadData.status === 'success') {
-                    finalLogoUrl = uploadData.logoUrl;
-                    document.getElementById('logoPreview').src = finalLogoUrl;
+                // Setel preview logo saat ini
+                if (data.logoUrl) {
+                    document.getElementById('logoPreview').src = data.logoUrl;
                 }
-            } catch (err) {
-                console.error("Gagal upload logo:", err);
+            });
+
+        function applyPreset(theme) {
+            const presets = {
+                silk: { bg1: '#ffffff', bg2: '#f0f0f0', accent: '#c5a059', frame: 'rgba(30, 41, 59, 0.9)', font: "'Cormorant Garamond', serif" },
+                gold: { bg1: '#fdfbfb', bg2: '#ebedee', accent: '#c5a059', frame: 'rgba(30, 41, 59, 0.95)', font: "'Cormorant Garamond', serif" },
+                navy: { bg1: '#0f172a', bg2: '#020617', accent: '#fde047', frame: 'rgba(30, 41, 59, 0.6)', font: "'Outfit', sans-serif" },
+                sage: { bg1: '#f1f5f1', bg2: '#dee6de', accent: '#5f7c5f', frame: 'rgba(30, 41, 59, 0.8)', font: "'Outfit', sans-serif" },
+                maroon: { bg1: '#4a0e0e', bg2: '#2a0505', accent: '#facc15', frame: 'rgba(30, 41, 59, 0.5)', font: "'Cormorant Garamond', serif" }
+            };
+
+            const p = presets[theme];
+            if (!p) return;
+
+            document.getElementById('bgColor1').value = p.bg1;
+            document.getElementById('bgColor2').value = p.bg2;
+            document.getElementById('accentColor').value = p.accent;
+            document.getElementById('frameColor').value = p.frame.includes('rgba') ? '#1e293b' : p.frame; // Fallback untuk picker warna
+            document.getElementById('fontFamily').value = p.font;
+
+            // Visual feedback
+            document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        async function saveConfig() {
+            const logoFile = document.getElementById('logoFile').files[0];
+            const statusDiv = document.getElementById('uploadStatus');
+
+            // 1. Upload Logo jika ada yang baru dipilih
+            let finalLogoUrl = null;
+            if (logoFile) {
+                statusDiv.innerText = "⏳ Sedang mengunggah logo...";
+                statusDiv.style.color = "#2563eb";
+
+                const formData = new FormData();
+                formData.append('logo', logoFile);
+
+                try {
+                    const uploadRes = await fetch('/api/config/logo', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.status === 'success') {
+                        finalLogoUrl = uploadData.logoUrl;
+                        document.getElementById('logoPreview').src = finalLogoUrl;
+                    }
+                } catch (err) {
+                    console.error("Gagal upload logo:", err);
+                }
             }
+
+            // 2. Upload Tutorial Video jika dipilih
+            const tutorialFile = document.getElementById('tutorialFile').files[0];
+            let finalTutorialUrl = null;
+            if (tutorialFile) {
+                const formData = new FormData();
+                formData.append('video', tutorialFile);
+                try {
+                    const res = await fetch('/api/config/video', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.status === 'success') finalTutorialUrl = data.videoUrl;
+                } catch (err) { console.error("Gagal upload tutorial:", err); }
+            }
+
+            // 3. Upload Result Video jika dipilih
+            const resultFile = document.getElementById('resultFile').files[0];
+            let finalResultUrl = null;
+            if (resultFile) {
+                const formData = new FormData();
+                formData.append('video', resultFile);
+                try {
+                    const res = await fetch('/api/config/video', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.status === 'success') finalResultUrl = data.videoUrl;
+                } catch (err) { console.error("Gagal upload result:", err); }
+            }
+
+            const payload = {
+                title: document.getElementById('title').value,
+                subtitle: document.getElementById('subtitle').value,
+                bgColor1: document.getElementById('bgColor1').value,
+                bgColor2: document.getElementById('bgColor2').value,
+                bgImageUrl: document.getElementById('bgImageUrl').value,
+                accentColor: document.getElementById('accentColor').value,
+                frameColor: document.getElementById('frameColor').value,
+                fontUrl: document.getElementById('fontUrl').value,
+                fontFamily: document.getElementById('fontFamily').value,
+                enableGesture: document.getElementById('enableGesture').checked,
+                readyText: document.getElementById('readyText').value,
+                reviewText: document.getElementById('reviewText').value,
+                successText: document.getElementById('successText').value,
+                tutorialVideoUrl: finalTutorialUrl || document.getElementById('tutorialPath').innerText,
+                resultVideoUrl: finalResultUrl || document.getElementById('resultPath').innerText,
+                recordingDuration: parseInt(document.getElementById('recordingDuration').value) || 15
+            };
+
+            if (finalLogoUrl) payload.logoUrl = finalLogoUrl;
+
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const msg = document.getElementById('successMsg');
+                        msg.style.display = 'block';
+                        setTimeout(() => msg.style.display = 'none', 4000);
+                    }
+                });
         }
-
-        // 2. Upload Tutorial Video jika dipilih
-        const tutorialFile = document.getElementById('tutorialFile').files[0];
-        let finalTutorialUrl = null;
-        if (tutorialFile) {
-            const formData = new FormData();
-            formData.append('video', tutorialFile);
-            try {
-                const res = await fetch('/api/config/video', { method: 'POST', body: formData });
-                const data = await res.json();
-                if (data.status === 'success') finalTutorialUrl = data.videoUrl;
-            } catch (err) { console.error("Gagal upload tutorial:", err); }
-        }
-
-        // 3. Upload Result Video jika dipilih
-        const resultFile = document.getElementById('resultFile').files[0];
-        let finalResultUrl = null;
-        if (resultFile) {
-            const formData = new FormData();
-            formData.append('video', resultFile);
-            try {
-                const res = await fetch('/api/config/video', { method: 'POST', body: formData });
-                const data = await res.json();
-                if (data.status === 'success') finalResultUrl = data.videoUrl;
-            } catch (err) { console.error("Gagal upload result:", err); }
-        }
-
-        const payload = {
-            title: document.getElementById('title').value,
-            subtitle: document.getElementById('subtitle').value,
-            bgColor1: document.getElementById('bgColor1').value,
-            bgColor2: document.getElementById('bgColor2').value,
-            bgImageUrl: document.getElementById('bgImageUrl').value,
-            accentColor: document.getElementById('accentColor').value,
-            frameColor: document.getElementById('frameColor').value,
-            fontUrl: document.getElementById('fontUrl').value,
-            fontFamily: document.getElementById('fontFamily').value,
-            enableGesture: document.getElementById('enableGesture').checked,
-            readyText: document.getElementById('readyText').value,
-            reviewText: document.getElementById('reviewText').value,
-            successText: document.getElementById('successText').value,
-            tutorialVideoUrl: finalTutorialUrl || document.getElementById('tutorialPath').innerText,
-            resultVideoUrl: finalResultUrl || document.getElementById('resultPath').innerText
-        };
-
-        if (finalLogoUrl) payload.logoUrl = finalLogoUrl;
-
-        fetch('/api/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).then(res => res.json())
-          .then(data => {
-              if (data.status === 'success') {
-                  const msg = document.getElementById('successMsg');
-                  msg.style.display = 'block';
-                  setTimeout(() => msg.style.display = 'none', 4000);
-              }
-          });
-    }
-</script>
+    </script>
 
 </body>
+
 </html>

@@ -65,7 +65,7 @@ const uploadToDrive = async (filePath, fileName) => {
         },
         fields: 'id, webViewLink',
     });
-    
+
     // Ubah akses menjadi public agar bisa dibuka dari link WA
     await drive.permissions.create({
         fileId: response.data.id,
@@ -109,7 +109,7 @@ const sendVideoEmail = async (toEmail, userName, videoLink) => {
             </div>
         `
     };
-    
+
     try {
         await transporter.sendMail(mailOptions);
         console.log(`[EMAIL] ✅ Sukses mengirim hasil ke: ${toEmail}`);
@@ -122,7 +122,7 @@ const sendVideoEmail = async (toEmail, userName, videoLink) => {
 // Background Queue Worker Engine
 const worker = async (task) => {
     console.log(`\n[QUEUE] ⏳ Memulai proses rendering video untuk: ${task.name} (${task.phone})`);
-    
+
     return new Promise((resolve, reject) => {
         const inputPath = task.videoPath;
         const outputPath = path.join('uploads', 'FINAL-' + path.basename(inputPath));
@@ -134,37 +134,36 @@ const worker = async (task) => {
         if (fs.existsSync(overlayPath)) {
             console.log(`[FFMPEG] Mendeteksi overlay.png, sedang merender bingkai...`);
             cmd = cmd.input(overlayPath)
-                     .complexFilter([
-                         '[0:v]hflip[mirrored]', // Mirroring video mentah
-                         // Skalakan overlay agar pas dengan video jika ukurannya beda, lalu tempel
-                         '[1:v]scale=1080:1920[over];[mirrored][over]overlay=0:0' 
-                     ]);
+                .complexFilter([
+                    // Skalakan overlay agar pas dengan video jika ukurannya beda, lalu tempel
+                    '[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'
+                ]);
         } else {
-            console.log(`[FFMPEG] Tidak ada overlay.png, hanya me-mirroring video secara standar...`);
-            cmd = cmd.videoFilters('hflip'); // Hanya mirror biasa
+            console.log(`[FFMPEG] Tidak ada overlay.png, memproses video secara standar...`);
+            // cmd = cmd.videoFilters('hflip'); // Remove hflip to maintain mirrored look
         }
 
         cmd.output(outputPath)
-           .on('start', (commandLine) => {
-               console.log('[FFMPEG] Spawned FFmpeg dengan command: ' + commandLine);
-           })
-           .on('progress', (progress) => {
-               // Render log tipis-tipis agar tahu prosesnya berjalan
-               if (progress.percent) console.log(`[FFMPEG] Rendering: ${Math.round(progress.percent)}% done`);
-           })
-           .on('end', async () => {
-               console.log(`[QUEUE SUCCESS] 🌟 Tugas Selesai! Video matang disimpan di: ${outputPath}`);
-               
-               let driveLink = null;
-               try {
-                   console.log(`[G-DRIVE] ☁️ Sedang mengunggah ke Google Drive...`);
-                   const driveFile = await uploadToDrive(outputPath, `Videobooth-${task.name.replace(/\s+/g, '-')}-${Date.now()}.mp4`);
-                   driveLink = driveFile.webViewLink;
-                   console.log(`[G-DRIVE] ✅ Sukses diunggah! Link: ${driveLink}`);
-               } catch (err) {
-                   console.error(`[G-DRIVE] ❌ Gagal upload!`, err.message);
-               }
-               
+            .on('start', (commandLine) => {
+                console.log('[FFMPEG] Spawned FFmpeg dengan command: ' + commandLine);
+            })
+            .on('progress', (progress) => {
+                // Render log tipis-tipis agar tahu prosesnya berjalan
+                if (progress.percent) console.log(`[FFMPEG] Rendering: ${Math.round(progress.percent)}% done`);
+            })
+            .on('end', async () => {
+                console.log(`[QUEUE SUCCESS] 🌟 Tugas Selesai! Video matang disimpan di: ${outputPath}`);
+
+                let driveLink = null;
+                try {
+                    console.log(`[G-DRIVE] ☁️ Sedang mengunggah ke Google Drive...`);
+                    const driveFile = await uploadToDrive(outputPath, `Videobooth-${task.name.replace(/\s+/g, '-')}-${Date.now()}.mp4`);
+                    driveLink = driveFile.webViewLink;
+                    console.log(`[G-DRIVE] ✅ Sukses diunggah! Link: ${driveLink}`);
+                } catch (err) {
+                    console.error(`[G-DRIVE] ❌ Gagal upload!`, err.message);
+                }
+
                // === DI SINI TEMPAT UNTUK KIRIM EMAIL / WA ===
                 /* 
                 // Fitur Email dinonaktifkan sementara (Jangan dihapus)
@@ -176,24 +175,24 @@ const worker = async (task) => {
                     const waText = `Halo ${task.name}! ✨\n\nVideo keseruan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 ${driveLink}\n\nTerima kasih sudah mampir!`;
                     await sendWhatsAppMessage(task.phone, waText);
                 }
-               
-               // === PEMBERSIHAN FILE ===
-                try { 
-                    if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath); 
+
+                // === PEMBERSIHAN FILE ===
+                try {
+                    if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
                     if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
                     console.log(`[CLEANUP] 🧹 File lokal berhasil dihapus.`);
-                } catch(e){
+                } catch (e) {
                     console.error(`[CLEANUP] ⚠️ Gagal menghapus beberapa file lokal:`, e.message);
                 }
-                
+
                 resolve();
-           })
-           .on('error', (err) => {
-               console.error(`[QUEUE ERROR] ❌ FFmpeg Gagal memproses video untuk: ${task.name}`);
-               console.error(err);
-               reject(err);
-           })
-           .run();
+            })
+            .on('error', (err) => {
+                console.error(`[QUEUE ERROR] ❌ FFmpeg Gagal memproses video untuk: ${task.name}`);
+                console.error(err);
+                reject(err);
+            })
+            .run();
     });
 };
 
@@ -213,17 +212,17 @@ app.post('/api/videobooth/submit', upload.single('video'), (req, res) => {
         console.log(`[API] Menerima video dari ${name}. Memasukkan ke Antrean...`);
 
         // PUSH task ke Queue (Background)
-        queue.push({ 
-            name: name, 
-            phone: phone, 
-            videoPath: file.path 
+        queue.push({
+            name: name,
+            phone: phone,
+            videoPath: file.path
         });
 
         // KEMBALIKAN response secepat mungkin (tanpa menunggu queue selesai)
-        res.status(200).json({ 
-            status: 'success', 
-            message: 'Video berhasil disimpan dan sedang diproses', 
-            data: { name, phone } 
+        res.status(200).json({
+            status: 'success',
+            message: 'Video berhasil disimpan dan sedang diproses',
+            data: { name, phone }
         });
     } catch (err) {
         console.error(err);
@@ -266,7 +265,8 @@ const DEFAULT_CONFIG = {
     logoUrl: "/uploads_logo/logo-placeholder.png",
     tutorialVideoUrl: "",
     resultVideoUrl: "",
-    frameColor: "#3d3d3d"
+    frameColor: "#3d3d3d",
+    recordingDuration: 15
 };
 
 // Buat config.json jika baru pertama kali di-run
@@ -278,7 +278,7 @@ app.get('/api/config', (req, res) => {
     try {
         const configData = fs.readFileSync(CONFIG_FILE);
         res.json(JSON.parse(configData));
-    } catch(err) {
+    } catch (err) {
         res.json(DEFAULT_CONFIG);
     }
 });
@@ -289,7 +289,7 @@ app.post('/api/config', (req, res) => {
         const newConfig = { ...currentData, ...req.body };
         fs.writeFileSync(CONFIG_FILE, JSON.stringify(newConfig, null, 4));
         res.json({ status: 'success', message: 'Setelan UI berhasil disimpan!' });
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ status: 'error', message: 'Gagal menyimpan konfigurasi UI.' });
     }
@@ -312,20 +312,20 @@ const uploadLogo = multer({ storage: logoStorage });
 // Endpoint untuk Upload Logo, Background, dsb
 app.post('/api/config/logo', uploadLogo.single('logo'), (req, res) => {
     if (!req.file) return res.status(400).json({ status: 'error', message: 'No file uploaded' });
-    
+
     // Path untuk diakses di frontend
     const logoUrl = `/uploads_logo/${req.file.filename}`;
-    
+
     res.json({ status: 'success', logoUrl });
 });
 
 // Endpoint untuk Upload Video (Tutorial/Result)
 app.post('/api/config/video', uploadLogo.single('video'), (req, res) => {
     if (!req.file) return res.status(400).json({ status: 'error', message: 'No file uploaded' });
-    
+
     // Path untuk diakses di frontend
     const videoUrl = `/uploads_logo/${req.file.filename}`;
-    
+
     res.json({ status: 'success', videoUrl });
 });
 

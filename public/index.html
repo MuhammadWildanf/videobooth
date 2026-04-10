@@ -115,8 +115,8 @@
 
         /* TYPOGRAPHY */
         .wedding-logo {
-            max-width: 180px;
-            margin-bottom: 20px;
+            max-width: 250px;
+            margin-bottom: 25px;
         }
 
         .scribble-title {
@@ -239,6 +239,12 @@
             flex-direction: column;
             gap: 8px;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            display: none !important;
+            /* Hide by default */
+        }
+
+        .keyboard-wrapper.show {
+            display: flex !important;
         }
 
         .keyboard-row {
@@ -560,14 +566,40 @@
         }
         drawKbd();
 
-        document.getElementById('name').addEventListener('click', () => { activeInput = document.getElementById('name'); num = false; drawKbd(); });
-        document.getElementById('phone').addEventListener('click', () => { activeInput = document.getElementById('phone'); num = true; drawKbd(); });
+        document.getElementById('name').addEventListener('click', () => {
+            activeInput = document.getElementById('name');
+            num = false;
+            drawKbd();
+            document.getElementById('kbd-container').classList.add('show');
+        });
+        document.getElementById('phone').addEventListener('click', () => {
+            activeInput = document.getElementById('phone');
+            num = true;
+            drawKbd();
+            document.getElementById('kbd-container').classList.add('show');
+        });
 
         function kPress(k) { if (activeInput) activeInput.value += k; }
         function kBks() { if (activeInput) activeInput.value = activeInput.value.slice(0, -1); }
         function kCaps() { caps = !caps; drawKbd(); }
         function kMode() { num = !num; drawKbd(); }
-        function kNext() { if (activeInput?.id === 'name') activeInput = document.getElementById('phone'); else activeInput = null; }
+        function kNext() {
+            if (activeInput?.id === 'name') {
+                activeInput = document.getElementById('phone');
+                num = true;
+                drawKbd();
+            } else {
+                activeInput = null;
+                document.getElementById('kbd-container').classList.remove('show');
+            }
+        }
+
+        // Hide keyboard when clicking outside inputs (on center panel)
+        document.querySelector('.center-panel').addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT' && !e.target.closest('.keyboard-wrapper')) {
+                document.getElementById('kbd-container').classList.remove('show');
+            }
+        });
 
         // --- STATE & UI TRANSITION ---
         function changeState(state) {
@@ -660,6 +692,7 @@
                 }
 
                 window.enableGesture = data.enableGesture !== false;
+                window.recordingDuration = data.recordingDuration || 15;
 
                 // Update Font if provided
                 if (data.fontFamily) document.body.style.fontFamily = data.fontFamily;
@@ -766,7 +799,8 @@
         function actuallyStartRecording() {
             recordedChunks = [];
             document.getElementById('btn-record').classList.add('recording');
-            document.getElementById('countdown-area').innerHTML = `Recording... <span id="countdown-val">15</span>`;
+            const duration = window.recordingDuration || 15;
+            document.getElementById('countdown-area').innerHTML = `Recording... <span id="countdown-val">${duration}</span>`;
 
             // Tampilkan & Reset Timer Bar (Dinamis)
             const svgTimer = document.getElementById('svg-timer');
@@ -788,7 +822,7 @@
                 rectTimer.style.strokeDashoffset = 0;
                 rectTimer.style.transition = 'none';
                 rectTimer.offsetHeight; // Force reflow
-                rectTimer.style.transition = 'stroke-dashoffset 15s linear';
+                rectTimer.style.transition = `stroke-dashoffset ${duration}s linear`;
                 rectTimer.style.strokeDashoffset = perimeter;
             }, 50);
 
@@ -818,7 +852,7 @@
             };
             mediaRecorder.start();
 
-            let t = 15;
+            let t = duration;
             const timer = setInterval(() => {
                 t--;
                 document.getElementById('countdown-val').innerText = t;
@@ -840,8 +874,14 @@
 
             // Gabungkan Prefix (IDN +62) dengan Nomor HP
             const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
-            const phoneVal = document.getElementById('phone').value;
-            fd.append('phone', prefix + phoneVal);
+            let phoneValue = document.getElementById('phone').value.replace(/[^0-9]/g, '');
+
+            // HP Normalization: Hapus angka 0 di depan jika ada
+            if (phoneValue.startsWith('0')) {
+                phoneValue = phoneValue.substring(1);
+            }
+
+            fd.append('phone', prefix + phoneValue);
 
             try {
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });
