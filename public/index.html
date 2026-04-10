@@ -676,6 +676,11 @@
                 if (state === 'ready') {
                     document.getElementById('webcam').classList.remove('hidden');
                     document.getElementById('preview').classList.add('hidden');
+                    // Reset Button UI
+                    const btn = document.getElementById('btn-record');
+                    btn.classList.remove('recording');
+                    btn.style.pointerEvents = 'auto';
+                    document.getElementById('countdown-area').innerText = 'Start Recording';
                 } else {
                     document.getElementById('webcam').classList.add('hidden');
                     document.getElementById('preview').classList.remove('hidden');
