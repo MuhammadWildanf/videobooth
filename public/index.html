@@ -1,448 +1,813 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Videobooth</title>
+    <title>Web Videobooth Premium</title>
     <!-- MediaPipe Script -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@400;600;700;800&family=Pacifico&display=swap');
+
         :root {
-            --accent: #E11D48; /* Default */
+            --accent: #c5a059;
+            /* Champagne Gold */
+            --frame: rgba(30, 41, 59, 0.95);
+            /* Deep Charcoal with Glass */
+            --bg-1: #fdfbfb;
+            --bg-2: #ebedee;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
         }
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: radial-gradient(circle at center, #2c3e50, #000000); color: #fff; margin: 0; padding: 15px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .booth-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); padding: 25px 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-        .logo-header { font-size: 24px; font-weight: 800; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); text-shadow: 0 2px 10px rgba(225, 29, 72, 0.3); }
-        video { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 12px; background: #111; margin-bottom: 20px; border: 4px solid #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: block; }
-        #webcam { transform: scaleX(-1); }
-        #preview { transform: none; }
-        .panel { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
-        input { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #444; font-size: 15px; background: #222; color: #fff; outline: none; transition: border 0.3s; margin: 0; }
-        input:focus { border-color: var(--accent); }
-        button { padding: 14px 20px; font-size: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--accent); color: white; width: 100%; transition: 0.3s transform, 0.3s filter; margin: 0; }
-        button:hover { filter: brightness(0.85); transform: translateY(-2px); }
-        button:disabled { background: #555; cursor: not-allowed; transform: none; filter: none; }
-        .hidden { display: none !important; }
-        #countdown { font-size: 50px; color: var(--accent); font-weight: 900; margin: 10px 0; text-shadow: 0 0 15px rgba(225,29,72,0.6); }
-        .controls-row { display: flex; gap: 10px; width: 100%; margin-top: 5px; }
-        .controls-row button { flex: 1; padding: 12px; font-size: 14px; }
-        #output_canvas, #drawing_canvas { position: absolute; top: 4px; left: 4px; width: calc(100% - 8px); height: calc(100% - 8px); aspect-ratio: 9/16; border-radius: 10px; z-index: 10; pointer-events: none; transform: scaleX(-1); object-fit: cover; }
-        #drawing_canvas { z-index: 11; }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            background: transparent;
+            padding: 30px;
+            gap: 30px;
+            align-items: stretch;
+            transition: 0.5s ease;
+        }
+
+        .side-panel {
+            flex: 1;
+            background: var(--frame);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .side-panel.hidden-panel {
+            flex: 0;
+            padding: 0;
+            margin: 0;
+            opacity: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .side-panel .video-container {
+            width: 100%;
+            flex-grow: 1;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .side-panel .panel-footer {
+            margin-top: 20px;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .center-panel {
+            flex: 1.6;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            text-align: center;
+            transition: 0.5s ease;
+        }
+
+        /* TYPOGRAPHY */
+        .wedding-logo {
+            max-width: 250px;
+            margin-bottom: 30px;
+        }
+
+        .scribble-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 52px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 35px;
+            margin-top: -20px;
+            letter-spacing: -0.5px;
+        }
+
+        /* INPUTS & FORM */
+        .form-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 100%;
+        }
+
+        /* Gaya input dasar untuk semua */
+        .input-group input,
+        .input-wrapper input {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 16px;
+            outline: none;
+            background: #fff;
+            color: #1e293b;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .input-group input:focus,
+        .input-wrapper input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.15);
+            background: #fff;
+        }
+
+        /* WhatsApp Input with Flag */
+        .phone-prefix {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 15px;
+            border: 1.5px solid #e2e8f0;
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            height: 55px;
+            background: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #334155;
+        }
+
+        .phone-input {
+            border-radius: 0 12px 12px 0 !important;
+            height: 55px;
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #c5a059 0%, #d4af37 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(197, 160, 89, 0.4);
+        }
+
+        .btn-start:active {
+            transform: translateY(1px);
+        }
+
+        /* KEYBOARD PREMIUM (DARK) */
+        .keyboard-wrapper {
+            width: 100%;
+            max-width: 620px;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 25px;
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .key {
+            background: #fff;
+            color: #1e293b;
+            min-width: 50px;
+            height: 62px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 4px 0 #cbd5e1;
+        }
+
+        .key:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #cbd5e1;
+            background: #f1f5f9;
+        }
+
+        .key.wide {
+            flex: 1.5;
+            background: #e2e8f0;
+            font-size: 22px;
+            color: #475569;
+        }
+
+        .key.space {
+            flex: 5;
+            background: #fff;
+        }
+
+        /* STATES (READY, REVIEW, SUCCESS) */
+        .ui-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .ui-state.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+        }
+
+        /* RECORD BUTTON (FRAME 4) */
+        .btn-record-large {
+            width: 115px;
+            height: 115px;
+            border-radius: 50%;
+            background: #ff4d4d;
+            border: 8px solid #fff;
+            box-shadow: 0 0 0 5px #ff4d4d, 20px 20px 40px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 25px;
+        }
+
+        .btn-record-large.recording {
+            animation: pulse 1.5s infinite;
+            background: #e11d48;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0px rgba(255, 77, 77, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 25px rgba(255, 77, 77, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0px rgba(255, 77, 77, 0);
+            }
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 440px;
+            margin-top: 40px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 22px;
+            border-radius: 15px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            font-size: 22px;
+            transition: 0.3s;
+        }
+
+        .btn-retake {
+            background: #fff;
+            color: #ef4444;
+            border: 2px solid #fee2e2;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-retake:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #c5a059 0%, #d4af37 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.4);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(197, 160, 89, 0.5);
+        }
+
+        /* VIDEO ELEMENTS */
+        video,
+        canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        #webcam {
+            transform: scaleX(-1);
+        }
+
+        #preview {
+            background: #000;
+        }
+
+        #drawing_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            transform: scaleX(-1);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .countdown-text {
+            margin-top: 15px;
+            font-weight: 700;
+            color: #475569;
+            font-size: 24px;
+        }
+
+        /* PROGRESS BORDER ANIMATION */
+        .timer-progress-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .progress-rect {
+            fill: none;
+            stroke: #ff0000;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: none;
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="booth-container">
-        <div class="logo-header">✨ Imajiwa Videobooth</div>
+    <div class="main-wrapper">
 
-        <!-- START PAGE -->
-        <div class="panel" id="start-panel">
-            <h3 style="margin-top:0; margin-bottom:5px;">Selamat Datang!</h3>
-            <p style="font-size: 13px; color: #aaa; margin-top:0;">Silakan isi data untuk menerima video Anda.</p>
-            <input type="text" id="name" placeholder="Nama Anda" required>
-            <input type="text" id="phone" placeholder="No. WhatsApp / Email" required>
-            <button id="btn-start" onclick="startCamera()">Mulai Kamera</button>
+        <!-- LEFT PANEL (IDLE ONLY) -->
+        <div class="side-panel" id="panel-left">
+            <div class="video-container">
+                <video id="loop-preview" autoplay muted playsinline loop style="width:100%; height:100%; object-fit:cover;"></video>
+                <div id="label-left" style="color:#666; font-weight:800; font-size:24px; position:absolute;">Result Preview</div>
+            </div>
+            <div class="panel-footer">Result Preview</div>
         </div>
 
-        <!-- RECORDING & PREVIEW PAGE -->
-        <div id="video-panel" class="hidden">
-            <div id="model-selector-container" class="hidden" style="margin-bottom: 15px; display:flex; justify-content: space-between; align-items:center; background: #222; padding: 10px 15px; border-radius: 8px;">
-                <label for="model-complexity" style="font-size: 13px; color: #ddd;">Model Pelacakan:</label>
-                <select id="model-complexity" style="padding: 6px; border-radius: 5px; background: #333; color: white; border: 1px solid #555; outline:none; cursor:pointer;">
-                    <option value="0">Performa (Cepat)</option>
-                    <option value="1" selected>Akurasi (Detail)</option>
-                </select>
+        <!-- CENTER PANEL -->
+        <div class="center-panel">
+            <img src="" id="main-logo" alt="Wedding Logo" class="wedding-logo">
+
+            <!-- STATE IDLE (FRAME 3) -->
+            <div id="state-idle" class="ui-state active">
+                <div class="scribble-title" id="idle-sub">Write your own scribble</div>
+
+                <div class="form-container">
+                    <div class="input-group">
+                        <label>Name <span style="float:right; font-weight:400; font-size:11px; color:#10b981;">🛡️ Caps
+                                lock is on</span></label>
+                        <input type="text" id="name" placeholder="Please input your name" inputmode="none">
+                    </div>
+                    <div class="input-group">
+                        <label>WhatsApp Number</label>
+                        <div class="input-wrapper">
+                            <div class="phone-prefix">
+                                <img src="https://flagcdn.com/w20/id.png" width="20">
+                                <span>IDN(+62)</span>
+                                <span style="font-size:10px; margin-left:2px;">↕️</span>
+                            </div>
+                            <input type="text" id="phone" class="phone-input" placeholder="XX-XXXX-XXXX"
+                                inputmode="none">
+                        </div>
+                    </div>
+                    <button class="btn-start" onclick="startCameraFlow()">Start</button>
+                </div>
+
+                <!-- KEYBOARD (FRAME 3 PREMIUM DESIGN) -->
+                <div class="keyboard-wrapper" id="kbd-container">
+                    <div class="keyboard-row" id="kbd-1"></div>
+                    <div class="keyboard-row" id="kbd-2"></div>
+                    <div class="keyboard-row" id="kbd-3"></div>
+                    <div class="keyboard-row">
+                        <div class="key wide" onclick="kMode()">123</div>
+                        <div class="key space" onclick="kPress(' ')"></div>
+                        <div class="key wide" onclick="kNext()">➔</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Tempat menaruh desain frame overlay statis jika ingin via CSS absolute (opsional) -->
-            <div style="position: relative; display: inline-block; width: 100%;">
+            <!-- STATE READY (FRAME 4) -->
+            <div id="state-ready" class="ui-state">
+                <h2 id="ready-text"
+                    style="font-size:34px; color:#1e293b; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
+                    your pen and look at mirror. <br> Hit the record button when you are ready.</h2>
+                <div class="btn-record-large" id="btn-record" onclick="startRecording()"></div>
+                <div class="countdown-text" id="countdown-area">Recording start in... <span id="countdown-val">3</span>
+                </div>
+            </div>
+
+            <!-- STATE REVIEW (FRAME 5) -->
+            <div id="state-review" class="ui-state">
+                <h2 id="review-text"
+                    style="font-size:34px; color:#1e293b; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
+                    review your video, <br> you can RETAKE or UPLOAD.</h2>
+                <div class="btn-row">
+                    <button class="btn-action btn-retake" onclick="retakeVideo()">Retake</button>
+                    <button class="btn-action btn-upload" onclick="submitVideo()">Upload</button>
+                </div>
+            </div>
+
+            <!-- STATE SUCCESS (FRAME 6) -->
+            <div id="state-processing" class="ui-state">
+                <h2 id="success-text" style="font-size:30px; color:#1e293b; line-height:1.5; font-weight:600;">Your
+                    video is still processing, <br> we will notify on your WhatsApp number ketika selesai. <br><br>
+                    Thank You</h2>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="side-panel" id="panel-right">
+            <div class="video-container">
+                <svg class="timer-progress-container hidden" id="svg-timer">
+                    <rect class="progress-rect" id="rect-timer" x="7" y="7" rx="15" ry="15"></rect>
+                </svg>
                 <video id="webcam" autoplay muted playsinline></video>
                 <canvas id="output_canvas" class="hidden"></canvas>
-                <canvas id="drawing_canvas" class="hidden"></canvas>
-                <video id="preview" class="hidden" controls playsinline></video>
+                <canvas id="drawing_canvas"></canvas>
+                <video id="preview" autoplay muted playsinline loop style="width:100%; height:100%; object-fit:cover;"></video>
+                <div id="label-right" style="color:#666; font-weight:800; font-size:24px; position:absolute;">Tutorial
+                    Video</div>
             </div>
-            
-            <div id="countdown" class="hidden">15</div>
-
-            <div class="controls-row">
-                <button id="btn-record" onclick="startRecording()">🔴 Rekam Video (15s)</button>
-                <button id="btn-cleardraw" onclick="clearDrawing()" style="background:#5B21B6;">Hapus Coretan</button>
-                <button id="btn-retake" class="hidden" onclick="retakeVideo()" style="background:#4B5563;">Ulangi</button>
-                <button id="btn-submit" class="hidden" onclick="submitVideo()" style="background:#10B981;">Kirim Video</button>
-            </div>
-            <p id="status-msg" style="margin-top: 20px; font-size: 14px; color: #A7F3D0; font-weight: 600; min-height: 20px;"></p>
+            <div class="panel-footer">Tutorial Video</div>
         </div>
+
     </div>
 
     <script>
-        // --- MEMUAT TEMA DARI CONFIG (FUNGSI DINAMIS WEDDING) ---
+        // --- KEYBOARD SYSTEM ---
+        let activeInput = null;
+        let caps = true;
+        let num = false;
+        const row1 = "QWERTYUIOP".split(''), row2 = "ASDFGHJKL".split(''), row3 = "ZXCVBNM".split('');
+        const nums = "1234567890-/@:();\"+!?. ,*#&".split('');
+
+        function drawKbd() {
+            const draw = (id, keys) => {
+                const el = document.getElementById(id); el.innerHTML = '';
+                if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kCaps()">⬆️</div>`;
+                keys.forEach(k => { el.innerHTML += `<div class="key" onclick="kPress('${k}')">${caps ? k : k.toLowerCase()}</div>`; });
+                if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kBks()">⌫</div>`;
+            };
+            draw('kbd-1', num ? nums.slice(0, 10) : row1);
+            draw('kbd-2', num ? nums.slice(10, 19) : row2);
+            draw('kbd-3', num ? nums.slice(19, 26) : row3);
+        }
+        drawKbd();
+
+        document.getElementById('name').addEventListener('click', () => { activeInput = document.getElementById('name'); num = false; drawKbd(); });
+        document.getElementById('phone').addEventListener('click', () => { activeInput = document.getElementById('phone'); num = true; drawKbd(); });
+
+        function kPress(k) { if (activeInput) activeInput.value += k; }
+        function kBks() { if (activeInput) activeInput.value = activeInput.value.slice(0, -1); }
+        function kCaps() { caps = !caps; drawKbd(); }
+        function kMode() { num = !num; drawKbd(); }
+        function kNext() { if (activeInput?.id === 'name') activeInput = document.getElementById('phone'); else activeInput = null; }
+
+        // --- STATE & UI TRANSITION ---
+        function changeState(state) {
+            document.querySelectorAll('.ui-state').forEach(el => el.classList.remove('active'));
+            document.getElementById('state-' + state).classList.add('active');
+
+            const leftPanel = document.getElementById('panel-left');
+            const rightLabel = document.getElementById('label-right');
+
+            if (state === 'idle') {
+                leftPanel.classList.remove('hidden-panel');
+                rightLabel.innerText = "Tutorial Video";
+                rightLabel.classList.remove('hidden');
+                
+                // Tampilkan video jika URL-nya ada
+                const previewVid = document.getElementById('preview');
+                const loopVid = document.getElementById('loop-preview');
+                const labelLeft = document.getElementById('label-left');
+
+                if (previewVid.src) previewVid.classList.remove('hidden');
+                if (loopVid.src) {
+                    loopVid.classList.remove('hidden');
+                    labelLeft.classList.add('hidden'); // Sembunyikan label jika video ada
+                }
+            } else {
+                leftPanel.classList.add('hidden-panel');
+                rightLabel.classList.add('hidden');
+                if (state === 'ready') {
+                    document.getElementById('webcam').classList.remove('hidden');
+                    document.getElementById('preview').classList.add('hidden');
+                } else {
+                    document.getElementById('webcam').classList.add('hidden');
+                    document.getElementById('preview').classList.remove('hidden');
+                }
+            }
+        }
+
+        // --- LOAD CONFIG ---
         async function applyTheme() {
             try {
                 const res = await fetch('/api/config');
                 const data = await res.json();
-                
-                // Ubah Teks Utama
-                document.querySelector('.logo-header').innerHTML = data.title;
-                document.querySelector('#start-panel p').innerHTML = data.subtitle;
 
-                // Ubah Latar (Prioritaskan Gambar jika ada, else Gradasi)
-                if (data.bgImageUrl && data.bgImageUrl.trim() !== '') {
-                    document.body.style.background = `url('${data.bgImageUrl}') center/cover no-repeat fixed`;
+                // Update Logo & Title
+                if (data.logoUrl) document.getElementById('main-logo').src = data.logoUrl;
+                if (data.subtitle) document.getElementById('idle-sub').innerText = data.subtitle;
+
+                // Update Teks Instruksi dengan Fallback (Default)
+                const defaults = {
+                    ready: "Get your pen and look at mirror. <br> Hit the record button when you are ready.",
+                    review: "Please review your video, <br> you can RETAKE or UPLOAD.",
+                    success: "Your video is still processing, <br> we will notify on your WhatsApp number when is done. <br><br> Thank You"
+                };
+
+                document.getElementById('ready-text').innerHTML = data.readyText || defaults.ready;
+                document.getElementById('review-text').innerHTML = data.reviewText || defaults.review;
+                document.getElementById('success-text').innerHTML = data.successText || defaults.success;
+
+                // Update Video Assets
+                const tutorialVid = document.getElementById('preview');
+                const resultVid = document.getElementById('loop-preview');
+
+                if (data.tutorialVideoUrl && (tutorialVid.src !== window.location.origin + data.tutorialVideoUrl)) {
+                    tutorialVid.src = data.tutorialVideoUrl;
+                    tutorialVid.load();
+                    tutorialVid.style.display = 'block';
+                    tutorialVid.play().catch(e => console.log("Tutorial play blocked:", e));
+                    document.getElementById('label-right').style.display = 'none';
+                }
+                if (data.resultVideoUrl && (resultVid.src !== window.location.origin + data.resultVideoUrl)) {
+                    resultVid.src = data.resultVideoUrl;
+                    resultVid.load();
+                    resultVid.style.display = 'block';
+                    resultVid.play().catch(e => console.log("Result play blocked:", e));
+                    document.getElementById('label-left').style.display = 'none';
+                }
+
+                // Update Visual Variables
+                document.documentElement.style.setProperty('--accent', data.accentColor || '#c5a059');
+                document.documentElement.style.setProperty('--frame', data.frameColor || 'rgba(30, 41, 59, 0.95)');
+                document.documentElement.style.setProperty('--bg-1', data.bgColor1 || '#fdfbfb');
+                document.documentElement.style.setProperty('--bg-2', data.bgColor2 || '#ebedee');
+                
+                // Update Background Image if provided
+                if (data.bgImageUrl) {
+                    document.body.style.backgroundImage = `url('${data.bgImageUrl}')`;
+                    document.body.style.backgroundSize = 'cover';
                 } else {
-                    document.body.style.background = `radial-gradient(circle at center, ${data.bgColor1}, ${data.bgColor2})`;
+                    document.body.style.backgroundImage = `radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 100%)`;
                 }
-                
-                // Ubah Aksen
-                document.documentElement.style.setProperty('--accent', data.accentColor);
 
-                // Ubah Font HTML jika ada
-                if (data.fontUrl && data.fontFamily) {
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = data.fontUrl;
-                    document.head.appendChild(link);
-                    document.body.style.fontFamily = data.fontFamily;
-                }
-            } catch(e) { console.error("Gagal muat tema:", e); }
+                window.enableGesture = data.enableGesture !== false;
+
+                // Update Font if provided
+                if (data.fontFamily) document.body.style.fontFamily = data.fontFamily;
+
+            } catch (e) { console.error("Theme apply error:", e); }
         }
         applyTheme();
-        // --------------------------------------------------------
 
-        let stream;
-        let mediaRecorder;
-        let recordedChunks = [];
-        let videoBlob;
-        const recordDuration = 15000; // 15 detik
+        // --- BOOTH LOGIC ---
+        let stream, mediaRecorder, recordedChunks = [], videoBlob, isProcessing = false;
+        const webcam = document.getElementById('webcam'), preview = document.getElementById('preview');
+        const drawing = document.getElementById('drawing_canvas'), dCtx = drawing.getContext('2d');
 
-        const webcamEl = document.getElementById('webcam');
-        const previewEl = document.getElementById('preview');
-        const canvasElement = document.getElementById('output_canvas');
-        const canvasCtx = canvasElement ? canvasElement.getContext('2d') : null;
-        
-        const drawingElement = document.getElementById('drawing_canvas');
-        const drawingCtx = drawingElement ? drawingElement.getContext('2d') : null;
-
-        // --- HAND TRACKING LOGIC ---
-        let handsTracking = null;
-        let isProcessingFrames = false;
-        
-        // Drawing state
-        let prevDrawX = null;
-        let prevDrawY = null;
-        let smoothedX = null;
-        let smoothedY = null;
-        const SMOOTH_ALPHA = 0.35; // Faktor kemulusan (0.1 sangat mulus tapi telat, 0.9 sangat responsif tapi bergetar)
-        
-        function clearDrawing() {
-            if(drawingCtx && drawingElement) {
-                drawingCtx.clearRect(0, 0, drawingElement.width, drawingElement.height);
-            }
-        }
-
-        function initHandTracking() {
-            if (handsTracking) return;
-            handsTracking = new Hands({locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-            }});
-            handsTracking.setOptions({
-                maxNumHands: 1,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-            handsTracking.onResults(onResults);
-            
-            document.getElementById('model-complexity').addEventListener('change', (e) => {
-                const val = parseInt(e.target.value);
-                handsTracking.setOptions({ modelComplexity: val });
-                statusMsg.innerText = "🔄 Model pelacakan: " + (val === 1 ? "Akurasi" : "Performa");
-                statusMsg.style.color = "#A7F3D0";
-                setTimeout(() => { if(statusMsg.innerText.includes("Model pelacakan")) statusMsg.innerText=""; }, 2200);
-            });
-        }
-
-        function onResults(results) {
-            if (!previewEl.classList.contains('hidden')) return;
-            
-            canvasElement.width = webcamEl.videoWidth;
-            canvasElement.height = webcamEl.videoHeight;
-            
-            // Only set drawing canvas size once to prevent clearing it
-            if (drawingElement.width !== webcamEl.videoWidth) {
-                drawingElement.width = webcamEl.videoWidth;
-                drawingElement.height = webcamEl.videoHeight;
-            }
-            
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const landmarks = results.multiHandLandmarks[0];
-                
-                // Draw skeleton (Opsional: you can disable this if you only want the drawing)
-                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: 'rgba(0, 255, 0, 0.4)', lineWidth: 2});
-                drawLandmarks(canvasCtx, landmarks, {color: 'rgba(255, 0, 0, 0.4)', lineWidth: 1});
-                
-                // AIR DRAWING LOGIC (Satu Jari Telunjuk Tegak - seperti memegang pensil)
-                const indexTip  = landmarks[8];   // Ujung telunjuk
-                const indexDip  = landmarks[7];   // Ruas kedua telunjuk
-                const indexMcp  = landmarks[5];   // Pangkal telunjuk
-                const middleTip = landmarks[12];  // Ujung jari tengah
-                const ringTip   = landmarks[16];  // Ujung jari manis
-                const pinkyTip  = landmarks[20];  // Ujung kelingking
-                const thumbTip  = landmarks[4];   // Ujung jempol
-                const wrist     = landmarks[0];   // Pergelangan
-
-                // Telunjuk BERDIRI: Ujungnya harus di atas pangkalnya (y lebih kecil = lebih atas)
-                const indexUp = indexTip.y < indexMcp.y - 0.04;
-                
-                // Jari lain TERLIPAT: Ujungnya harus di bawah pangkal telunjuk (sebagai referensi)
-                const middleDown = middleTip.y > landmarks[10].y; // Ujung tengah < pangkal tengah
-                const ringDown   = ringTip.y   > landmarks[14].y;
-                const pinkyDown  = pinkyTip.y  > landmarks[18].y;
-
-                // "Pen Down": Hanya telunjuk yang tegak, jari lain terlipat
-                const isDrawingPose = indexUp && middleDown && ringDown && pinkyDown;
-                
-                const currX = indexTip.x * drawingElement.width;
-                const currY = indexTip.y * drawingElement.height;
-                
-                if (isDrawingPose) {
-                    if (smoothedX === null) {
-                        smoothedX = currX;
-                        smoothedY = currY;
-                    } else {
-                        smoothedX = (currX * SMOOTH_ALPHA) + (smoothedX * (1 - SMOOTH_ALPHA));
-                        smoothedY = (currY * SMOOTH_ALPHA) + (smoothedY * (1 - SMOOTH_ALPHA));
-                    }
-
-                    if (prevDrawX !== null && prevDrawY !== null) {
-                        drawingCtx.beginPath();
-                        drawingCtx.moveTo(prevDrawX, prevDrawY);
-                        drawingCtx.lineTo(smoothedX, smoothedY);
-                        
-                        // Neon Stroke Style
-                        drawingCtx.strokeStyle = "#ffffff";
-                        drawingCtx.lineWidth = 14;
-                        drawingCtx.lineCap = "round";
-                        drawingCtx.lineJoin = "round";
-                        
-                        drawingCtx.shadowColor = "rgba(255, 255, 255, 0.9)";
-                        drawingCtx.shadowBlur = 20;
-                        
-                        drawingCtx.stroke();
-                    }
-                    prevDrawX = smoothedX;
-                    prevDrawY = smoothedY;
-                } else {
-                    // Pen Up (Hover mode)
-                    prevDrawX = null;
-                    prevDrawY = null;
-                    smoothedX = null;
-                    smoothedY = null;
-                }
-            } else {
-                prevDrawX = null;
-                prevDrawY = null;
-            }
-            canvasCtx.restore();
-        }
-
-        async function processVideoFrame() {
-            if (!isProcessingFrames) return;
-            if (webcamEl.videoWidth > 0 && !webcamEl.paused && !webcamEl.ended) {
-                await handsTracking.send({image: webcamEl});
-            }
-            requestAnimationFrame(processVideoFrame);
-        }
-        // ---------------------------
-        const countdownEl = document.getElementById('countdown');
-        const startPanel = document.getElementById('start-panel');
-        const videoPanel = document.getElementById('video-panel');
-        const btnRecord = document.getElementById('btn-record');
-        const btnRetake = document.getElementById('btn-retake');
-        const btnSubmit = document.getElementById('btn-submit');
-        const statusMsg = document.getElementById('status-msg');
-
-        async function startCamera() {
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            if (!name || !phone) return alert("Mohon lengkapi Nama dan No WhatsApp");
-            
+        async function startCameraFlow() {
+            const n = document.getElementById('name').value, p = document.getElementById('phone').value;
+            if (!n || !p) return alert("Please input your name and WhatsApp number!");
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1080 }, height: { ideal: 1920 }, facingMode: "user" },
-                    audio: true 
-                });
-                webcamEl.srcObject = stream;
-                
-                startPanel.classList.add('hidden');
-                videoPanel.classList.remove('hidden');
-                
-                // Tampilkan Tracker & Inisialisasi
-                document.getElementById('model-selector-container').classList.remove('hidden');
-                canvasElement.classList.remove('hidden');
-                drawingElement.classList.remove('hidden');
-                initHandTracking();
-                isProcessingFrames = true;
-                webcamEl.onloadedmetadata = () => {
-                    webcamEl.play();
-                    processVideoFrame();
-                };
-            } catch (err) {
-                alert("Gagal mengakses kamera/mic: " + err.message);
+                stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1080, height: 1920 }, audio: true });
+                webcam.srcObject = stream;
+                changeState('ready');
+                if (window.enableGesture) initHandTracking();
+            } catch (e) { alert("Camera Error: Check permissions."); }
+        }
+
+        let hands = null;
+        function initHandTracking() {
+            hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+            hands.onResults(onRes);
+            isProcessing = true;
+            webcam.onloadedmetadata = () => {
+                drawing.width = webcam.videoWidth; drawing.height = webcam.videoHeight;
+                loop();
+            };
+        }
+
+        let px = null, py = null;
+        function onRes(res) {
+            if (!isProcessing) return;
+            if (res.multiHandLandmarks?.length > 0) {
+                const lm = res.multiHandLandmarks[0];
+                const tip = lm[8], mcp = lm[5], mid = lm[12];
+                const isDraw = tip.y < mcp.y - 0.04 && mid.y > lm[10].y;
+                const cx = tip.x * drawing.width, cy = tip.y * drawing.height;
+                if (isDraw) {
+                    if (px) { dCtx.beginPath(); dCtx.moveTo(px, py); dCtx.lineTo(cx, cy); dCtx.strokeStyle = "#007bff"; dCtx.lineWidth = 14; dCtx.lineCap = "round"; dCtx.stroke(); }
+                    px = cx; py = cy;
+                } else { px = null; py = null; }
             }
         }
-
-        // --- RECORDING COMPOSITE STREAM ---
-        const recordedCanvasContainer = document.createElement('canvas');
-        const recordedCanvasCtx = recordedCanvasContainer.getContext('2d');
-        let isRecordingNow = false;
-
-        function renderCompositeLoop() {
-            if (!isRecordingNow) return;
-            
-            recordedCanvasContainer.width = webcamEl.videoWidth;
-            recordedCanvasContainer.height = webcamEl.videoHeight;
-            
-            // Draw Mirrored Composite to match what user sees
-            recordedCanvasCtx.save();
-            recordedCanvasCtx.translate(recordedCanvasContainer.width, 0);
-            recordedCanvasCtx.scale(-1, 1);
-            
-            // 1. Draw WebCam Video
-            recordedCanvasCtx.drawImage(webcamEl, 0, 0, recordedCanvasContainer.width, recordedCanvasContainer.height);
-            // 2. Draw Skeleton (Opsional, di-comment agar tidak ikut terekam)
-            // recordedCanvasCtx.drawImage(canvasElement, 0, 0); 
-            // 3. Draw Neon Drawing
-            recordedCanvasCtx.drawImage(drawingElement, 0, 0);
-            
-            recordedCanvasCtx.restore();
-            
-            requestAnimationFrame(renderCompositeLoop);
-        }
+        async function loop() { if (isProcessing) await hands.send({ image: webcam }); requestAnimationFrame(loop); }
 
         function startRecording() {
-            recordedChunks = [];
-            // Gunakan codec MP4 jika didukung browser (bawaan biasanya webm)
-            const options = MediaRecorder.isTypeSupported('video/webm;codecs=h264') 
-                ? { mimeType: 'video/webm;codecs=h264' } 
-                : { mimeType: 'video/webm' };
-            
-            // Mulai merender kanvas gabungan
-            isRecordingNow = true;
-            renderCompositeLoop();
-            
-            // Ambil stream dari kanvas (video) dan mikrofon (audio)
-            const compositeStream = recordedCanvasContainer.captureStream(30);
-            const audioTrack = stream.getAudioTracks()[0];
-            if (audioTrack) {
-                compositeStream.addTrack(audioTrack);
-            }
-                
-            mediaRecorder = new MediaRecorder(compositeStream, options);
+            // Fase 1: Persiapan 3, 2, 1
+            let preTime = 3;
+            document.getElementById('btn-record').style.pointerEvents = 'none'; // Disable double click
+            document.getElementById('countdown-area').innerHTML = `Bersiap dalam... <span id="countdown-val">${preTime}</span>`;
 
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) recordedChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                isRecordingNow = false; // Hentikan loop render kanvas
-                videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
-                const videoUrl = URL.createObjectURL(videoBlob);
-                
-                webcamEl.classList.add('hidden');
-                canvasElement.classList.add('hidden');
-                drawingElement.classList.add('hidden');
-                previewEl.src = videoUrl;
-                previewEl.classList.remove('hidden');
-                
-                btnRecord.classList.add('hidden');
-                document.getElementById('btn-cleardraw').classList.add('hidden');
-                btnRetake.classList.remove('hidden');
-                btnSubmit.classList.remove('hidden');
-                countdownEl.classList.add('hidden');
-            };
-
-            // Start UInya
-            mediaRecorder.start();
-            btnRecord.disabled = true;
-            btnRecord.innerText = "Merekam...";
-            countdownEl.classList.remove('hidden');
-
-            let timeLeft = recordDuration / 1000;
-            countdownEl.innerText = timeLeft;
-            
-            const timer = setInterval(() => {
-                timeLeft--;
-                countdownEl.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    mediaRecorder.stop();
+            const preTimer = setInterval(() => {
+                preTime--;
+                document.getElementById('countdown-val').innerText = preTime;
+                if (preTime <= 0) {
+                    clearInterval(preTimer);
+                    // Fase 2: Mulai Rekam 15 Detik
+                    actuallyStartRecording();
                 }
             }, 1000);
         }
 
-        function retakeVideo() {
-            videoBlob = null;
-            previewEl.classList.add('hidden');
-            webcamEl.classList.remove('hidden');
-            canvasElement.classList.remove('hidden');
-            drawingElement.classList.remove('hidden');
-            
-            btnRetake.classList.add('hidden');
-            btnSubmit.classList.add('hidden');
-            btnRecord.classList.remove('hidden');
-            document.getElementById('btn-cleardraw').classList.remove('hidden');
-            btnRecord.disabled = false;
-            btnRecord.innerText = "🔴 Rekam Video (15s)";
-            statusMsg.innerText = "";
-            statusMsg.style.color = "#A7F3D0";
-            clearDrawing(); // Reset coretan
+        function actuallyStartRecording() {
+            recordedChunks = [];
+            document.getElementById('btn-record').classList.add('recording');
+            document.getElementById('countdown-area').innerHTML = `Recording... <span id="countdown-val">15</span>`;
+
+            // Tampilkan & Reset Timer Bar (Dinamis)
+            const svgTimer = document.getElementById('svg-timer');
+            const rectTimer = document.getElementById('rect-timer');
+            svgTimer.classList.remove('hidden');
+
+            // Berikan jeda sangat singkat agar browser merender elemen sebelum dihitung
+            setTimeout(() => {
+                const parent = svgTimer.parentElement;
+                const w = parent.clientWidth - 14;
+                const h = parent.clientHeight - 14;
+
+                // Set dimensi rect secara eksplisit (karena calc() di atribut SVG sering bermasalah)
+                rectTimer.setAttribute('width', w);
+                rectTimer.setAttribute('height', h);
+
+                const perimeter = 2 * (w + h);
+                rectTimer.style.strokeDasharray = perimeter;
+                rectTimer.style.strokeDashoffset = 0;
+                rectTimer.style.transition = 'none';
+                rectTimer.offsetHeight; // Force reflow
+                rectTimer.style.transition = 'stroke-dashoffset 15s linear';
+                rectTimer.style.strokeDashoffset = perimeter;
+            }, 50);
+
+            const rc = document.createElement('canvas'); const rctx = rc.getContext('2d');
+            let isRec = true;
+            const rloop = () => {
+                if (!isRec) return;
+                rc.width = webcam.videoWidth; rc.height = webcam.videoHeight;
+                rctx.save(); rctx.translate(rc.width, 0); rctx.scale(-1, 1);
+                rctx.drawImage(webcam, 0, 0);
+                if (window.enableGesture) rctx.drawImage(drawing, 0, 0);
+                rctx.restore();
+                requestAnimationFrame(rloop);
+            };
+            rloop();
+
+            const cs = rc.captureStream(30);
+            const at = stream.getAudioTracks()[0]; if (at) cs.addTrack(at);
+            mediaRecorder = new MediaRecorder(cs, { mimeType: 'video/webm;codecs=h264' });
+            mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                isRec = false;
+                videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                preview.src = URL.createObjectURL(videoBlob);
+                svgTimer.classList.add('hidden');
+                changeState('review');
+            };
+            mediaRecorder.start();
+
+            let t = 15;
+            const timer = setInterval(() => {
+                t--;
+                document.getElementById('countdown-val').innerText = t;
+                if (t <= 0) {
+                    clearInterval(timer);
+                    mediaRecorder.stop();
+                    document.getElementById('btn-record').classList.remove('recording');
+                    document.getElementById('btn-record').style.pointerEvents = 'auto';
+                }
+            }, 1000);
         }
 
+        function retakeVideo() { dCtx.clearRect(0, 0, 10000, 10000); changeState('ready'); }
         async function submitVideo() {
-            if (!videoBlob) return alert("Belum ada video yang direkam!");
+            changeState('processing');
+            const fd = new FormData();
+            fd.append('video', videoBlob, 'recording.mp4');
+            fd.append('name', document.getElementById('name').value);
 
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = "Mengirim...";
-            statusMsg.innerText = "Sedang dikirim ke server...";
-
-            const formData = new FormData();
-            formData.append('name', document.getElementById('name').value);
-            formData.append('phone', document.getElementById('phone').value);
-            // Simpan sebagai mp4 walau container aslinya webm, di backend FFmpeg akan konversi
-            formData.append('video', videoBlob, 'recording.mp4'); 
+            // Gabungkan Prefix (IDN +62) dengan Nomor HP
+            const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
+            const phoneVal = document.getElementById('phone').value;
+            fd.append('phone', prefix + phoneVal);
 
             try {
-                const response = await fetch('/api/videobooth/submit', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    statusMsg.innerText = "✅ Berhasil! Video sedang diproses. Silakan cek WhatsApp Anda sebentar lagi.";
-                    
-                    // Reset ke awal setelah 3 detik
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 3500);
-                } else {
-                    statusMsg.innerText = "❌ Gagal: " + result.message;
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = "Coba Kirim Lagi";
-                }
-            } catch (err) {
-                statusMsg.innerText = "❌ Terjadi kesalahan jaringan.";
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = "Coba Kirim Lagi";
-            }
+                const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });
+                if (r.ok) setTimeout(() => window.location.reload(), 10000);
+                else changeState('review');
+            } catch (e) { changeState('review'); }
         }
     </script>
 </body>
+
 </html>

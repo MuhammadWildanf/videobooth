@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const fastq = require('fastq');
+const cloudscraper = require('cloudscraper');
 
 require('dotenv').config();
 const { google } = require('googleapis');
@@ -165,20 +166,27 @@ const worker = async (task) => {
                }
                
                // === DI SINI TEMPAT UNTUK KIRIM EMAIL / WA ===
-               if (driveLink && task.phone.includes('@')) {
-                   // Jika input mengandung @, sistem routing cerdas menganggapnya sebagai EMAIL
-                   console.log(`[EMAIL] 📧 Menyiapkan pengiriman email ke ${task.phone}...`);
-                   await sendVideoEmail(task.phone, task.name, driveLink);
-               } else if (driveLink) {
-                   // Logika fallback untuk implementasi WhatsApp ke depannya
-                   console.log(`[WhatsApp] 🚀 Menunggu integrasi WhatsApp untuk nomor: ${task.phone}`);
-               }
+                /* 
+                // Fitur Email dinonaktifkan sementara (Jangan dihapus)
+                if (driveLink && task.phone.includes('@')) {
+                    console.log(`[EMAIL] 📧 Menyiapkan pengiriman email ke ${task.phone}...`);
+                    await sendVideoEmail(task.phone, task.name, driveLink);
+                } else */ if (driveLink) {
+                    // Kirim via WhatsApp (RuangWA)
+                    const waText = `Halo ${task.name}! ✨\n\nVideo keseruan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 ${driveLink}\n\nTerima kasih sudah mampir!`;
+                    await sendWhatsAppMessage(task.phone, waText);
+                }
                
-               // Optional: Hapus file mentahnya untuk hemat disk
-               try { fs.unlinkSync(inputPath); } catch(e){} 
-               // (Jika juga ingin menghapus hasil akhir outputPath, silahkan)
-               
-               resolve();
+               // === PEMBERSIHAN FILE ===
+                try { 
+                    if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath); 
+                    if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+                    console.log(`[CLEANUP] 🧹 File lokal berhasil dihapus.`);
+                } catch(e){
+                    console.error(`[CLEANUP] ⚠️ Gagal menghapus beberapa file lokal:`, e.message);
+                }
+                
+                resolve();
            })
            .on('error', (err) => {
                console.error(`[QUEUE ERROR] ❌ FFmpeg Gagal memproses video untuk: ${task.name}`);
@@ -224,18 +232,41 @@ app.post('/api/videobooth/submit', upload.single('video'), (req, res) => {
 });
 
 // ===============================
-// API Endpoint: Dynamic UI Config
+// Fungsi: Kirim Pesan via WhatsApp (RuangWA)
+// ===============================
+async function sendWhatsAppMessage(phone, text) {
+    try {
+        const result = await cloudscraper.post({
+            url: "https://ruangwa.id/api-app/whatsapp/send-message",
+            json: true,
+            body: {
+                phone: phone,
+                device_key: process.env.RUANGWA_DEVICE_KEY,
+                api_key: process.env.RUANGWA_API_KEY,
+                method: "text",
+                text: text,
+                is_group: false
+            }
+        });
+        console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${phone}:`, result.message || "OK");
+        return result;
+    } catch (error) {
+        console.error(`[WhatsApp] ❌ Gagal kirim pesan ke ${phone}:`, error.message);
+    }
+}
+
+// ===============================
+// Queue Worker: Proses Video & Upload
 // ===============================
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 const DEFAULT_CONFIG = {
     title: '✨ Imajiwa Videobooth',
     subtitle: 'Silakan isi data untuk menerima video Anda.',
     bgColor1: '#2c3e50',
-    bgColor2: '#000000',
-    bgImageUrl: '',
-    accentColor: '#E11D48',
-    fontUrl: '',
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+    logoUrl: "/uploads_logo/logo-placeholder.png",
+    tutorialVideoUrl: "",
+    resultVideoUrl: "",
+    frameColor: "#3d3d3d"
 };
 
 // Buat config.json jika baru pertama kali di-run
@@ -262,6 +293,40 @@ app.post('/api/config', (req, res) => {
         console.error(err);
         res.status(500).json({ status: 'error', message: 'Gagal menyimpan konfigurasi UI.' });
     }
+});
+
+// --- LOGO UPLOAD ENDPOINT ---
+const logoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, 'public', 'uploads_logo');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, 'logo-' + Date.now() + ext);
+    }
+});
+const uploadLogo = multer({ storage: logoStorage });
+
+// Endpoint untuk Upload Logo, Background, dsb
+app.post('/api/config/logo', uploadLogo.single('logo'), (req, res) => {
+    if (!req.file) return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+    
+    // Path untuk diakses di frontend
+    const logoUrl = `/uploads_logo/${req.file.filename}`;
+    
+    res.json({ status: 'success', logoUrl });
+});
+
+// Endpoint untuk Upload Video (Tutorial/Result)
+app.post('/api/config/video', uploadLogo.single('video'), (req, res) => {
+    if (!req.file) return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+    
+    // Path untuk diakses di frontend
+    const videoUrl = `/uploads_logo/${req.file.filename}`;
+    
+    res.json({ status: 'success', videoUrl });
 });
 
 app.listen(port, () => {

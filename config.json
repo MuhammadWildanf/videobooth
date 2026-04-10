@@ -1,10 +1,18 @@
 {
-    "title": "✨ testing Videobooth",
+    "title": "✨ScribbleBooth",
     "subtitle": "Silakan isi data untuk menerima video Anda.",
-    "bgColor1": "#2c3e50",
-    "bgColor2": "#000000",
-    "accentColor": "#e11d48",
+    "readyText": "",
+    "reviewText": "",
+    "successText": "",
+    "bgColor1": "#fdfbfb",
+    "bgColor2": "#ebedee",
+    "accentColor": "#c5a059",
     "fontUrl": "",
-    "fontFamily": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    "bgImageUrl": ""
+    "fontFamily": "'Cormorant Garamond', serif",
+    "bgImageUrl": "",
+    "enableGesture": false,
+    "logoUrl": "/uploads_logo/logo-1775648912367.png",
+    "frameColor": "#1e293b",
+    "tutorialVideoUrl": "/uploads_logo/logo-1775744098721.mp4",
+    "resultVideoUrl": "/uploads_logo/logo-1775744098763.mp4"
 }
