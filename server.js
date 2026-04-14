@@ -32,6 +32,11 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+// Middleware untuk handle multiple upload (video & photo)
+const cpUpload = upload.fields([
+    { name: 'video', maxCount: 1 },
+    { name: 'photo', maxCount: 1 }
+]);
 
 const ffmpeg = require('fluent-ffmpeg');
 
@@ -52,15 +57,17 @@ try {
 
 const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
-const uploadToDrive = async (filePath, fileName) => {
+const uploadToDrive = async (filePath, fileName, parentId = null) => {
     const fileStream = fs.createReadStream(filePath);
+    const mimeType = fileName.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg';
+    
     const response = await drive.files.create({
         requestBody: {
             name: fileName,
-            parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
+            parents: [parentId || process.env.GOOGLE_DRIVE_FOLDER_ID],
         },
         media: {
-            mimeType: 'video/mp4',
+            mimeType: mimeType,
             body: fileStream,
         },
         fields: 'id, webViewLink',
@@ -76,6 +83,29 @@ const uploadToDrive = async (filePath, fileName) => {
     });
 
     return response.data;
+};
+
+const createDriveFolder = async (folderName) => {
+    const fileMetadata = {
+        name: folderName,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
+    };
+    const response = await drive.files.create({
+        resource: fileMetadata,
+        fields: 'id, webViewLink',
+    });
+
+    // Make folder public
+    await drive.permissions.create({
+        fileId: response.data.id,
+        requestBody: {
+            role: 'reader',
+            type: 'anyone',
+        },
+    });
+
+    return { id: response.data.id, link: response.data.webViewLink };
 };
 // ------------------------------
 
@@ -121,91 +151,147 @@ const sendVideoEmail = async (toEmail, userName, videoLink) => {
 
 // Background Queue Worker Engine
 const worker = async (task) => {
-    console.log(`\n[QUEUE] ⏳ Memulai proses rendering video untuk: ${task.name} (${task.phone})`);
+    console.log(`\n[QUEUE] ⏳ Memulai proses rendering untuk: ${task.name} (${task.phone})`);
 
-    return new Promise((resolve, reject) => {
-        const inputPath = task.videoPath;
-        const outputPath = path.join('uploads', 'FINAL-' + path.basename(inputPath));
-        const overlayPath = path.join(__dirname, 'public', 'overlay.png');
+    return new Promise(async (resolve, reject) => {
+        try {
+            const inputPath = task.videoPath;
+            const photoInputPath = task.photoPath;
+            const overlayPath = path.join(__dirname, 'public', 'overlay.png');
+            
+            const timestamp = Date.now();
+            const outputVideoPath = path.join('uploads', `FINAL-${timestamp}-video.mp4`);
+            const outputPhotoPath = path.join('uploads', `FINAL-${timestamp}-photo.jpg`);
 
-        let cmd = ffmpeg(inputPath);
+            // 1. Create Folder
+            console.log(`[G-DRIVE] 📂 Creating folder for ${task.name}...`);
+            const driveFolder = await createDriveFolder(`${task.name} - ${task.phone}`);
+            const userFolderId = driveFolder.id;
+            const userFolderLink = driveFolder.link;
 
-        // Cek apakah user sudah memasukkan file overlay.png di folder public
-        if (fs.existsSync(overlayPath)) {
-            console.log(`[FFMPEG] Mendeteksi overlay.png, sedang merender bingkai...`);
-            cmd = cmd.input(overlayPath)
-                .complexFilter([
-                    // Skalakan overlay agar pas dengan video jika ukurannya beda, lalu tempel
-                    '[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'
-                ]);
-        } else {
-            console.log(`[FFMPEG] Tidak ada overlay.png, memproses video secara standar...`);
-            // cmd = cmd.videoFilters('hflip'); // Remove hflip to maintain mirrored look
+            // 2. Process Video
+            console.log(`[RENDER] 🎬 Step 2/6: Processing Video with Overlay...`);
+            let videoProcessed = false;
+            await new Promise((res, rej) => {
+                let cmd = ffmpeg(inputPath);
+                if (fs.existsSync(overlayPath)) {
+                    console.log(`[FFMPEG] Mendeteksi overlay.png, sedang merender bingkai...`);
+                    cmd = cmd.input(overlayPath)
+                             .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
+                             .addOptions(['-preset ultrafast', '-crf 28']);
+                } else {
+                    cmd = cmd.addOptions(['-preset ultrafast']);
+                }
+                
+                cmd.output(outputVideoPath)
+                    .on('start', (cmdLine) => console.log(`[FFMPEG] Spawned FFmpeg dengan command: ${cmdLine}`))
+                    .on('progress', (progress) => {
+                        if (progress.percent) console.log(`[FFMPEG] Rendering: ${Math.round(progress.percent)}% done`);
+                    })
+                    .on('end', () => { 
+                        console.log(`[QUEUE SUCCESS] 🌟 Tugas Selesai! Video matang disimpan di: ${outputVideoPath}`);
+                        videoProcessed = true; 
+                        res(); 
+                    })
+                    .on('error', (err) => {
+                        console.error(`[RENDER] ❌ Video Error:`, err.message);
+                        rej(err);
+                    })
+                    .run();
+            });
+
+            // 3. Process Photo
+            let photoProcessed = false;
+            if (photoInputPath && fs.existsSync(photoInputPath)) {
+                console.log(`[RENDER] 📸 Step 3/6: Processing Photo with Overlay...`);
+                await new Promise((res, rej) => {
+                    let cmd = ffmpeg(photoInputPath);
+                    if (fs.existsSync(overlayPath)) {
+                        cmd = cmd.input(overlayPath)
+                                 .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
+                                 .addOptions(['-preset ultrafast']);
+                    }
+                    cmd.output(outputPhotoPath)
+                        .on('end', () => { 
+                            console.log(`[RENDER] ✅ Photo Render Complete.`);
+                            photoProcessed = true; 
+                            res(); 
+                        })
+                        .on('error', (err) => rej(err))
+                        .run();
+                });
+            }
+            // 4. Upload to Folder
+            console.log(`[G-DRIVE] ☁️ Step 4/6: Uploading to Cloud...`);
+            let videoLink = null;
+            let photoLink = null;
+
+            if (videoProcessed) {
+                console.log(`[G-DRIVE] ☁️ Sedang mengunggah ke Google Drive...`);
+                const driveVideo = await uploadToDrive(outputVideoPath, `Video-${task.name}-${timestamp}.mp4`, userFolderId);
+                videoLink = driveVideo.webViewLink;
+                console.log(`[G-DRIVE] ✅ Sukses diunggah! Link: ${videoLink}`);
+            }
+
+            if (photoProcessed) {
+                console.log(`[G-DRIVE] 📸 Uploading photo: ${outputPhotoPath}`);
+                const drivePhoto = await uploadToDrive(outputPhotoPath, `Photo-${task.name}-${timestamp}.jpg`, userFolderId);
+                photoLink = drivePhoto.webViewLink;
+                console.log(`[G-DRIVE] ✅ Photo Uploaded.`);
+            }
+            // 5. Send Notification
+            if (userFolderLink) {
+                if (task.deliveryMethod === 'email') {
+                    console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.phone}`); // task.phone holds email address in email mode
+                    const emailText = `Halo ${task.name}! ✨\n\nKenangan Anda di ScribbleBooth sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
+                    await sendEmailMessage(task.phone, "Kenangan ScribbleBooth Anda sudah siap! ✨", emailText);
+                    console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.phone}`);
+                } else {
+                    const waText = `Halo ${task.name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
+                    const result = await sendWhatsAppMessage(task.phone, waText);
+                    console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}: ${result?.message || "Berhasil mengirimkan pesan"}`);
+                }
+            }
+
+            // 6. Cleanup
+            [inputPath, photoInputPath, outputVideoPath, outputPhotoPath].forEach(p => {
+                if (p && fs.existsSync(p)) fs.unlinkSync(p);
+            });
+            console.log(`[CLEANUP] 🧹 temporary files deleted.`);
+            resolve();
+
+        } catch (err) {
+            console.error(`\n[QUEUE ERROR] ❌ Error processing task for: ${task.name}`);
+            console.error(`[ERROR DETAILS]:`, err);
+            
+            // Clean up even on error to prevent disk filling
+            [task.videoPath, task.photoPath].forEach(p => {
+                if (p && fs.existsSync(p)) {
+                    try { fs.unlinkSync(p); } catch(e) {}
+                }
+            });
+            reject(err);
         }
-
-        cmd.output(outputPath)
-            .on('start', (commandLine) => {
-                console.log('[FFMPEG] Spawned FFmpeg dengan command: ' + commandLine);
-            })
-            .on('progress', (progress) => {
-                // Render log tipis-tipis agar tahu prosesnya berjalan
-                if (progress.percent) console.log(`[FFMPEG] Rendering: ${Math.round(progress.percent)}% done`);
-            })
-            .on('end', async () => {
-                console.log(`[QUEUE SUCCESS] 🌟 Tugas Selesai! Video matang disimpan di: ${outputPath}`);
-
-                let driveLink = null;
-                try {
-                    console.log(`[G-DRIVE] ☁️ Sedang mengunggah ke Google Drive...`);
-                    const driveFile = await uploadToDrive(outputPath, `Videobooth-${task.name.replace(/\s+/g, '-')}-${Date.now()}.mp4`);
-                    driveLink = driveFile.webViewLink;
-                    console.log(`[G-DRIVE] ✅ Sukses diunggah! Link: ${driveLink}`);
-                } catch (err) {
-                    console.error(`[G-DRIVE] ❌ Gagal upload!`, err.message);
-                }
-
-               // === DI SINI TEMPAT UNTUK KIRIM EMAIL / WA ===
-                /* 
-                // Fitur Email dinonaktifkan sementara (Jangan dihapus)
-                if (driveLink && task.phone.includes('@')) {
-                    console.log(`[EMAIL] 📧 Menyiapkan pengiriman email ke ${task.phone}...`);
-                    await sendVideoEmail(task.phone, task.name, driveLink);
-                } else */ if (driveLink) {
-                    // Kirim via WhatsApp (RuangWA)
-                    const waText = `Halo ${task.name}! ✨\n\nVideo keseruan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 ${driveLink}\n\nTerima kasih sudah mampir!`;
-                    await sendWhatsAppMessage(task.phone, waText);
-                }
-
-                // === PEMBERSIHAN FILE ===
-                try {
-                    if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
-                    if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-                    console.log(`[CLEANUP] 🧹 File lokal berhasil dihapus.`);
-                } catch (e) {
-                    console.error(`[CLEANUP] ⚠️ Gagal menghapus beberapa file lokal:`, e.message);
-                }
-
-                resolve();
-            })
-            .on('error', (err) => {
-                console.error(`[QUEUE ERROR] ❌ FFmpeg Gagal memproses video untuk: ${task.name}`);
-                console.error(err);
-                reject(err);
-            })
-            .run();
     });
 };
 
-// Initiate FastQ with concurrency = 1 (proses satu demi satu agar tidak berat)
-const queue = fastq.promise(worker, 1);
+// Initiate FastQ with concurrency = 2 (allow simultaneous upload while rendering)
+const queue = fastq.promise(worker, 2);
 
 // API Endpoint: Submit Video
-app.post('/api/videobooth/submit', upload.single('video'), (req, res) => {
+app.post('/api/videobooth/submit', (req, res, next) => {
+    console.log(`\n[CONNECTION] ⚡ Terdeteksi upaya pengiriman data...`);
+    next();
+}, cpUpload, (req, res) => {
+    // 1. LOG IMMEDIATELY
+    const { name, phone } = req.body;
+    console.log(`[API] 📥 Data diterima dari: ${name} (${phone})`);
+    
     try {
-        const { name, phone } = req.body;
-        const file = req.file;
+        const videoFile = req.files['video'] ? req.files['video'][0] : null;
+        const photoFile = req.files['photo'] ? req.files['photo'][0] : null;
 
-        if (!file) {
+        if (!videoFile) {
             return res.status(400).json({ status: 'error', message: 'Tidak ada file video yang dikirim' });
         }
 
@@ -215,13 +301,15 @@ app.post('/api/videobooth/submit', upload.single('video'), (req, res) => {
         queue.push({
             name: name,
             phone: phone,
-            videoPath: file.path
+            deliveryMethod: req.body.deliveryMethod || 'whatsapp',
+            videoPath: videoFile.path,
+            photoPath: photoFile ? photoFile.path : null
         });
 
-        // KEMBALIKAN response secepat mungkin (tanpa menunggu queue selesai)
+        // KEMBALIKAN response secepat mungkin
         res.status(200).json({
             status: 'success',
-            message: 'Video berhasil disimpan dan sedang diproses',
+            message: 'Data berhasil disimpan dan sedang diproses',
             data: { name, phone }
         });
     } catch (err) {
@@ -247,10 +335,47 @@ async function sendWhatsAppMessage(phone, text) {
                 is_group: false
             }
         });
-        console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${phone}:`, result.message || "OK");
+        if (result && (result.status === true || result.message === "Berhasil mengirimkan pesan")) {
+            console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${phone}:`, result.message || "Berhasil");
+        } else {
+            console.log(`[WhatsApp] ⚠️ Server RuangWA merespons, tapi pesan mungkin gagal:`, result);
+        }
         return result;
     } catch (error) {
-        console.error(`[WhatsApp] ❌ Gagal kirim pesan ke ${phone}:`, error.message);
+        console.error(`[WhatsApp] ❌ Error: ${error.message}`);
+        // Jika error 523 (Origin Unreachable) dari RuangWA
+        if (error.statusCode === 523) {
+            console.error(`[WhatsApp] 🛑 Server RuangWA Sedang Down (Error 523). Pesan masuk ke antrean tapi gagal kirim otomatis.`);
+        }
+    }
+}
+
+// ===============================
+// Fungsi: Kirim Pesan via Email (Nodemailer)
+// ===============================
+async function sendEmailMessage(targetEmail, subject, text) {
+    try {
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.SMTP_EMAIL,
+                pass: process.env.SMTP_PASSWORD
+            }
+        });
+
+        const info = await transporter.sendMail({
+            from: `"ScribbleBooth Wedding" <${process.env.SMTP_EMAIL}>`,
+            to: targetEmail,
+            subject: subject,
+            text: text,
+            html: text.replace(/\n/g, "<br>")
+        });
+
+        return info;
+    } catch (err) {
+        console.error(`[EMAIL] ❌ Gagal mengirim email:`, err.message);
     }
 }
 

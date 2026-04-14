@@ -11,15 +11,42 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@400;600;700;800&family=Pacifico&display=swap');
+        .hidden {
+            display: none !important;
+        }
+
+        @font-face {
+            font-family: 'Luxurious Script';
+            src: url('/fonts/LuxuriousScript-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Kaisei Opti';
+            src: url('/fonts/KaiseiOpti-Regular.ttf') format('truetype');
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: 'Kaisei Opti';
+            src: url('/fonts/KaiseiOpti-Medium.ttf') format('truetype');
+            font-weight: 500;
+        }
+
+        @font-face {
+            font-family: 'Kaisei Opti';
+            src: url('/fonts/KaiseiOpti-Bold.ttf') format('truetype');
+            font-weight: 700;
+        }
 
         :root {
             --accent: #c5a059;
-            --frame: rgba(15, 23, 42, 0.95);
-            --bg-1: #ffffff;
-            --bg-2: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
+            --gold-gradient: linear-gradient(135deg, #c5a059 0%, #d4af37 50%, #b38b4d 100%);
+            --frame: rgba(22, 18, 15, 0.4);
+            --bg-dark: #1a120b;
+            --text-main: #f8fafc;
+            --text-gold: #c5a059;
         }
 
         /* PREMIUM BUTTONS */
@@ -30,17 +57,16 @@
             justify-content: center !important;
             gap: 12px !important;
             padding: 16px 42px !important;
-            background: linear-gradient(135deg, #c5a059 0%, #b38b4d 100%) !important;
+            background: var(--gold-gradient) !important;
             color: white !important;
-            border: none !important;
-            border-radius: 15px !important;
-            font-weight: 800 !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 50px !important;
+            font-weight: 700 !important;
             font-size: 18px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 1.5px !important;
+            text-transform: none !important;
             cursor: pointer !important;
-            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.3) !important;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+            transition: all 0.3s ease !important;
             text-decoration: none !important;
         }
 
@@ -77,25 +103,20 @@
         /* IOS KEYBOARD */
         .keyboard-wrapper {
             position: fixed !important;
-            bottom: 40px !important;
-            /* Raised significantly from bottom */
+            bottom: 30px !important;
             left: 50% !important;
-            transform: translateX(-50%) translateY(100%) !important;
-            width: 90% !important;
-            max-width: 850px !important;
-            background: rgba(250, 250, 250, 0.9) !important;
-            backdrop-filter: blur(30px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-            padding: 20px !important;
-            border-radius: 25px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 12px !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+            transform: translateX(-50%) translateY(120%) !important;
+            width: 95% !important;
+            max-width: 900px !important;
+            background: rgba(30, 25, 20, 0.8) !important;
+            backdrop-filter: blur(25px) !important;
+            border: 1px solid rgba(197, 160, 89, 0.3) !important;
+            padding: 15px !important;
+            border-radius: 30px !important;
             z-index: 9999 !important;
             opacity: 0 !important;
             visibility: hidden !important;
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
         .keyboard-wrapper.show {
@@ -109,16 +130,23 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 100%);
-            background-attachment: fixed;
+            font-family: 'Kaisei Opti', serif;
+            background-color: #1a0f0a;
+            /* Dark base matching the wedding theme */
+            color: var(--text-main);
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
             margin: 0;
             padding: 0;
+            width: 100vw;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            background-attachment: scroll;
+            /* Scroll is usually safer for 'full' feel on all browsers */
         }
 
         .main-wrapper {
@@ -133,17 +161,19 @@
         }
 
         .side-panel {
-            flex: 1;
-            background: var(--frame);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
-            padding: 30px;
+            height: 85vh;
+            aspect-ratio: 564 / 990;
+            background: rgba(0, 0, 0, 0.05);
+            background-image: url('/frame_gold.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            border: none;
+            border-radius: 0;
+            padding: 55px 40px 75px 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -160,37 +190,37 @@
             width: 100%;
             flex-grow: 1;
             background: #000;
-            border-radius: 25px;
+            border-radius: 20px;
             overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: none;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
         }
 
         .side-panel .panel-footer {
-            margin-top: 20px;
-            font-weight: 700;
-            font-size: 14px;
-            text-transform: uppercase;
+            margin-top: 15px;
+            font-weight: 400;
+            font-size: 18px;
             color: #fff;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-family: 'Kaisei Opti', serif;
         }
 
         .center-panel {
-            flex: 1.6;
-            background: white;
+            flex: 1;
+            background: transparent;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px 10px;
+            padding: 20px;
             text-align: center;
             transition: 0.5s ease;
             overflow-y: auto;
             min-height: 0;
+            box-shadow: none;
         }
 
         /* TYPOGRAPHY */
@@ -199,14 +229,88 @@
             margin-bottom: 25px;
         }
 
+        #idle-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
         .scribble-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 38px;
-            font-weight: 700;
-            color: var(--accent);
+            font-family: 'Luxurious Script', cursive;
+            font-size: 130px;
+            font-weight: 400;
+            color: white;
+            margin-bottom: 5px;
+            margin-top: 5px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            /* Gap handles ornaments distance */
+        }
+
+        .names-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            margin: -10px 0;
+            /* Tighten space around ornaments */
+        }
+
+        .title-ornament {
+            height: 60px;
+            /* Specific height for better control */
+            width: auto;
+            object-fit: contain;
+            margin: 10px 0;
+        }
+
+        .title-ornament:first-child {
+            height: 80px;
+            /* Top ornament is usually larger in these designs */
+            margin-bottom: 5px;
+        }
+
+        .title-ornament:last-child {
+            height: 40px;
+            /* Bottom divider is thinner */
+            margin-top: 5px;
+        }
+
+        .title-amp {
+            font-size: 0.6em;
+            /* Smaller ampersand */
+            opacity: 0.9;
+        }
+
+        .gold-ornament {
+            width: 180px;
+            margin-bottom: 15px;
+        }
+
+        .subtitle-premium {
+            font-family: 'Kaisei Opti', serif;
+            font-size: 22px;
+            color: #D3BB7C;
+            max-width: 600px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .desc-premium {
+            font-family: 'Kaisei Opti', serif;
+            font-size: 13px;
+            color: #CDCDCD;
+            max-width: 400px;
             margin-bottom: 25px;
-            margin-top: -10px;
-            letter-spacing: -0.5px;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
         }
 
         /* INPUTS & FORM */
@@ -221,57 +325,68 @@
         }
 
         .input-group label {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
-            color: #475569;
-            margin-bottom: 8px;
+            color: #94a3b8;
+            margin-bottom: 6px;
             display: block;
+            text-transform: capitalize;
         }
 
         .input-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
-            position: relative;
             width: 100%;
         }
 
-        /* Gaya input dasar untuk semua */
-        .input-group input,
         .input-wrapper input {
             width: 100%;
-            padding: 16px 18px;
-            border-radius: 14px;
-            border: 1.5px solid #e2e8f0;
-            font-size: 16px;
+            padding: 14px 18px 14px 45px;
+            border-radius: 10px;
+            border: 1px solid rgba(197, 160, 89, 0.5);
+            font-size: 15px;
             outline: none;
-            background: #fff;
-            color: #1e293b;
+            background: rgba(40, 30, 20, 0.6);
+            color: #fff;
             transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
-        .input-group input:focus,
-        .input-wrapper input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.15);
-            background: #fff;
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent);
+            font-size: 18px;
+            z-index: 5;
+            pointer-events: none;
         }
 
         /* WhatsApp Input with Flag */
         .phone-prefix {
+            display: none;
+            /* Removed as we use a cleaner single field mockup */
+        }
+
+        .phone-input {
+            border-radius: 10px !important;
+            padding-left: 100px !important;
+        }
+
+        .prefix-overlay {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 0 15px;
-            border: 1.5px solid #e2e8f0;
-            border-right: none;
-            border-radius: 12px 0 0 12px;
-            height: 55px;
-            background: #fff;
-            font-size: 14px;
+            color: #fff;
             font-weight: 700;
-            cursor: pointer;
-            color: #334155;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 5;
         }
 
         .phone-input {
@@ -290,25 +405,24 @@
 
         .key {
             flex: 1;
-            height: 52px;
+            height: 48px;
             max-width: 80px;
-            background: #fff;
-            border-radius: 6px;
+            background: #4a4a4a;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            font-weight: 500;
-            color: #000;
+            font-size: 18px;
+            font-weight: 400;
+            color: #fff;
             cursor: pointer;
-            box-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.25);
-            transition: background 0.1s, transform 0.05s;
+            transition: all 0.1s;
             user-select: none;
         }
 
         .key:active {
-            background: #d1d1d1;
-            transform: scale(0.96);
+            background: var(--accent) !important;
+            transform: scale(0.95);
         }
 
         .key.wide {
@@ -324,6 +438,38 @@
         }
 
         /* STATES (READY, REVIEW, SUCCESS) */
+        /* DELIVERY SELECTOR */
+        .delivery-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .delivery-tab {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .delivery-tab.active {
+            background: var(--gold-gradient);
+            border-color: transparent;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(197, 160, 89, 0.3);
+        }
+
         .ui-state {
             display: none;
             flex-direction: column;
@@ -417,14 +563,11 @@
             box-shadow: 0 15px 35px rgba(197, 160, 89, 0.5);
         }
 
-        /* VIDEO ELEMENTS */
         video,
         canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 0;
-            /* Let the container handle the radius */
             position: absolute;
             top: 0;
             left: 0;
@@ -474,51 +617,100 @@
             stroke-linecap: round;
             transition: none;
         }
+
+        /* FLASH EFFECT */
+        #flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10000;
+            transition: opacity 0.1s ease-out;
+        }
+
+        #flash-overlay.active {
+            opacity: 1;
+            transition: none;
+        }
     </style>
 </head>
 
 <body>
+    <div id="flash-overlay"></div>
 
     <div class="main-wrapper">
 
-        <!-- LEFT PANEL (IDLE ONLY) -->
+        <!-- LEFT PANEL -->
         <div class="side-panel" id="panel-left">
-            <div class="video-container">
+            <div class="video-container" style="background: #000;">
                 <video id="loop-preview" autoplay muted playsinline loop
-                    style="width:100%; height:100%; object-fit:cover;"></video>
-                <div id="label-left" style="color:#666; font-weight:800; font-size:24px; position:absolute;">Result
-                    Preview</div>
+                    style="width:100%; height:100%; object-fit:cover; z-index: 10; position: relative; opacity: 0; transition: opacity 0.5s;"
+                    onplaying="this.style.opacity=1; document.getElementById('label-left-overlay').classList.add('hidden')"
+                    onerror="console.error('Video Error (Result):', this.error)"></video>
+                <div id="label-left-overlay"
+                    style="color:rgba(255,255,255,0.3); font-weight:700; font-size:24px; position:absolute; z-index: 5;">
+                    Loading Preview...</div>
             </div>
-            <div class="panel-footer">Result Preview</div>
+            <div class="panel-footer" style="margin-top: auto; margin-bottom: 25px; font-size: 20px;">Preview Your
+                Moment</div>
         </div>
 
         <!-- CENTER PANEL -->
         <div class="center-panel">
-            <img src="" id="main-logo" alt="Wedding Logo" class="wedding-logo">
+            <div id="idle-header">
+                <div class="scribble-title" id="main-title" style="margin-bottom: 20px;">
+                    <img src="/before.png" alt="" class="title-ornament">
+                    <div class="names-row">
+                        <span>Audric</span>
+                        <span class="title-amp">&</span>
+                        <span>Catherine</span>
+                    </div>
+                    <img src="/after.png" alt="" class="title-ornament">
+                </div>
+                <div class="subtitle-premium" id="idle-sub">A special moment awaits you.</div>
+                <div class="desc-premium">Enter your details to unveil a personalized wedding experience.</div>
+                <img src="/dibawah_enter_your_detail.png" style="width: 250px; margin-bottom: 30px; opacity: 0.8;" alt="">
+            </div>
 
             <!-- STATE IDLE (FRAME 3) -->
             <div id="state-idle" class="ui-state active">
-                <div class="scribble-title" id="idle-sub">Write your own scribble</div>
-
                 <div class="form-container">
                     <div class="input-group">
-                        <label>Name <span style="float:right; font-weight:400; font-size:11px; color:#10b981;">🛡️ Caps
-                                lock is on</span></label>
-                        <input type="text" id="name" placeholder="Please input your name" inputmode="none">
+                        <label>Name</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="name" placeholder="Please input your name" inputmode="none">
+                        </div>
                     </div>
                     <div class="input-group">
-                        <label>WhatsApp Number</label>
-                        <div class="input-wrapper">
-                            <div class="phone-prefix">
-                                <img src="https://flagcdn.com/w20/id.png" width="20">
-                                <span>IDN(+62)</span>
-                                <span style="font-size:10px; margin-left:2px;">↕️</span>
+                        <label>Delivery Method</label>
+                        <div class="delivery-selector">
+                            <div class="delivery-tab active" id="tab-whatsapp" onclick="setDelivery('whatsapp')">
+                                <span>📱 WhatsApp</span>
                             </div>
-                            <input type="text" id="phone" class="phone-input" placeholder="XX-XXXX-XXXX"
+                            <div class="delivery-tab" id="tab-email" onclick="setDelivery('email')">
+                                <span>📧 Email</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label id="phone-label">Whatsapp number</label>
+                        <div class="input-wrapper">
+                            <div class="prefix-overlay" id="phone-prefix-overlay">
+                                <img src="https://flagcdn.com/w20/id.png" width="20">
+                                <span class="phone-prefix">(+62)</span>
+                            </div>
+                            <input type="text" id="phone" class="phone-input" placeholder="8XX-XXXX-XXXX"
                                 inputmode="none">
                         </div>
                     </div>
-                    <button class="btn-start" onclick="startCameraFlow()">Start</button>
+                    <button class="btn-start" onclick="startCameraFlow()">
+                        <span style="font-size:20px;">✨</span> Begin your experience
+                    </button>
                 </div>
 
                 <!-- KEYBOARD (FRAME 3 PREMIUM DESIGN) -->
@@ -537,8 +729,8 @@
             <!-- STATE READY (FRAME 4) -->
             <div id="state-ready" class="ui-state">
                 <h2 id="ready-text"
-                    style="font-size:34px; color:#1e293b; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
-                    your pen and look at mirror. <br> Hit the record button when you are ready.</h2>
+                    style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
+                    your pen and look at mirror. <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">Hit the record button when you are ready.</span></h2>
                 <button class="btn-primary" id="btn-record" onclick="startRecording()">
                     <div class="record-icon"></div>
                     <span id="countdown-area">Start Recording</span>
@@ -553,40 +745,69 @@
                 </button>
             </div>
 
-            <!-- STATE REVIEW (FRAME 5) -->
-            <div id="state-review" class="ui-state">
-                <h2 id="review-text"
-                    style="font-size:34px; color:#1e293b; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
-                    review your video, <br> you can RETAKE or UPLOAD.</h2>
+            <!-- STATE REVIEW VIDEO (NEW) -->
+            <div id="state-review-video" class="ui-state">
+                <h2 id="review-video-text"
+                    style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
+                    review your video, <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">you can RETAKE or NEXT.</span></h2>
                 <div class="btn-row">
                     <button class="btn-action btn-retake" onclick="retakeVideo()">Retake</button>
-                    <button class="btn-action btn-upload" onclick="submitVideo()">Upload</button>
+                    <button class="btn-action btn-upload" onclick="startPhotoSession()">Next: Take Photo</button>
                 </div>
             </div>
 
+            <!-- STATE REVIEW FINAL (NEW) -->
+            <div id="state-review-final" class="ui-state">
+                <h2 style="font-size:28px; color:#D3BB7C; font-weight:700; margin-bottom:20px;">Review your session.
+                </h2>
+                <div style="display:flex; gap:15px; width:100%; max-width:600px; margin-bottom:20px;">
+                    <div
+                        style="flex:1; aspect-ratio:9/16; background:#000; border-radius:15px; overflow:hidden; position:relative;">
+                        <video id="final-video-preview" autoplay muted loop
+                            style="width:100%; height:100%; object-fit:cover;"></video>
+                        <span
+                            style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:#fff; padding:2px 8px; border-radius:5px; font-size:10px;">VIDEO</span>
+                    </div>
+                    <div
+                        style="flex:1; aspect-ratio:9/16; background:#000; border-radius:15px; overflow:hidden; position:relative;">
+                        <img id="final-photo-preview" style="width:100%; height:100%; object-fit:cover;">
+                        <span
+                            style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:#fff; padding:2px 8px; border-radius:5px; font-size:10px;">PHOTO</span>
+                    </div>
+                </div>
+                <div class="btn-row" style="flex-wrap: wrap;">
+                    <button class="btn-action btn-retake" style="background:#fff; color:#e11d48;" onclick="retakeVideo()">Retake All</button>
+                    <button class="btn-action btn-retake" style="background:#D3BB7C; color:#fff;" onclick="retakePhotoOnly()">Retake Photo</button>
+                    <button class="btn-action btn-upload" onclick="submitVideo()">Upload Both</button>
+                </div>
+           </div>
+
             <!-- STATE SUCCESS (FRAME 6) -->
             <div id="state-processing" class="ui-state">
-                <h2 id="success-text" style="font-size:30px; color:#1e293b; line-height:1.5; font-weight:600;">Your
-                    video is still processing, <br> we will notify on your WhatsApp number ketika selesai. <br><br>
-                    Thank You</h2>
+                <h2 id="success-text" style="font-size:30px; color:#D3BB7C; line-height:1.5; font-weight:600;">Your
+                    video is still processing, <br> <span style="color:#CDCDCD; font-size:20px; font-weight:400;">we will notify on your WhatsApp number ketika selesai.</span> <br><br>
+                    <span style="font-size:40px; font-family:'Luxurious Script', cursive;">Thank You</span></h2>
             </div>
         </div>
 
         <!-- RIGHT PANEL -->
         <div class="side-panel" id="panel-right">
-            <div class="video-container">
+            <div class="video-container" style="background: #000;">
                 <svg class="timer-progress-container hidden" id="svg-timer">
                     <rect class="progress-rect" id="rect-timer" x="7" y="7" rx="15" ry="15"></rect>
                 </svg>
-                <video id="webcam" autoplay muted playsinline></video>
+                <video id="webcam" autoplay muted playsinline class="hidden" style="z-index: 20;"></video>
                 <canvas id="output_canvas" class="hidden"></canvas>
                 <canvas id="drawing_canvas"></canvas>
                 <video id="preview" autoplay muted playsinline loop
-                    style="width:100%; height:100%; object-fit:cover;"></video>
-                <div id="label-right" style="color:#666; font-weight:800; font-size:24px; position:absolute;">Tutorial
-                    Video</div>
+                    style="width:100%; height:100%; object-fit:cover; z-index: 10; position: relative; opacity: 0; transition: opacity 0.5s;"
+                    onplaying="this.style.opacity=1; document.getElementById('label-right-overlay').classList.add('hidden')"
+                    onerror="console.error('Video Error (Tutorial):', this.error)"></video>
+                <div id="label-right-overlay"
+                    style="color:rgba(255,255,255,0.3); font-weight:700; font-size:24px; position:absolute; z-index: 5;">
+                    Loading Tutorial...</div>
             </div>
-            <div class="panel-footer">Tutorial Video</div>
+            <div class="panel-footer" style="margin-top: auto; margin-bottom: 25px; font-size: 20px;">How It Works</div>
         </div>
 
     </div>
@@ -598,6 +819,32 @@
         let num = false;
         const row1 = "QWERTYUIOP".split(''), row2 = "ASDFGHJKL".split(''), row3 = "ZXCVBNM".split('');
         const nums = "1234567890-/@:();\"+!?. ,*#&".split('');
+        let deliveryMethod = 'whatsapp';
+
+        function setDelivery(method) {
+            deliveryMethod = method;
+            document.querySelectorAll('.delivery-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${method}`).classList.add('active');
+
+            const phoneInput = document.getElementById('phone');
+            const phoneLabel = document.getElementById('phone-label');
+            const prefixOverlay = document.getElementById('phone-prefix-overlay');
+
+            if (method === 'email') {
+                phoneLabel.innerText = 'Email Address';
+                phoneInput.placeholder = 'you@example.com';
+                phoneInput.style.paddingLeft = '20px';
+                prefixOverlay.style.display = 'none';
+                num = false;
+            } else {
+                phoneLabel.innerText = 'Whatsapp number';
+                phoneInput.placeholder = '8XX-XXXX-XXXX';
+                phoneInput.style.paddingLeft = '100px';
+                prefixOverlay.style.display = 'flex';
+                num = true;
+            }
+            drawKbd();
+        }
 
         function drawKbd() {
             const draw = (id, keys) => {
@@ -606,9 +853,20 @@
                 keys.forEach(k => { el.innerHTML += `<div class="key" onclick="kPress('${k}')">${caps ? k : k.toLowerCase()}</div>`; });
                 if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kBks()">⌫</div>`;
             };
-            draw('kbd-1', num ? nums.slice(0, 10) : row1);
-            draw('kbd-2', num ? nums.slice(10, 19) : row2);
-            draw('kbd-3', num ? nums.slice(19, 26) : row3);
+            
+            let r1 = num ? nums.slice(0, 10) : row1;
+            let r2 = num ? nums.slice(10, 19) : row2;
+            let r3 = num ? nums.slice(19, 26) : row3;
+
+            // In email mode (non-num), let's swap some less used keys for @ and .
+            if (!num && deliveryMethod === 'email') {
+                r3 = [...r3];
+                r3.push('@', '.');
+            }
+
+            draw('kbd-1', r1);
+            draw('kbd-2', r2);
+            draw('kbd-3', r3);
         }
         drawKbd();
 
@@ -620,7 +878,7 @@
         });
         document.getElementById('phone').addEventListener('click', () => {
             activeInput = document.getElementById('phone');
-            num = true;
+            num = (deliveryMethod === 'whatsapp');
             drawKbd();
             document.getElementById('kbd-container').classList.add('show');
         });
@@ -632,7 +890,7 @@
         function kNext() {
             if (activeInput?.id === 'name') {
                 activeInput = document.getElementById('phone');
-                num = true;
+                num = (deliveryMethod === 'whatsapp');
                 drawKbd();
             } else {
                 activeInput = null;
@@ -653,24 +911,32 @@
             document.getElementById('state-' + state).classList.add('active');
 
             const leftPanel = document.getElementById('panel-left');
-            const rightLabel = document.getElementById('label-right');
+            const rightLabel = document.getElementById('label-right-overlay');
+            const idleHeader = document.getElementById('idle-header');
 
             if (state === 'idle') {
+                if (idleHeader) idleHeader.classList.remove('hidden');
                 leftPanel.classList.remove('hidden-panel');
-                rightLabel.innerText = "Tutorial Video";
                 rightLabel.classList.remove('hidden');
 
                 // Tampilkan video jika URL-nya ada
                 const previewVid = document.getElementById('preview');
                 const loopVid = document.getElementById('loop-preview');
-                const labelLeft = document.getElementById('label-left');
+                const webcamEl = document.getElementById('webcam');
 
-                if (previewVid.src) previewVid.classList.remove('hidden');
+                if (webcamEl) webcamEl.classList.add('hidden');
+
+                if (previewVid.src) {
+                    previewVid.classList.remove('hidden');
+                    previewVid.play().catch(e => console.log("Tutorial play error:", e));
+                }
+
                 if (loopVid.src) {
                     loopVid.classList.remove('hidden');
-                    labelLeft.classList.add('hidden'); // Sembunyikan label jika video ada
+                    loopVid.play().catch(e => console.log("Result preview play error:", e));
                 }
             } else {
+                if (idleHeader) idleHeader.classList.add('hidden');
                 leftPanel.classList.add('hidden-panel');
                 rightLabel.classList.add('hidden');
                 if (state === 'ready') {
@@ -683,7 +949,13 @@
                     document.getElementById('countdown-area').innerText = 'Start Recording';
                 } else {
                     document.getElementById('webcam').classList.add('hidden');
-                    document.getElementById('preview').classList.remove('hidden');
+                    if (state === 'review-video') {
+                        document.getElementById('preview').classList.remove('hidden');
+                    } else if (state === 'review-final') {
+                        document.getElementById('preview').classList.add('hidden');
+                    } else {
+                        document.getElementById('preview').classList.remove('hidden');
+                    }
                 }
             }
         }
@@ -695,8 +967,11 @@
                 const data = await res.json();
 
                 // Update Logo & Title
-                if (data.logoUrl) document.getElementById('main-logo').src = data.logoUrl;
-                if (data.subtitle) document.getElementById('idle-sub').innerText = data.subtitle;
+                const logoEl = document.getElementById('main-logo');
+                if (logoEl && data.logoUrl) logoEl.src = data.logoUrl;
+
+                const subEl = document.getElementById('idle-sub');
+                if (subEl && data.subtitle) subEl.innerText = data.subtitle;
 
                 // Update Teks Instruksi dengan Fallback (Default)
                 const defaults = {
@@ -705,27 +980,39 @@
                     success: "Your video is still processing, <br> we will notify on your WhatsApp number when is done. <br><br> Thank You"
                 };
 
-                document.getElementById('ready-text').innerHTML = data.readyText || defaults.ready;
-                document.getElementById('review-text').innerHTML = data.reviewText || defaults.review;
-                document.getElementById('success-text').innerHTML = data.successText || defaults.success;
+                const readyEl = document.getElementById('ready-text');
+                if (readyEl) readyEl.innerHTML = data.readyText || defaults.ready;
+
+                const reviewEl = document.getElementById('review-video-text');
+                if (reviewEl) reviewEl.innerHTML = data.reviewText || defaults.review;
+
+                const successEl = document.getElementById('success-text');
+                if (successEl) successEl.innerHTML = data.successText || defaults.success;
 
                 // Update Video Assets
                 const tutorialVid = document.getElementById('preview');
                 const resultVid = document.getElementById('loop-preview');
+                const ts = new Date().getTime();
 
-                if (data.tutorialVideoUrl && (tutorialVid.src !== window.location.origin + data.tutorialVideoUrl)) {
-                    tutorialVid.src = data.tutorialVideoUrl;
-                    tutorialVid.load();
-                    tutorialVid.style.display = 'block';
-                    tutorialVid.play().catch(e => console.log("Tutorial play blocked:", e));
-                    document.getElementById('label-right').style.display = 'none';
+                if (data.tutorialVideoUrl) {
+                    const newUrl = data.tutorialVideoUrl + "?v=" + ts;
+                    if (tutorialVid.src !== new URL(newUrl, window.location.origin).href) {
+                        console.log("[THEME] Loading Tutorial:", newUrl);
+                        tutorialVid.src = newUrl;
+                        tutorialVid.muted = true;
+                        tutorialVid.load();
+                        tutorialVid.play().catch(e => console.error("Play error:", e));
+                    }
                 }
-                if (data.resultVideoUrl && (resultVid.src !== window.location.origin + data.resultVideoUrl)) {
-                    resultVid.src = data.resultVideoUrl;
-                    resultVid.load();
-                    resultVid.style.display = 'block';
-                    resultVid.play().catch(e => console.log("Result play blocked:", e));
-                    document.getElementById('label-left').style.display = 'none';
+                if (data.resultVideoUrl && resultVid) {
+                    const newUrl = data.resultVideoUrl + "?v=" + ts;
+                    if (resultVid.src !== new URL(newUrl, window.location.origin).href) {
+                        console.log("[THEME] Loading Result:", newUrl);
+                        resultVid.src = newUrl;
+                        resultVid.muted = true;
+                        resultVid.load();
+                        resultVid.play().catch(e => console.error("Play error:", e));
+                    }
                 }
 
                 // Update Visual Variables
@@ -748,18 +1035,21 @@
                 // Update Font if provided
                 if (data.fontFamily) document.body.style.fontFamily = data.fontFamily;
 
+                // Set initial state
+                changeState('idle');
+
             } catch (e) { console.error("Theme apply error:", e); }
         }
         applyTheme();
 
         // --- BOOTH LOGIC ---
-        let stream, mediaRecorder, recordedChunks = [], videoBlob, isProcessing = false;
+        let stream, mediaRecorder, recordedChunks = [], videoBlob, photoBlob, isProcessing = false;
         const webcam = document.getElementById('webcam'), preview = document.getElementById('preview');
         const drawing = document.getElementById('drawing_canvas'), dCtx = drawing.getContext('2d');
 
         async function startCameraFlow() {
             const n = document.getElementById('name').value, p = document.getElementById('phone').value;
-            if (!n || !p) return alert("Please input your name and WhatsApp number!");
+            if (!n || !p) return alert("Please input your name and contact details!");
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1080, height: 1920 }, audio: true });
                 webcam.srcObject = stream;
@@ -899,8 +1189,9 @@
                 isRec = false;
                 videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
                 preview.src = URL.createObjectURL(videoBlob);
+                document.getElementById('final-video-preview').src = preview.src;
                 svgTimer.classList.add('hidden');
-                changeState('review');
+                changeState('review-video');
             };
             mediaRecorder.start();
 
@@ -917,29 +1208,82 @@
             }, 1000);
         }
 
-        function retakeVideo() { dCtx.clearRect(0, 0, 10000, 10000); changeState('ready'); }
+        function retakeVideo() {
+            dCtx.clearRect(0, 0, 10000, 10000);
+            videoBlob = null;
+            photoBlob = null;
+            changeState('ready');
+        }
+
+        function startPhotoSession() {
+            changeState('ready');
+            document.getElementById('webcam').classList.remove('hidden');
+            document.getElementById('preview').classList.add('hidden');
+
+            let t = 3;
+            document.getElementById('countdown-area').innerHTML = `Lanjut Foto dalam... <span id="countdown-val">${t}</span>`;
+            document.getElementById('btn-record').style.pointerEvents = 'none';
+
+            const timer = setInterval(() => {
+                t--;
+                document.getElementById('countdown-val').innerText = t;
+                if (t <= 0) {
+                    clearInterval(timer);
+                    takePhoto();
+                }
+            }, 1000);
+        }
+
+        function takePhoto() {
+            // Flash Effect
+            const flash = document.getElementById('flash-overlay');
+            flash.classList.add('active');
+            setTimeout(() => flash.classList.remove('active'), 100);
+
+            // Capture from rc canvas (already used in recording loop)
+            const rc = document.createElement('canvas');
+            rc.width = webcam.videoWidth;
+            rc.height = webcam.videoHeight;
+            const rctx = rc.getContext('2d');
+            rctx.drawImage(webcam, 0, 0);
+            if (window.enableGesture) rctx.drawImage(drawing, 0, 0);
+
+            rc.toBlob((blob) => {
+                photoBlob = blob;
+                document.getElementById('final-photo-preview').src = URL.createObjectURL(blob);
+                changeState('review-final');
+                document.getElementById('btn-record').style.pointerEvents = 'auto';
+            }, 'image/jpeg', 0.95);
+        }
+
         async function submitVideo() {
             changeState('processing');
             const fd = new FormData();
             fd.append('video', videoBlob, 'recording.mp4');
+            if (photoBlob) fd.append('photo', photoBlob, 'photo.jpg');
             fd.append('name', document.getElementById('name').value);
-
-            // Gabungkan Prefix (IDN +62) dengan Nomor HP
-            const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
-            let phoneValue = document.getElementById('phone').value.replace(/[^0-9]/g, '');
-
-            // HP Normalization: Hapus angka 0 di depan jika ada
-            if (phoneValue.startsWith('0')) {
-                phoneValue = phoneValue.substring(1);
+            
+            let finalContact = document.getElementById('phone').value;
+            if (deliveryMethod === 'whatsapp') {
+                const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
+                let phoneValue = finalContact.replace(/[^0-9]/g, '');
+                if (phoneValue.startsWith('62')) phoneValue = phoneValue.substring(2);
+                else if (phoneValue.startsWith('0')) phoneValue = phoneValue.substring(1);
+                finalContact = prefix + phoneValue;
             }
-
-            fd.append('phone', prefix + phoneValue);
-
+            
+            fd.append('phone', finalContact);
+            fd.append('deliveryMethod', deliveryMethod);
+            
             try {
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });
-                if (r.ok) setTimeout(() => window.location.reload(), 10000);
-                else changeState('review');
-            } catch (e) { changeState('review'); }
+                if (r.ok) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 5000);
+                }
+                else changeState('review-final');
+            } catch (e) { changeState('review-final'); }
         }
     </script>
 </body>
