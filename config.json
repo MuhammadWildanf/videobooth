@@ -4,15 +4,15 @@
     "readyText": "",
     "reviewText": "",
     "successText": "",
-    "bgColor1": "#1a120b",
+    "bgColor1": "#1a100a",
     "bgColor2": "#3c2a21",
-    "accentColor": "#c5a059",
+    "accentColor": "#d3bb7c",
     "fontUrl": "https://fonts.googleapis.com/css2?family=Luxurious+Script&family=Kaisei+Opti&display=swap",
     "fontFamily": "'Kaisei Opti', serif",
-    "bgImageUrl": "/bg1.png",
+    "bgImageUrl": "/uploads_assets/asset-1776186754151.png",
     "enableGesture": false,
     "logoUrl": "/uploads_logo/logo-1775648912367.png",
-    "frameColor": "#3c2a21",
+    "frameColor": "#333333",
     "tutorialVideoUrl": "/uploads_logo/logo-1776167996330.mp4",
     "resultVideoUrl": "/uploads_logo/logo-1776167996381.mp4",
     "recordingDuration": 20,
@@ -23,5 +23,8 @@
         "user": "YOUR_EMAIL@gmail.com",
         "pass": "YOUR_APP_PASSWORD",
         "fromName": "ScribbleBooth Wedding"
-    }
+    },
+    "titleColor": "#d3bb7c",
+    "frameImageUrl": "/uploads_assets/asset-1776186754198.png",
+    "overlayImageUrl": "/uploads_assets/asset-1776186754211.png"
 }

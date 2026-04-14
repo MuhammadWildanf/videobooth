@@ -130,6 +130,7 @@
         }
 
         body {
+            --title-color: #D3BB7C;
             font-family: 'Kaisei Opti', serif;
             background-color: #1a0f0a;
             /* Dark base matching the wedding theme */
@@ -164,7 +165,7 @@
             height: 85vh;
             aspect-ratio: 564 / 990;
             background: rgba(0, 0, 0, 0.05);
-            background-image: url('/frame_gold.png');
+            background-image: var(--frame-image, url('/frame_gold.png'));
             background-size: 100% 100%;
             background-repeat: no-repeat;
             border: none;
@@ -241,7 +242,7 @@
             font-family: 'Luxurious Script', cursive;
             font-size: 130px;
             font-weight: 400;
-            color: white;
+            color: var(--title-color, white);
             margin-bottom: 5px;
             margin-top: 5px;
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
@@ -296,7 +297,7 @@
         .subtitle-premium {
             font-family: 'Kaisei Opti', serif;
             font-size: 22px;
-            color: #D3BB7C;
+            color: var(--title-color, #D3BB7C);
             max-width: 600px;
             margin-bottom: 8px;
             font-weight: 500;
@@ -1015,13 +1016,20 @@
                     }
                 }
 
-                // Update Visual Variables
-                document.documentElement.style.setProperty('--accent', data.accentColor || '#c5a059');
+                // Update dynamic assets
+                if (data.bgImageUrl) {
+                    document.body.style.backgroundImage = `url('${data.bgImageUrl}')`;
+                }
+                if (data.frameImageUrl) {
+                    document.documentElement.style.setProperty('--frame-image', `url('${data.frameImageUrl}')`);
+                }
+                
+                if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
+                if (data.titleColor) document.documentElement.style.setProperty('--title-color', data.titleColor);
                 document.documentElement.style.setProperty('--frame', data.frameColor || 'rgba(30, 41, 59, 0.95)');
                 document.documentElement.style.setProperty('--bg-1', data.bgColor1 || '#fdfbfb');
                 document.documentElement.style.setProperty('--bg-2', data.bgColor2 || '#ebedee');
 
-                // Update Background Image if provided
                 if (data.bgImageUrl) {
                     document.body.style.backgroundImage = `url('${data.bgImageUrl}')`;
                     document.body.style.backgroundSize = 'cover';

@@ -4,443 +4,735 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Configurator</title>
+    <title>ScribbleBooth | Executive Configurator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-dark: #0a0a0b;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --accent: #D3BB7C;
+            --accent-glow: rgba(211, 187, 124, 0.3);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-muted: #a0a0a0;
+            --sidebar-width: 260px;
+        }
+
         * {
             box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            background: #f3f4f6;
-            color: #333;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(211, 187, 124, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(211, 187, 124, 0.05) 0%, transparent 40%);
+            color: #fff;
             margin: 0;
-            padding: 20px;
             display: flex;
-            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .config-card {
-            background: #fff;
-            width: 100%;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(0, 0, 0, 0.4);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-area {
+            padding: 0 30px 40px 30px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .logo-area h1 {
+            font-size: 22px;
+            margin: 0;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .logo-area span {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            padding: 14px 30px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            background: rgba(211, 187, 124, 0.05);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* MAIN CONTENT */
+        .main-view {
+            flex: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h2 {
-            margin-top: 0;
-            color: #111;
-            text-align: center;
-            border-bottom: 2px solid #f3f4f6;
-            padding-bottom: 15px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            margin: 0 0 30px 0;
         }
 
-        label {
-            font-weight: bold;
-            font-size: 13px;
-            color: #666;
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
             display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="number"], textarea, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* COLOR PICKER CUSTOM */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
 
         input[type="color"] {
-            width: 100%;
+            -webkit-appearance: none;
+            width: 40px;
             height: 40px;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
-            padding: 0;
             background: none;
         }
 
-        .colors {
-            display: flex;
+        input[type="color"]::-webkit-color-swatch {
+            border-radius: 6px;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        /* THEME PRESETS */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px;
         }
 
-        .colors>div {
-            flex: 1;
-        }
-
-        button {
-            margin-top: 25px;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: bold;
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            width: 100%;
+        .preset-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
             cursor: pointer;
-            transition: 0.2s;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        .success {
-            color: #047857;
+            transition: 0.3s;
             text-align: center;
-            font-size: 14px;
-            margin-top: 15px;
-            display: none;
-            font-weight: bold;
         }
 
-        /* Toggle Switch Styling */
-        .toggle-group {
+        .preset-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .preset-card.active {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .preset-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* BUTTONS */
+        .save-bar {
+            position: fixed;
+            bottom: 40px;
+            right: 60px;
+            z-index: 100;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px var(--accent-glow);
+            transition: 0.3s;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid #eee;
+            gap: 10px;
         }
 
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px var(--accent-glow);
+        }
+
+        /* TOGGLE */
         .switch {
             position: relative;
             display: inline-block;
             width: 44px;
             height: 24px;
         }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 24px;
         }
-
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
+            position: absolute; content: "";
+            height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
         }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
 
-        input:checked+.slider {
-            background-color: #2563eb;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Preset Chips */
-        .preset-container {
+        .form-row-between {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .preset-chip {
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: 0.2s;
-            background: #eee;
+        .success-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #047857;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            display: none;
+            animation: slideIn 0.4s ease;
+            z-index: 1000;
         }
 
-        .preset-chip:hover {
-            transform: translateY(-2px);
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
-        .preset-chip.active {
-            border-color: #2563eb;
-            background: #dbeafe;
+        .upload-box {
+            border: 2px dashed var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: 0.3s;
+            background: rgba(255,255,255,0.01);
+        }
+
+        .upload-box:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .preview-img {
+            max-height: 80px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
         }
     </style>
 </head>
 
 <body>
 
-    <div class="config-card">
-        <h2>🛠️ Preset Tema Event</h2>
-
-        <label>Logo Event (PNG Transparan Disarankan)</label>
-        <div
-            style="display: flex; gap: 10px; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1.5px dashed #ccc; margin-bottom: 5px;">
-            <img id="logoPreview" src="" alt="Logo Preview"
-                style="max-height: 80px; max-width: 150px; background: #ddd; border-radius: 5px;">
-            <div>
-                <input type="file" id="logoFile" accept="image/*" style="font-size: 11px;">
-                <p style="font-size: 11px; color: #666; margin: 4px 0 0 0;">Upload logo baru untuk mengganti yang lama.
-                </p>
-            </div>
+    <div class="sidebar">
+        <div class="logo-area">
+            <h1>ScribbleBooth</h1>
+            <span>Config Suite 2.0</span>
         </div>
-        <div id="uploadStatus" style="font-size: 12px; font-weight: bold;"></div>
-
-        <label>Video Tutorial (Muncul di Panel Kanan)</label>
-        <div
-            style="display: flex; gap: 10px; align-items: center; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1.5px dashed #3b82f6; margin-bottom: 5px;">
-            <div style="font-size: 20px;">🎬</div>
-            <div style="flex-grow: 1;">
-                <input type="file" id="tutorialFile" accept="video/*" style="font-size: 11px;">
-                <p id="tutorialPath" style="font-size: 10px; color: #3b82f6; margin: 4px 0 0 0; word-break: break-all;">
-                    Belum ada video...</p>
-            </div>
-        </div>
-
-        <label>Video Contoh Hasil (Muncul di Panel Kiri)</label>
-        <div
-            style="display: flex; gap: 10px; align-items: center; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1.5px dashed #3b82f6; margin-bottom: 5px;">
-            <div style="font-size: 20px;">🎥</div>
-            <div style="flex-grow: 1;">
-                <input type="file" id="resultFile" accept="video/*" style="font-size: 11px;">
-                <p id="resultPath" style="font-size: 10px; color: #3b82f6; margin: 4px 0 0 0; word-break: break-all;">
-                    Belum ada video...</p>
-            </div>
-        </div>
-        <label>Judul Videobooth (Title)</label>
-        <input type="text" id="title" placeholder="Cth: Aldi & Rina Wedding">
-
-        <label>Instruksi Utama (Subjudul)</label>
-        <input type="text" id="subtitle" placeholder="Cth: Silakan isi data...">
-
-        <h3 style="margin-top: 20px; color: #555;">🎨 Konten Alur UI</h3>
-        <label>Teks Ready (Sebelum Rekam)</label>
-        <textarea id="readyText" rows="2"
-            style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
-
-        <label>Teks Review (Saat Mengulas)</label>
-        <textarea id="reviewText" rows="2"
-            style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
-
-        <label>Teks Sukses (Setelah Kirim)</label>
-        <textarea id="successText" rows="3"
-            style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #ddd;"></textarea>
-
-        <h3 style="margin-top: 25px; color: #555;">✨ Galeri Tema Wedding (Presets)</h3>
-        <div class="preset-container">
-            <div class="preset-chip" onclick="applyPreset('silk')">🤍 Silk White</div>
-            <div class="preset-chip" onclick="applyPreset('gold')">👑 Champagne Gold</div>
-            <div class="preset-chip" onclick="applyPreset('navy')">🌌 Midnight Navy</div>
-            <div class="preset-chip" onclick="applyPreset('sage')">🌿 Sage Garden</div>
-            <div class="preset-chip" onclick="applyPreset('maroon')">🍷 Royal Maroon</div>
-        </div>
-
-        <div class="colors">
-            <div>
-                <label>Warna Layar Atas</label>
-                <input type="color" id="bgColor1">
-            </div>
-            <div>
-                <label>Warna Layar Bawah</label>
-                <input type="color" id="bgColor2">
-            </div>
-            <div>
-                <label>Warna Tombol (Aksen)</label>
-                <input type="color" id="accentColor">
-            </div>
-            <div>
-                <label>Warna Bingkai (Frame)</label>
-                <input type="color" id="frameColor">
-            </div>
-        </div>
-
-        <label>URL Gambar Latar Belakang (Timpa warna di atas)</label>
-        <input type="text" id="bgImageUrl" placeholder="Cth: https://example.com/background.jpg">
-
-        <label>URL Google Fonts (Opsional)</label>
-        <input type="text" id="fontUrl" placeholder="Cth: https://fonts.googleapis.com/css2?family=Playfair+Display...">
-
-        <label>Nama Font (CSS Font-Family)</label>
-        <input type="text" id="fontFamily" placeholder="Cth: 'Playfair Display', serif">
-
-        <label>Durasi Rekaman (Detik)</label>
-        <input type="number" id="recordingDuration" placeholder="Default: 15"
-            style="width: 100%; padding: 10px; border-radius: 8px; border: 1.5px solid #ddd;">
-
-        <div class="toggle-group">
-            <div>
-                <label style="margin:0;">Aktifkan Gesture (Pinch-to-Draw)</label>
-                <small style="color:#888;">Gunakan jari telunjuk untuk menggambar di udara.</small>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="enableGesture">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <button onclick="saveConfig()">Simpan & Terapkan di Layar Kiosk</button>
-        <div class="success" id="successMsg">✅ Pengaturan berhasil diperbarui! Silakan refresh layar Videobooth.</div>
+        <div class="nav-item active" onclick="showSection('visuals')">🎨 Appearance</div>
+        <div class="nav-item" onclick="showSection('content')">✍️ Text Content</div>
+        <div class="nav-item" onclick="showSection('media')">🎬 Media Assets</div>
+        <div class="nav-item" onclick="showSection('delivery')">📨 Delivery Systems</div>
+        <div class="nav-item" onclick="showSection('system')">⚙️ Core System</div>
     </div>
 
+    <div class="main-view">
+        
+        <!-- SECTION: VISUALS -->
+        <div id="section-visuals" class="view-section active">
+            <h2>Look & Feel</h2>
+            <div class="card">
+                <label>Theme Presets</label>
+                <div class="preset-grid">
+                    <div class="preset-card active" onclick="applyTheme('gold')">
+                        <span class="preset-icon">👑</span>
+                        <strong>Luxury Gold</strong>
+                    </div>
+                    <div class="preset-card" onclick="applyTheme('floral')">
+                        <span class="preset-icon">🌿</span>
+                        <strong>Floral White</strong>
+                    </div>
+                    <div class="preset-card" onclick="applyTheme('silk')">
+                        <span class="preset-icon">🤍</span>
+                        <strong>Silk Clean</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <label>Colors</label>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Accent Glow</label>
+                            <div class="color-row">
+                                <input type="color" id="accentColor">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Title Text</label>
+                            <div class="color-row">
+                                <input type="color" id="titleColor">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Panel Bg</label>
+                            <div class="color-row">
+                                <input type="color" id="bgColor1">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Frame Line</label>
+                            <div class="color-row">
+                                <input type="color" id="frameColor">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <label>Typography</label>
+                    <div class="input-group">
+                        <label>Google Fonts URL</label>
+                        <input type="text" id="fontUrl" placeholder="https://fonts.googleapis.com/css2?family=...">
+                    </div>
+                    <div class="input-group">
+                        <label>Font Family CSS</label>
+                        <input type="text" id="fontFamily" placeholder="'Inter', sans-serif">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <label>Dynamic Assets (Direct Upload)</label>
+                <div class="grid-3">
+                    <div class="input-group">
+                        <label>Wallpaper Background</label>
+                        <div class="upload-box">
+                            <small id="bgStatus" style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/bg1.png</small>
+                            <input type="file" id="bgFile" accept="image/*" style="font-size:11px;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Side Panels Frame</label>
+                        <div class="upload-box">
+                            <small id="frameStatus" style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/frame_gold.png</small>
+                            <input type="file" id="frameFile" accept="image/*" style="font-size:11px;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Rendering Video Overlay</label>
+                        <div class="upload-box">
+                            <small id="overlayStatus" style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/overlay.png</small>
+                            <input type="file" id="overlayFile" accept="image/*" style="font-size:11px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: CONTENT -->
+        <div id="section-content" class="view-section">
+            <h2>Interface Copy</h2>
+            <div class="card">
+                <div class="input-group">
+                    <label>Header Title</label>
+                    <input type="text" id="title" placeholder="Aldi & Rina Wedding">
+                </div>
+                <div class="input-group">
+                    <label>Header Subtitle</label>
+                    <textarea id="subtitle" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="card">
+                    <label>Ready State</label>
+                    <textarea id="readyText" rows="3"></textarea>
+                </div>
+                <div class="card">
+                    <label>Review State</label>
+                    <textarea id="reviewText" rows="3"></textarea>
+                </div>
+                <div class="card">
+                    <label>Success State</label>
+                    <textarea id="successText" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: MEDIA -->
+        <div id="section-media" class="view-section">
+            <h2>Visual Media</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <label>Branding Logo</label>
+                    <div class="upload-box">
+                        <img id="logoPreview" class="preview-img" src="">
+                        <input type="file" id="logoFile" accept="image/*">
+                    </div>
+                </div>
+                <div class="card">
+                    <label>Tutorial Video</label>
+                    <div class="upload-box">
+                        <span id="tutorialPath" style="font-size: 11px; word-break: break-all;">No video</span><br><br>
+                        <input type="file" id="tutorialFile" accept="video/*">
+                    </div>
+                </div>
+                <div class="card">
+                    <label>Sample Result Video</label>
+                    <div class="upload-box">
+                        <span id="resultPath" style="font-size: 11px; word-break: break-all;">No video</span><br><br>
+                        <input type="file" id="resultFile" accept="video/*">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: DELIVERY -->
+        <div id="section-delivery" class="view-section">
+            <h2>Communication Gates</h2>
+            
+            <div class="card">
+                <h3 style="margin:0 0 20px 0; font-size:16px;">📧 SMTP Email Settings</h3>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>SMTP Host</label>
+                        <input type="text" id="smtpHost" placeholder="smtp.gmail.com">
+                    </div>
+                    <div class="input-group">
+                        <label>SMTP Port</label>
+                        <input type="number" id="smtpPort" placeholder="465">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Sender Email</label>
+                        <input type="text" id="smtpUser">
+                    </div>
+                    <div class="input-group">
+                        <label>App Password</label>
+                        <input type="text" id="smtpPass" placeholder="**** **** **** ****">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Display Sender Name</label>
+                    <input type="text" id="smtpName" placeholder="Booth Management">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin:0 0 20px 0; font-size:16px;">📱 WhatsApp API (RuangWA)</h3>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Device Key</label>
+                        <input type="text" id="waDeviceKey">
+                    </div>
+                    <div class="input-group">
+                        <label>API Key</label>
+                        <input type="text" id="waApiKey">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: SYSTEM -->
+        <div id="section-system" class="view-section">
+            <h2>System Core</h2>
+            <div class="card">
+                <div class="input-group">
+                    <label>G-Drive Folder ID</label>
+                    <input type="text" id="driveFolderId">
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Recording Max Seconds</label>
+                        <input type="number" id="recordingDuration">
+                    </div>
+                    <div class="input-group">
+                        <div class="form-row-between" style="padding-top: 15px;">
+                            <div>
+                                <label style="margin:0;">Hand Gesture Control</label>
+                                <small style="color:var(--text-muted);">Enable pinch-to-draw interaction</small>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="enableGesture">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SAVE BAR -->
+    <div class="save-bar">
+        <button class="btn-primary" onclick="saveConfig()">
+            <span>💾</span> SAVE ALL CHANGES
+        </button>
+    </div>
+
+    <div class="success-toast" id="successMsg">✨ System configuration synchronized successfully!</div>
+
     <script>
-        // Ambil data terbaru dari server saat menu dicheck
+        function showSection(id) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('section-' + id).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // LOAD DATA
         fetch('/api/config')
             .then(res => res.json())
             .then(data => {
                 document.getElementById('title').value = data.title || '';
                 document.getElementById('subtitle').value = data.subtitle || '';
                 document.getElementById('bgColor1').value = data.bgColor1 || '#2c3e50';
-                document.getElementById('bgColor2').value = data.bgColor2 || '#000000';
-                document.getElementById('bgImageUrl').value = data.bgImageUrl || '';
-                document.getElementById('accentColor').value = data.accentColor || '#E11D48';
-                document.getElementById('frameColor').value = data.frameColor || '#3d3d3d';
+                document.getElementById('accentColor').value = data.accentColor || '#D3BB7C';
+                document.getElementById('frameColor').value = data.frameColor || '#333333';
+                document.getElementById('titleColor').value = data.titleColor || '#D3BB7C';
                 document.getElementById('fontUrl').value = data.fontUrl || '';
                 document.getElementById('fontFamily').value = data.fontFamily || '';
-                document.getElementById('enableGesture').checked = data.enableGesture !== false; // Default true
+                document.getElementById('enableGesture').checked = data.enableGesture !== false;
+                document.getElementById('readyText').value = data.readyText || '';
+                document.getElementById('reviewText').value = data.reviewText || '';
                 document.getElementById('successText').value = data.successText || '';
                 document.getElementById('recordingDuration').value = data.recordingDuration || 15;
+                
+                document.getElementById('bgStatus').innerText = data.bgImageUrl || 'Default';
+                document.getElementById('frameStatus').innerText = data.frameImageUrl || 'Default';
+                document.getElementById('overlayStatus').innerText = data.overlayImageUrl || 'Default';
+                
+                // Email Config
+                const ec = data.email_config || {};
+                document.getElementById('smtpHost').value = ec.host || '';
+                document.getElementById('smtpPort').value = ec.port || 465;
+                document.getElementById('smtpUser').value = ec.user || '';
+                document.getElementById('smtpPass').value = ec.pass || '';
+                document.getElementById('smtpName').value = ec.fromName || '';
 
-                document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'Belum ada video...';
-                document.getElementById('resultPath').innerText = data.resultVideoUrl || 'Belum ada video...';
-
-                // Setel preview logo saat ini
-                if (data.logoUrl) {
-                    document.getElementById('logoPreview').src = data.logoUrl;
-                }
+                // Logos & Videos
+                if (data.logoUrl) document.getElementById('logoPreview').src = data.logoUrl;
+                document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'No video';
+                document.getElementById('resultPath').innerText = data.resultVideoUrl || 'No video';
             });
 
-        function applyPreset(theme) {
-            const presets = {
-                silk: { bg1: '#ffffff', bg2: '#f0f0f0', accent: '#c5a059', frame: 'rgba(30, 41, 59, 0.9)', font: "'Cormorant Garamond', serif" },
-                gold: { bg1: '#fdfbfb', bg2: '#ebedee', accent: '#c5a059', frame: 'rgba(30, 41, 59, 0.95)', font: "'Cormorant Garamond', serif" },
-                navy: { bg1: '#0f172a', bg2: '#020617', accent: '#fde047', frame: 'rgba(30, 41, 59, 0.6)', font: "'Outfit', sans-serif" },
-                sage: { bg1: '#f1f5f1', bg2: '#dee6de', accent: '#5f7c5f', frame: 'rgba(30, 41, 59, 0.8)', font: "'Outfit', sans-serif" },
-                maroon: { bg1: '#4a0e0e', bg2: '#2a0505', accent: '#facc15', frame: 'rgba(30, 41, 59, 0.5)', font: "'Cormorant Garamond', serif" }
+        function applyTheme(t) {
+            document.querySelectorAll('.preset-card').forEach(pc => pc.classList.remove('active'));
+            // Visual logic here (same as logic before but better)
+            const themes = {
+                gold: { bg1: '#1a100a', accent: '#D3BB7C', title: '#D3BB7C', frame: '#333333', font: "'Kaisei Opti', serif", bg: '/bg1.png', f: '/frame_gold.png', o: '/overlay.png' },
+                floral: { bg1: '#f8fafc', accent: '#6b9080', title: '#2f3e46', frame: '#cad2c5', font: "'Kaisei Opti', serif", bg: '/bg_floral.png', f: '/frame_floral.png', o: '/overlay1.png' },
+                silk: { bg1: '#ffffff', accent: '#c5a059', title: '#c5a059', frame: '#eeeeee', font: "'Kaisei Opti', serif", bg: '', f: '/frame_silk.png', o: '/overlay_silk.png' }
             };
-
-            const p = presets[theme];
-            if (!p) return;
-
+            const p = themes[t];
+            if(!p) return;
             document.getElementById('bgColor1').value = p.bg1;
-            document.getElementById('bgColor2').value = p.bg2;
             document.getElementById('accentColor').value = p.accent;
-            document.getElementById('frameColor').value = p.frame.includes('rgba') ? '#1e293b' : p.frame; // Fallback untuk picker warna
+            document.getElementById('titleColor').value = p.title;
+            document.getElementById('frameColor').value = p.frame;
             document.getElementById('fontFamily').value = p.font;
+            document.getElementById('bgStatus').innerText = p.bg;
+            document.getElementById('frameStatus').innerText = p.f;
+            document.getElementById('overlayStatus').innerText = p.o;
+        }
 
-            // Visual feedback
-            document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
+        async function uploadHelper(file, fieldName) {
+            if (!file) return null;
+            const fd = new FormData();
+            fd.append('asset', file);
+            fd.append('fieldName', fieldName);
+            const res = await fetch('/api/config/asset', { method: 'POST', body: fd });
+            const d = await res.json();
+            return d.fileUrl;
         }
 
         async function saveConfig() {
-            const logoFile = document.getElementById('logoFile').files[0];
-            const statusDiv = document.getElementById('uploadStatus');
+            const btn = document.querySelector('.btn-primary');
+            btn.disabled = true;
+            btn.innerText = "⏳ SAVING...";
 
-            // 1. Upload Logo jika ada yang baru dipilih
+            const logoFile = document.getElementById('logoFile').files[0];
             let finalLogoUrl = null;
             if (logoFile) {
-                statusDiv.innerText = "⏳ Sedang mengunggah logo...";
-                statusDiv.style.color = "#2563eb";
-
                 const formData = new FormData();
                 formData.append('logo', logoFile);
-
-                try {
-                    const uploadRes = await fetch('/api/config/logo', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.status === 'success') {
-                        finalLogoUrl = uploadData.logoUrl;
-                        document.getElementById('logoPreview').src = finalLogoUrl;
-                    }
-                } catch (err) {
-                    console.error("Gagal upload logo:", err);
-                }
+                const res = await fetch('/api/config/logo', { method: 'POST', body: formData });
+                const d = await res.json();
+                if (d.status === 'success') finalLogoUrl = d.logoUrl;
             }
 
-            // 2. Upload Tutorial Video jika dipilih
-            const tutorialFile = document.getElementById('tutorialFile').files[0];
-            let finalTutorialUrl = null;
-            if (tutorialFile) {
-                const formData = new FormData();
-                formData.append('video', tutorialFile);
-                try {
-                    const res = await fetch('/api/config/video', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.status === 'success') finalTutorialUrl = data.videoUrl;
-                } catch (err) { console.error("Gagal upload tutorial:", err); }
+            // Same for videos...
+            const tutFile = document.getElementById('tutorialFile').files[0];
+            let tutUrl = null;
+            if (tutFile) {
+                 const fd = new FormData(); fd.append('video', tutFile);
+                 const res = await fetch('/api/config/video', { method: 'POST', body: fd });
+                 const d = await res.json(); tutUrl = d.videoUrl;
             }
 
-            // 3. Upload Result Video jika dipilih
-            const resultFile = document.getElementById('resultFile').files[0];
-            let finalResultUrl = null;
-            if (resultFile) {
-                const formData = new FormData();
-                formData.append('video', resultFile);
-                try {
-                    const res = await fetch('/api/config/video', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.status === 'success') finalResultUrl = data.videoUrl;
-                } catch (err) { console.error("Gagal upload result:", err); }
-            }
+            const resUrl = await uploadHelper(document.getElementById('resultFile').files[0], 'result');
+
+            const bgUrl = await uploadHelper(document.getElementById('bgFile').files[0], 'bg');
+            const frameUrl = await uploadHelper(document.getElementById('frameFile').files[0], 'frame');
+            const overlayUrl = await uploadHelper(document.getElementById('overlayFile').files[0], 'overlay');
 
             const payload = {
                 title: document.getElementById('title').value,
                 subtitle: document.getElementById('subtitle').value,
                 bgColor1: document.getElementById('bgColor1').value,
-                bgColor2: document.getElementById('bgColor2').value,
-                bgImageUrl: document.getElementById('bgImageUrl').value,
                 accentColor: document.getElementById('accentColor').value,
                 frameColor: document.getElementById('frameColor').value,
+                titleColor: document.getElementById('titleColor').value,
                 fontUrl: document.getElementById('fontUrl').value,
                 fontFamily: document.getElementById('fontFamily').value,
                 enableGesture: document.getElementById('enableGesture').checked,
                 readyText: document.getElementById('readyText').value,
                 reviewText: document.getElementById('reviewText').value,
                 successText: document.getElementById('successText').value,
-                tutorialVideoUrl: finalTutorialUrl || document.getElementById('tutorialPath').innerText,
-                resultVideoUrl: finalResultUrl || document.getElementById('resultPath').innerText,
-                recordingDuration: parseInt(document.getElementById('recordingDuration').value) || 15
+                recordingDuration: parseInt(document.getElementById('recordingDuration').value),
+                bgImageUrl: bgUrl || document.getElementById('bgStatus').innerText,
+                frameImageUrl: frameUrl || document.getElementById('frameStatus').innerText,
+                overlayImageUrl: overlayUrl || document.getElementById('overlayStatus').innerText,
+                email_config: {
+                    host: document.getElementById('smtpHost').value,
+                    port: parseInt(document.getElementById('smtpPort').value),
+                    secure: true,
+                    user: document.getElementById('smtpUser').value,
+                    pass: document.getElementById('smtpPass').value,
+                    fromName: document.getElementById('smtpName').value
+                }
             };
-
+            
             if (finalLogoUrl) payload.logoUrl = finalLogoUrl;
+            if (tutUrl) payload.tutorialVideoUrl = tutUrl;
+            if (resUrl) payload.resultVideoUrl = resUrl;
 
-            fetch('/api/config', {
+            await fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
-            }).then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        const msg = document.getElementById('successMsg');
-                        msg.style.display = 'block';
-                        setTimeout(() => msg.style.display = 'none', 4000);
-                    }
-                });
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = "<span>💾</span> SAVE ALL CHANGES";
+            const msg = document.getElementById('successMsg');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display='none', 3000);
         }
     </script>
-
 </body>
-
 </html>

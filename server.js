@@ -156,8 +156,8 @@ const worker = async (task) => {
     return new Promise(async (resolve, reject) => {
         try {
             const inputPath = task.videoPath;
-            const photoInputPath = task.photoPath;
-            const overlayPath = path.join(__dirname, 'public', 'overlay.png');
+            const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+            const overlayPath = path.join(__dirname, 'public', config.overlayImageUrl || 'overlay.png');
             
             const timestamp = Date.now();
             const outputVideoPath = path.join('uploads', `FINAL-${timestamp}-video.mp4`);
@@ -355,18 +355,27 @@ async function sendWhatsAppMessage(phone, text) {
 // ===============================
 async function sendEmailMessage(targetEmail, subject, text) {
     try {
+        const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+        const ec = config.email_config || {};
+
+        const host = ec.host || "smtp.gmail.com";
+        const port = ec.port || 465;
+        const user = ec.user || process.env.SMTP_EMAIL;
+        const pass = ec.pass || process.env.SMTP_PASSWORD;
+        const fromName = ec.fromName || "ScribbleBooth Wedding";
+
         const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
+            host: host,
+            port: port,
             secure: true,
             auth: {
-                user: process.env.SMTP_EMAIL,
-                pass: process.env.SMTP_PASSWORD
+                user: user,
+                pass: pass
             }
         });
 
         const info = await transporter.sendMail({
-            from: `"ScribbleBooth Wedding" <${process.env.SMTP_EMAIL}>`,
+            from: `"${fromName}" <${user}>`,
             to: targetEmail,
             subject: subject,
             text: text,
@@ -452,6 +461,27 @@ app.post('/api/config/video', uploadLogo.single('video'), (req, res) => {
     const videoUrl = `/uploads_logo/${req.file.filename}`;
 
     res.json({ status: 'success', videoUrl });
+});
+
+// --- ASSET UPLOAD ENDPOINT (BG, FRAME, OVERLAY) ---
+const assetStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, 'public', 'uploads_assets');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        const name = file.fieldname + '-' + Date.now() + ext;
+        cb(null, name);
+    }
+});
+const uploadAsset = multer({ storage: assetStorage });
+
+app.post('/api/config/asset', uploadAsset.single('asset'), (req, res) => {
+    if (!req.file) return res.status(400).json({ status: 'error', message: 'Tidak ada file diunggah.' });
+    const fileUrl = `/uploads_assets/${req.file.filename}`;
+    res.json({ status: 'success', fileUrl });
 });
 
 app.listen(port, () => {
