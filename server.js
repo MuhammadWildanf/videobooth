@@ -242,27 +242,26 @@ const worker = async (task) => {
             }
             // 5. Send Notification
             if (userFolderLink) {
+                let msgTemplate = config.messageTemplate || `Halo {name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!`;
+                const customMsg = msgTemplate.replace(/{name}/g, task.name).replace(/{link}/g, userFolderLink);
+
+                let emailSubj = config.emailSubject || "Kenangan ScribbleBooth Anda sudah siap! ✨";
+                
                 if (task.deliveryMethod === 'email') {
                     console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.phone}`);
 
-                    const emailText = `Halo ${task.name}! ✨\n\nKenangan Anda di ScribbleBooth sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
-
                     try {
-                        await sendEmailMessage(task.phone, "Kenangan ScribbleBooth Anda sudah siap! ✨", emailText);
+                        await sendEmailMessage(task.phone, emailSubj, customMsg);
                         console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.phone}`);
                     } catch (err) {
                         console.log(`[EMAIL] ❌ Email gagal, fallback ke WhatsApp...`);
 
-                        const waText = `Halo ${task.name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
-
-                        const result = await sendWhatsAppMessage(task.phone, waText);
+                        const result = await sendWhatsAppMessage(task.phone, customMsg);
                         console.log(`[WhatsApp] ✅ Pesan fallback dikirim ke ${task.phone}`);
                     }
 
                 } else {
-                    const waText = `Halo ${task.name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
-
-                    const result = await sendWhatsAppMessage(task.phone, waText);
+                    const result = await sendWhatsAppMessage(task.phone, customMsg);
                     console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}: ${result?.message || "Berhasil"}`);
                 }
             }
@@ -403,8 +402,12 @@ async function sendEmailMessage(targetEmail, subject, text) {
 // ===============================
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 const DEFAULT_CONFIG = {
-    title: '✨ Imajiwa Videobooth',
-    subtitle: 'Silakan isi data untuk menerima video Anda.',
+    title: 'Audric & Catherine',
+    subtitle: 'A special moment awaits you.',
+    descPremium: 'Enter your details to unveil a personalized wedding experience.',
+    startText: 'Begin your experience',
+    messageTemplate: 'Halo {name}! ✨\n\nKenangan Anda di ScribbleBooth sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!',
+    emailSubject: 'Kenangan ScribbleBooth Anda sudah siap! ✨',
     bgColor1: '#2c3e50',
     logoUrl: "/uploads_logo/logo-placeholder.png",
     tutorialVideoUrl: "",

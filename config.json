@@ -1,5 +1,5 @@
 {
-    "title": "Vira & Vino",
+    "title": "Audric & Catherine",
     "subtitle": "A special moment awaits you. Enter your details to unveil a personalized wedding experience.",
     "readyText": "",
     "reviewText": "",
@@ -9,9 +9,9 @@
     "accentColor": "#d3bb7c",
     "fontUrl": "https://fonts.googleapis.com/css2?family=Luxurious+Script&family=Kaisei+Opti&display=swap",
     "fontFamily": "'Kaisei Opti', serif",
-    "bgImageUrl": "/uploads_assets/asset-1776186754151.png",
+    "bgImageUrl": "/bg1.png",
     "enableGesture": false,
-    "logoUrl": "/uploads_logo/logo-1775648912367.png",
+    "logoUrl": "/uploads_logo/logo-1776251515850.png",
     "frameColor": "#333333",
     "tutorialVideoUrl": "/uploads_logo/logo-1776167996330.mp4",
     "resultVideoUrl": "/uploads_logo/logo-1776167996381.mp4",
@@ -25,6 +25,15 @@
         "fromName": "ScribbleBooth Wedding"
     },
     "titleColor": "#d3bb7c",
-    "frameImageUrl": "/uploads_assets/asset-1776186754198.png",
-    "overlayImageUrl": "/uploads_assets/asset-1776186754211.png"
+    "frameImageUrl": "/frame_gold.png",
+    "overlayImageUrl": "/overlay.png",
+    "descPremium": "",
+    "startText": "",
+    "emailSubject": "",
+    "messageTemplate": "",
+    "fontSelector": "luxury",
+    "titleFontFamily": "'Luxurious Script', cursive",
+    "readyCdText": "",
+    "recordingCdText": "",
+    "photoCdText": ""
 }

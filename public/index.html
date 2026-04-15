@@ -159,6 +159,7 @@
             gap: 30px;
             align-items: stretch;
             transition: 0.5s ease;
+            overflow: hidden;
         }
 
         .side-panel {
@@ -216,10 +217,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 2vh 20px;
             text-align: center;
             transition: 0.5s ease;
-            overflow-y: auto;
+            overflow: hidden;
             min-height: 0;
             box-shadow: none;
         }
@@ -239,12 +240,12 @@
         }
 
         .scribble-title {
-            font-family: 'Luxurious Script', cursive;
-            font-size: 130px;
+            font-family: var(--title-font, 'Luxurious Script', cursive);
+            font-size: min(10vh, 120px);
             font-weight: 400;
             color: var(--title-color, white);
-            margin-bottom: 5px;
-            margin-top: 5px;
+            margin-bottom: 2vh;
+            margin-top: 1vh;
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
@@ -264,27 +265,27 @@
         }
 
         .title-ornament {
-            height: 60px;
+            height: min(6vh, 60px);
             /* Specific height for better control */
             width: auto;
             object-fit: contain;
-            margin: 10px 0;
+            margin: 1vh 0;
         }
 
         .title-ornament:first-child {
-            height: 80px;
+            height: min(8vh, 80px);
             /* Top ornament is usually larger in these designs */
-            margin-bottom: 5px;
+            margin-bottom: 0.5vh;
         }
 
         .title-ornament:last-child {
-            height: 40px;
+            height: min(4vh, 40px);
             /* Bottom divider is thinner */
-            margin-top: 5px;
+            margin-top: 0.5vh;
         }
 
         .title-amp {
-            font-size: 0.6em;
+            font-size: 0.7em;
             /* Smaller ampersand */
             opacity: 0.9;
         }
@@ -296,20 +297,20 @@
 
         .subtitle-premium {
             font-family: 'Kaisei Opti', serif;
-            font-size: 22px;
+            font-size: min(2.5vh, 22px);
             color: var(--title-color, #D3BB7C);
             max-width: 600px;
-            margin-bottom: 8px;
+            margin-bottom: 0.5vh;
             font-weight: 500;
             line-height: 1.4;
         }
 
         .desc-premium {
             font-family: 'Kaisei Opti', serif;
-            font-size: 13px;
+            font-size: min(1.8vh, 14px);
             color: #CDCDCD;
             max-width: 400px;
-            margin-bottom: 25px;
+            margin-bottom: 2vh;
             line-height: 1.6;
             letter-spacing: 0.3px;
         }
@@ -321,15 +322,15 @@
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5vh;
             text-align: left;
         }
 
         .input-group label {
-            font-size: 11px;
+            font-size: min(1.5vh, 12px);
             font-weight: 700;
             color: #94a3b8;
-            margin-bottom: 6px;
+            margin-bottom: 0.5vh;
             display: block;
             text-transform: capitalize;
         }
@@ -343,10 +344,10 @@
 
         .input-wrapper input {
             width: 100%;
-            padding: 14px 18px 14px 45px;
+            padding: min(1.5vh, 14px) min(2vh, 18px) min(1.5vh, 14px) 45px;
             border-radius: 10px;
             border: 1px solid rgba(197, 160, 89, 0.5);
-            font-size: 15px;
+            font-size: min(2vh, 15px);
             outline: none;
             background: rgba(40, 30, 20, 0.6);
             color: #fff;
@@ -443,15 +444,15 @@
         .delivery-selector {
             display: flex;
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 2vh;
             width: 100%;
             max-width: 440px;
         }
 
         .delivery-tab {
             flex: 1;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
+            padding: min(1.2vh, 12px);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(197, 160, 89, 0.3);
             border-radius: 12px;
             color: #fff;
@@ -461,7 +462,7 @@
             flex-direction: column;
             align-items: center;
             gap: 5px;
-            font-size: 14px;
+            font-size: min(1.8vh, 14px);
         }
 
         .delivery-tab.active {
@@ -673,8 +674,10 @@
                     <img src="/after.png" alt="" class="title-ornament">
                 </div>
                 <div class="subtitle-premium" id="idle-sub">A special moment awaits you.</div>
-                <div class="desc-premium">Enter your details to unveil a personalized wedding experience.</div>
-                <img src="/dibawah_enter_your_detail.png" style="width: 250px; margin-bottom: 30px; opacity: 0.8;" alt="">
+                <div class="desc-premium" id="desc-premium">Enter your details to unveil a personalized wedding
+                    experience.</div>
+                <img src="/dibawah_enter_your_detail.png"
+                    style="width: min(25vh, 250px); margin-bottom: 2vh; opacity: 0.8;" alt="">
             </div>
 
             <!-- STATE IDLE (FRAME 3) -->
@@ -709,8 +712,10 @@
                                 inputmode="none">
                         </div>
                     </div>
-                    <button class="btn-start" onclick="startCameraFlow()">
-                        <span style="font-size:20px;">✨</span> Begin your experience
+                    <button class="btn-start" onclick="startCameraFlow()"
+                        style="margin-top: 1vh; font-size: min(2.5vh, 20px); padding: min(2vh, 15px);">
+                        <span style="font-size: min(3vh, 24px);">✨</span> <span id="start-btn-text">Begin your
+                            experience</span>
                     </button>
                 </div>
 
@@ -731,7 +736,8 @@
             <div id="state-ready" class="ui-state">
                 <h2 id="ready-text"
                     style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
-                    your pen and look at mirror. <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">Hit the record button when you are ready.</span></h2>
+                    your pen and look at mirror. <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">Hit
+                        the record button when you are ready.</span></h2>
                 <button class="btn-primary" id="btn-record" onclick="startRecording()">
                     <div class="record-icon"></div>
                     <span id="countdown-area">Start Recording</span>
@@ -750,7 +756,8 @@
             <div id="state-review-video" class="ui-state">
                 <h2 id="review-video-text"
                     style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
-                    review your video, <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">you can RETAKE or NEXT.</span></h2>
+                    review your video, <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">you can RETAKE
+                        or NEXT.</span></h2>
                 <div class="btn-row">
                     <button class="btn-action btn-retake" onclick="retakeVideo()">Retake</button>
                     <button class="btn-action btn-upload" onclick="startPhotoSession()">Next: Take Photo</button>
@@ -777,17 +784,21 @@
                     </div>
                 </div>
                 <div class="btn-row" style="flex-wrap: wrap;">
-                    <button class="btn-action btn-retake" style="background:#fff; color:#e11d48;" onclick="retakeVideo()">Retake All</button>
-                    <button class="btn-action btn-retake" style="background:#D3BB7C; color:#fff;" onclick="retakePhotoOnly()">Retake Photo</button>
+                    <button class="btn-action btn-retake" style="background:#fff; color:#e11d48;"
+                        onclick="retakeVideo()">Retake All</button>
+                    <button class="btn-action btn-retake" style="background:#D3BB7C; color:#fff;"
+                        onclick="retakePhotoOnly()">Retake Photo</button>
                     <button class="btn-action btn-upload" onclick="submitVideo()">Upload Both</button>
                 </div>
-           </div>
+            </div>
 
             <!-- STATE SUCCESS (FRAME 6) -->
             <div id="state-processing" class="ui-state">
                 <h2 id="success-text" style="font-size:30px; color:#D3BB7C; line-height:1.5; font-weight:600;">Your
-                    video is still processing, <br> <span style="color:#CDCDCD; font-size:20px; font-weight:400;">we will notify on your WhatsApp number ketika selesai.</span> <br><br>
-                    <span style="font-size:40px; font-family:'Luxurious Script', cursive;">Thank You</span></h2>
+                    video is still processing, <br> <span style="color:#CDCDCD; font-size:20px; font-weight:400;">we
+                        will notify on your WhatsApp number ketika selesai.</span> <br><br>
+                    <span style="font-size:40px; font-family:'Luxurious Script', cursive;">Thank You</span>
+                </h2>
             </div>
         </div>
 
@@ -854,7 +865,7 @@
                 keys.forEach(k => { el.innerHTML += `<div class="key" onclick="kPress('${k}')">${caps ? k : k.toLowerCase()}</div>`; });
                 if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kBks()">⌫</div>`;
             };
-            
+
             let r1 = num ? nums.slice(0, 10) : row1;
             let r2 = num ? nums.slice(10, 19) : row2;
             let r3 = num ? nums.slice(19, 26) : row3;
@@ -971,8 +982,24 @@
                 const logoEl = document.getElementById('main-logo');
                 if (logoEl && data.logoUrl) logoEl.src = data.logoUrl;
 
+                const titleRow = document.querySelector('.names-row');
+                if (titleRow && data.title) {
+                    if (data.title.includes('&')) {
+                        const parts = data.title.split('&');
+                        titleRow.innerHTML = `<span>${parts[0].trim()}</span> <span class="title-amp">&amp;</span> <span>${parts.slice(1).join('&').trim()}</span>`;
+                    } else {
+                        titleRow.innerHTML = `<span>${data.title}</span>`;
+                    }
+                }
+
                 const subEl = document.getElementById('idle-sub');
                 if (subEl && data.subtitle) subEl.innerText = data.subtitle;
+
+                const descEl = document.getElementById('desc-premium');
+                if (descEl && data.descPremium) descEl.innerText = data.descPremium;
+
+                const startBtn = document.getElementById('start-btn-text');
+                if (startBtn && data.startText) startBtn.innerText = data.startText;
 
                 // Update Teks Instruksi dengan Fallback (Default)
                 const defaults = {
@@ -1023,7 +1050,7 @@
                 if (data.frameImageUrl) {
                     document.documentElement.style.setProperty('--frame-image', `url('${data.frameImageUrl}')`);
                 }
-                
+
                 if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
                 if (data.titleColor) document.documentElement.style.setProperty('--title-color', data.titleColor);
                 document.documentElement.style.setProperty('--frame', data.frameColor || 'rgba(30, 41, 59, 0.95)');
@@ -1039,9 +1066,42 @@
 
                 window.enableGesture = data.enableGesture !== false;
                 window.recordingDuration = data.recordingDuration || 15;
+                window.readyCdText = data.readyCdText || 'Bersiap dalam...';
+                window.recordingCdText = data.recordingCdText || 'Recording...';
+                window.photoCdText = data.photoCdText || 'Lanjut Foto dalam...';
 
                 // Update Font if provided
-                if (data.fontFamily) document.body.style.fontFamily = data.fontFamily;
+                if (data.fontUrl) {
+                    let link = document.getElementById('dynamic-font');
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.id = 'dynamic-font';
+                        link.rel = 'stylesheet';
+                        document.head.appendChild(link);
+                    }
+                    if (link.href !== data.fontUrl) link.href = data.fontUrl;
+                }
+                if (data.fontFamily || data.titleFontFamily) {
+                    let styleParams = document.getElementById('dynamic-font-styles');
+                    if (!styleParams) {
+                        styleParams = document.createElement('style');
+                        styleParams.id = 'dynamic-font-styles';
+                        document.head.appendChild(styleParams);
+                    }
+
+                    styleParams.innerHTML = `
+                        :root { 
+                            --title-font-dyn: ${data.titleFontFamily || "'Luxurious Script', cursive"}; 
+                            --body-font-dyn: ${data.fontFamily || "'Kaisei Opti', serif"};
+                        }
+                        body, input, button, textarea, .subtitle-premium, .desc-premium, .panel-footer, .ui-state h2, .delivery-tab, .countdown-text {
+                            font-family: var(--body-font-dyn) !important;
+                        }
+                        .scribble-title, .scribble-title span, .names-row, .names-row span {
+                            font-family: var(--title-font-dyn) !important;
+                        }
+                    `;
+                }
 
                 // Set initial state
                 changeState('idle');
@@ -1132,7 +1192,7 @@
             // Fase 1: Persiapan 3, 2, 1
             let preTime = 3;
             document.getElementById('btn-record').style.pointerEvents = 'none'; // Disable double click
-            document.getElementById('countdown-area').innerHTML = `Bersiap dalam... <span id="countdown-val">${preTime}</span>`;
+            document.getElementById('countdown-area').innerHTML = `${window.readyCdText} <span id="countdown-val">${preTime}</span>`;
 
             const preTimer = setInterval(() => {
                 preTime--;
@@ -1149,7 +1209,7 @@
             recordedChunks = [];
             document.getElementById('btn-record').classList.add('recording');
             const duration = window.recordingDuration || 15;
-            document.getElementById('countdown-area').innerHTML = `Recording... <span id="countdown-val">${duration}</span>`;
+            document.getElementById('countdown-area').innerHTML = `${window.recordingCdText} <span id="countdown-val">${duration}</span>`;
 
             // Tampilkan & Reset Timer Bar (Dinamis)
             const svgTimer = document.getElementById('svg-timer');
@@ -1229,7 +1289,7 @@
             document.getElementById('preview').classList.add('hidden');
 
             let t = 3;
-            document.getElementById('countdown-area').innerHTML = `Lanjut Foto dalam... <span id="countdown-val">${t}</span>`;
+            document.getElementById('countdown-area').innerHTML = `${window.photoCdText} <span id="countdown-val">${t}</span>`;
             document.getElementById('btn-record').style.pointerEvents = 'none';
 
             const timer = setInterval(() => {
@@ -1270,7 +1330,7 @@
             fd.append('video', videoBlob, 'recording.mp4');
             if (photoBlob) fd.append('photo', photoBlob, 'photo.jpg');
             fd.append('name', document.getElementById('name').value);
-            
+
             let finalContact = document.getElementById('phone').value;
             if (deliveryMethod === 'whatsapp') {
                 const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
@@ -1279,10 +1339,10 @@
                 else if (phoneValue.startsWith('0')) phoneValue = phoneValue.substring(1);
                 finalContact = prefix + phoneValue;
             }
-            
+
             fd.append('phone', finalContact);
             fd.append('deliveryMethod', deliveryMethod);
-            
+
             try {
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });
                 if (r.ok) {
