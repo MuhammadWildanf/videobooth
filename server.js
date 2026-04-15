@@ -60,7 +60,7 @@ const drive = google.drive({ version: 'v3', auth: oauth2Client });
 const uploadToDrive = async (filePath, fileName, parentId = null) => {
     const fileStream = fs.createReadStream(filePath);
     const mimeType = fileName.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg';
-    
+
     const response = await drive.files.create({
         requestBody: {
             name: fileName,
@@ -156,9 +156,10 @@ const worker = async (task) => {
     return new Promise(async (resolve, reject) => {
         try {
             const inputPath = task.videoPath;
+            const photoInputPath = task.photoPath; // ✅ TAMBAHKAN INI
             const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
             const overlayPath = path.join(__dirname, 'public', config.overlayImageUrl || 'overlay.png');
-            
+
             const timestamp = Date.now();
             const outputVideoPath = path.join('uploads', `FINAL-${timestamp}-video.mp4`);
             const outputPhotoPath = path.join('uploads', `FINAL-${timestamp}-photo.jpg`);
@@ -177,21 +178,21 @@ const worker = async (task) => {
                 if (fs.existsSync(overlayPath)) {
                     console.log(`[FFMPEG] Mendeteksi overlay.png, sedang merender bingkai...`);
                     cmd = cmd.input(overlayPath)
-                             .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
-                             .addOptions(['-preset ultrafast', '-crf 28']);
+                        .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
+                        .addOptions(['-preset ultrafast', '-crf 28']);
                 } else {
                     cmd = cmd.addOptions(['-preset ultrafast']);
                 }
-                
+
                 cmd.output(outputVideoPath)
                     .on('start', (cmdLine) => console.log(`[FFMPEG] Spawned FFmpeg dengan command: ${cmdLine}`))
                     .on('progress', (progress) => {
                         if (progress.percent) console.log(`[FFMPEG] Rendering: ${Math.round(progress.percent)}% done`);
                     })
-                    .on('end', () => { 
+                    .on('end', () => {
                         console.log(`[QUEUE SUCCESS] 🌟 Tugas Selesai! Video matang disimpan di: ${outputVideoPath}`);
-                        videoProcessed = true; 
-                        res(); 
+                        videoProcessed = true;
+                        res();
                     })
                     .on('error', (err) => {
                         console.error(`[RENDER] ❌ Video Error:`, err.message);
@@ -208,14 +209,14 @@ const worker = async (task) => {
                     let cmd = ffmpeg(photoInputPath);
                     if (fs.existsSync(overlayPath)) {
                         cmd = cmd.input(overlayPath)
-                                 .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
-                                 .addOptions(['-preset ultrafast']);
+                            .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
+                            .addOptions(['-preset ultrafast']);
                     }
                     cmd.output(outputPhotoPath)
-                        .on('end', () => { 
+                        .on('end', () => {
                             console.log(`[RENDER] ✅ Photo Render Complete.`);
-                            photoProcessed = true; 
-                            res(); 
+                            photoProcessed = true;
+                            res();
                         })
                         .on('error', (err) => rej(err))
                         .run();
@@ -242,14 +243,27 @@ const worker = async (task) => {
             // 5. Send Notification
             if (userFolderLink) {
                 if (task.deliveryMethod === 'email') {
-                    console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.phone}`); // task.phone holds email address in email mode
+                    console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.phone}`);
+
                     const emailText = `Halo ${task.name}! ✨\n\nKenangan Anda di ScribbleBooth sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
-                    await sendEmailMessage(task.phone, "Kenangan ScribbleBooth Anda sudah siap! ✨", emailText);
-                    console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.phone}`);
+
+                    try {
+                        await sendEmailMessage(task.phone, "Kenangan ScribbleBooth Anda sudah siap! ✨", emailText);
+                        console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.phone}`);
+                    } catch (err) {
+                        console.log(`[EMAIL] ❌ Email gagal, fallback ke WhatsApp...`);
+
+                        const waText = `Halo ${task.name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
+
+                        const result = await sendWhatsAppMessage(task.phone, waText);
+                        console.log(`[WhatsApp] ✅ Pesan fallback dikirim ke ${task.phone}`);
+                    }
+
                 } else {
                     const waText = `Halo ${task.name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 ${userFolderLink}\n\nTerima kasih sudah mampir!`;
+
                     const result = await sendWhatsAppMessage(task.phone, waText);
-                    console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}: ${result?.message || "Berhasil mengirimkan pesan"}`);
+                    console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}: ${result?.message || "Berhasil"}`);
                 }
             }
 
@@ -263,11 +277,11 @@ const worker = async (task) => {
         } catch (err) {
             console.error(`\n[QUEUE ERROR] ❌ Error processing task for: ${task.name}`);
             console.error(`[ERROR DETAILS]:`, err);
-            
+
             // Clean up even on error to prevent disk filling
             [task.videoPath, task.photoPath].forEach(p => {
                 if (p && fs.existsSync(p)) {
-                    try { fs.unlinkSync(p); } catch(e) {}
+                    try { fs.unlinkSync(p); } catch (e) { }
                 }
             });
             reject(err);
@@ -286,7 +300,7 @@ app.post('/api/videobooth/submit', (req, res, next) => {
     // 1. LOG IMMEDIATELY
     const { name, phone } = req.body;
     console.log(`[API] 📥 Data diterima dari: ${name} (${phone})`);
-    
+
     try {
         const videoFile = req.files['video'] ? req.files['video'][0] : null;
         const photoFile = req.files['photo'] ? req.files['photo'][0] : null;
@@ -358,33 +372,29 @@ async function sendEmailMessage(targetEmail, subject, text) {
         const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
         const ec = config.email_config || {};
 
-        const host = ec.host || "smtp.gmail.com";
-        const port = ec.port || 465;
-        const user = ec.user || process.env.SMTP_EMAIL;
-        const pass = ec.pass || process.env.SMTP_PASSWORD;
-        const fromName = ec.fromName || "ScribbleBooth Wedding";
-
         const transporter = nodemailer.createTransport({
-            host: host,
-            port: port,
+            host: ec.host || "smtp.gmail.com",
+            port: ec.port || 465,
             secure: true,
             auth: {
-                user: user,
-                pass: pass
+                user: process.env.SMTP_EMAIL, // 🔥 paksa pakai env
+                pass: process.env.SMTP_PASSWORD
             }
         });
 
         const info = await transporter.sendMail({
-            from: `"${fromName}" <${user}>`,
+            from: `"ScribbleBooth" <${process.env.SMTP_EMAIL}>`,
             to: targetEmail,
             subject: subject,
             text: text,
             html: text.replace(/\n/g, "<br>")
         });
 
-        return info;
+        return true; // ✅ sukses
+
     } catch (err) {
         console.error(`[EMAIL] ❌ Gagal mengirim email:`, err.message);
+        throw err; // 🔥 INI KUNCI
     }
 }
 
