@@ -521,7 +521,7 @@
                 </div>
             </div>
 
-            <div class="grid-3">
+            <!-- <div class="grid-3">
                 <div class="card">
                     <label>Ready State</label>
                     <textarea id="readyText" rows="3"></textarea>
@@ -534,7 +534,7 @@
                     <label>Success State</label>
                     <textarea id="successText" rows="3"></textarea>
                 </div>
-            </div>
+            </div> -->
 
             <div class="card">
                 <label>Action & Countdown Status Texts</label>
@@ -673,9 +673,9 @@
                     document.getElementById('fontSelector').value = data.fontSelector;
                 }
                 document.getElementById('enableGesture').checked = data.enableGesture !== false;
-                document.getElementById('readyText').value = data.readyText || '';
-                document.getElementById('reviewText').value = data.reviewText || '';
-                document.getElementById('successText').value = data.successText || '';
+                if (document.getElementById('readyText')) document.getElementById('readyText').value = data.readyText || '';
+                if (document.getElementById('reviewText')) document.getElementById('reviewText').value = data.reviewText || '';
+                if (document.getElementById('successText')) document.getElementById('successText').value = data.successText || '';
                 document.getElementById('readyCdText').value = data.readyCdText || '';
                 document.getElementById('recordingCdText').value = data.recordingCdText || '';
                 document.getElementById('photoCdText').value = data.photoCdText || '';
@@ -787,9 +787,9 @@
                 fontFamily: document.getElementById('fontFamily').value,
                 titleFontFamily: document.getElementById('titleFontFamily').value,
                 enableGesture: document.getElementById('enableGesture').checked,
-                readyText: document.getElementById('readyText').value,
-                reviewText: document.getElementById('reviewText').value,
-                successText: document.getElementById('successText').value,
+                readyText: document.getElementById('readyText') ? document.getElementById('readyText').value : '',
+                reviewText: document.getElementById('reviewText') ? document.getElementById('reviewText').value : '',
+                successText: document.getElementById('successText') ? document.getElementById('successText').value : '',
                 readyCdText: document.getElementById('readyCdText').value,
                 recordingCdText: document.getElementById('recordingCdText').value,
                 photoCdText: document.getElementById('photoCdText').value,

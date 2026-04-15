@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Videobooth Premium</title>
+    <title>ScribbleBooth</title>
     <!-- MediaPipe Script -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
@@ -171,7 +171,7 @@
             background-repeat: no-repeat;
             border: none;
             border-radius: 0;
-            padding: 55px 40px 75px 40px;
+            padding: 80px 42px 65px 42px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -614,8 +614,8 @@
 
         .progress-rect {
             fill: none;
-            stroke: #ff0000;
-            stroke-width: 14;
+            stroke: #FFFFFF;
+            stroke-width: 7;
             stroke-linecap: round;
             transition: none;
         }
@@ -664,7 +664,7 @@
         <!-- CENTER PANEL -->
         <div class="center-panel">
             <div id="idle-header">
-                <div class="scribble-title" id="main-title" style="margin-bottom: 20px;">
+                <div class="scribble-title logo" id="main-title" style="margin-bottom: 20px;">
                     <img src="/before.png" alt="" class="title-ornament">
                     <div class="names-row">
                         <span>Audric</span>
@@ -1281,6 +1281,11 @@
             videoBlob = null;
             photoBlob = null;
             changeState('ready');
+        }
+
+        function retakePhotoOnly() {
+            photoBlob = null;
+            startPhotoSession();
         }
 
         function startPhotoSession() {
