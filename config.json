@@ -11,7 +11,7 @@
     "fontFamily": "'Kaisei Opti', serif",
     "bgImageUrl": "/bg1.png",
     "enableGesture": false,
-    "logoUrl": "/uploads_logo/logo-1776251515850.png",
+    "logoUrl": "http://localhost:3000/uploads_logo/logo-1776251515850.png",
     "frameColor": "#333333",
     "tutorialVideoUrl": "/uploads_logo/logo-1776268153160.mp4",
     "resultVideoUrl": "/uploads_logo/logo-1776167996381.mp4",
@@ -26,7 +26,7 @@
     },
     "titleColor": "#d3bb7c",
     "frameImageUrl": "/frame_gold.png",
-    "overlayImageUrl": "/overlay.png",
+    "overlayImageUrl": "/uploads_assets/asset-1776355868620.png",
     "descPremium": "",
     "startText": "",
     "emailSubject": "",
@@ -36,5 +36,5 @@
     "readyCdText": "",
     "recordingCdText": "",
     "photoCdText": "",
-    "idleHeadMode": "title"
+    "idleHeadMode": "logo"
 }
