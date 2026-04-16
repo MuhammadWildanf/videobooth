@@ -255,6 +255,16 @@
             /* Gap handles ornaments distance */
         }
 
+        .idle-branding-logo {
+            max-width: 500px;
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 3vh;
+            margin-top: 1vh;
+            display: none;
+            filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.6));
+        }
+
         .names-row {
             display: flex;
             align-items: center;
@@ -673,6 +683,7 @@
                     </div>
                     <img src="/after.png" alt="" class="title-ornament">
                 </div>
+                <img id="branding-logo" src="" alt="Logo" class="idle-branding-logo">
                 <div class="subtitle-premium" id="idle-sub">A special moment awaits you.</div>
                 <div class="desc-premium" id="desc-premium">Enter your details to unveil a personalized wedding
                     experience.</div>
@@ -989,6 +1000,23 @@
                         titleRow.innerHTML = `<span>${parts[0].trim()}</span> <span class="title-amp">&amp;</span> <span>${parts.slice(1).join('&').trim()}</span>`;
                     } else {
                         titleRow.innerHTML = `<span>${data.title}</span>`;
+                    }
+                }
+                
+                // Toggle Header Mode (Title vs Logo)
+                const mainTitleEl = document.getElementById('main-title');
+                const brandingLogoEl = document.getElementById('branding-logo');
+                
+                if (data.idleHeadMode === 'logo' && data.logoUrl) {
+                    if (mainTitleEl) mainTitleEl.classList.add('hidden');
+                    if (brandingLogoEl) {
+                        brandingLogoEl.src = data.logoUrl;
+                        brandingLogoEl.style.display = 'block';
+                    }
+                } else {
+                    if (mainTitleEl) mainTitleEl.classList.remove('hidden');
+                    if (brandingLogoEl) {
+                        brandingLogoEl.style.display = 'none';
                     }
                 }
 

@@ -373,6 +373,181 @@
             border-radius: 5px;
             border: 1px solid var(--border);
         }
+
+        /* RADIO BUTTONS */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .radio-item label {
+            margin: 0 !important;
+            text-transform: none !important;
+            font-size: 14px !important;
+            color: #fff !important;
+            cursor: pointer;
+        }
+
+        /* ASSET LIBRARY MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background: #151518;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-close:hover {
+            color: #fff;
+        }
+
+        .asset-grid {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .asset-item {
+            position: relative;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .asset-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .asset-item img, .asset-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .asset-item .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .asset-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .asset-item .delete-btn:hover {
+            background: #ff0000;
+            transform: scale(1.1);
+        }
+
+        .asset-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            padding: 5px;
+            font-size: 9px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-browse {
+            font-size: 10px;
+            background: rgba(211, 187, 124, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .btn-browse:hover {
+            background: var(--accent);
+            color: #000;
+        }
     </style>
 </head>
 
@@ -476,6 +651,7 @@
                             <small id="bgStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/bg1.png</small>
                             <input type="file" id="bgFile" accept="image/*" style="font-size:11px;">
+                            <div class="btn-browse" onclick="openLibrary('bgImageUrl', 'bgStatus')">📁 Pilih dari Galeri</div>
                         </div>
                     </div>
                     <div class="input-group">
@@ -484,6 +660,7 @@
                             <small id="frameStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/frame_gold.png</small>
                             <input type="file" id="frameFile" accept="image/*" style="font-size:11px;">
+                            <div class="btn-browse" onclick="openLibrary('frameImageUrl', 'frameStatus')">📁 Pilih dari Galeri</div>
                         </div>
                     </div>
                     <div class="input-group">
@@ -492,6 +669,7 @@
                             <small id="overlayStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/overlay.png</small>
                             <input type="file" id="overlayFile" accept="image/*" style="font-size:11px;">
+                            <div class="btn-browse" onclick="openLibrary('overlayImageUrl', 'overlayStatus')">📁 Pilih dari Galeri</div>
                         </div>
                     </div>
                 </div>
@@ -502,6 +680,19 @@
         <div id="section-content" class="view-section">
             <h2>Interface Copy</h2>
             <div class="card">
+                <div class="input-group">
+                    <label>Header Display Mode</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" name="idleHeadMode" id="mode-title" value="title" checked>
+                            <label for="mode-title">✍️ Scribble Title</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="idleHeadMode" id="mode-logo" value="logo">
+                            <label for="mode-logo">🖼️ Branding Logo</label>
+                        </div>
+                    </div>
+                </div>
                 <div class="input-group">
                     <label>Header Title</label>
                     <input type="text" id="title" placeholder="Audric & Catherine">
@@ -564,6 +755,7 @@
                     <div class="upload-box">
                         <img id="logoPreview" class="preview-img" src="">
                         <input type="file" id="logoFile" accept="image/*">
+                        <div class="btn-browse" onclick="openLibrary('logoUrl', 'logoPreview')">📁 Pilih dari Galeri</div>
                     </div>
                 </div>
                 <div class="card">
@@ -571,6 +763,7 @@
                     <div class="upload-box">
                         <span id="tutorialPath" style="font-size: 11px; word-break: break-all;">No video</span><br><br>
                         <input type="file" id="tutorialFile" accept="video/*">
+                        <div class="btn-browse" onclick="openLibrary('tutorialVideoUrl', 'tutorialPath')">📁 Pilih dari Galeri</div>
                     </div>
                 </div>
                 <div class="card">
@@ -578,6 +771,7 @@
                     <div class="upload-box">
                         <span id="resultPath" style="font-size: 11px; word-break: break-all;">No video</span><br><br>
                         <input type="file" id="resultFile" accept="video/*">
+                        <div class="btn-browse" onclick="openLibrary('resultVideoUrl', 'resultPath')">📁 Pilih dari Galeri</div>
                     </div>
                 </div>
             </div>
@@ -643,6 +837,19 @@
 
     <div class="success-toast" id="successMsg">✨ System configuration synchronized successfully!</div>
 
+    <!-- ASSET LIBRARY MODAL -->
+    <div class="modal-overlay" id="libraryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Asset Gallery</h3>
+                <button class="btn-close" onclick="closeLibrary()">&times;</button>
+            </div>
+            <div class="asset-grid" id="assetGrid">
+                <!-- Assets will be injected here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         function showSection(id) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
@@ -680,6 +887,12 @@
                 document.getElementById('recordingCdText').value = data.recordingCdText || '';
                 document.getElementById('photoCdText').value = data.photoCdText || '';
                 document.getElementById('recordingDuration').value = data.recordingDuration || 15;
+                
+                if (data.idleHeadMode === 'logo') {
+                    document.getElementById('mode-logo').checked = true;
+                } else {
+                    document.getElementById('mode-title').checked = true;
+                }
 
                 document.getElementById('bgStatus').innerText = data.bgImageUrl || 'Default';
                 document.getElementById('frameStatus').innerText = data.frameImageUrl || 'Default';
@@ -794,26 +1007,119 @@
                 recordingCdText: document.getElementById('recordingCdText').value,
                 photoCdText: document.getElementById('photoCdText').value,
                 recordingDuration: parseInt(document.getElementById('recordingDuration').value),
-                bgImageUrl: bgUrl || (bgText === 'none' ? '' : bgText),
+                idleHeadMode: document.querySelector('input[name="idleHeadMode"]:checked').value,
+                bgImageUrl: bgUrl || document.getElementById('bgStatus').innerText,
                 frameImageUrl: frameUrl || document.getElementById('frameStatus').innerText,
-                overlayImageUrl: overlayUrl || document.getElementById('overlayStatus').innerText
+                overlayImageUrl: overlayUrl || document.getElementById('overlayStatus').innerText,
+                tutorialVideoUrl: tutUrl || document.getElementById('tutorialPath').innerText,
+                resultVideoUrl: resUrl || document.getElementById('resultPath').innerText,
+                logoUrl: finalLogoUrl || (document.getElementById('logoPreview').src.includes('base64') ? '' : document.getElementById('logoPreview').src)
             };
 
-            if (finalLogoUrl) payload.logoUrl = finalLogoUrl;
-            if (tutUrl) payload.tutorialVideoUrl = tutUrl;
-            if (resUrl) payload.resultVideoUrl = resUrl;
+            if (!payload.logoUrl || payload.logoUrl === 'null') {
+                payload.logoUrl = dataBackup.logoUrl;
+            }
 
-            await fetch('/api/config', {
+            fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
+            }).then(() => {
+                btn.disabled = false;
+                btn.innerHTML = "<span>💾</span> SAVE ALL CHANGES";
+                const msg = document.getElementById('successMsg');
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
             });
+        }
 
-            btn.disabled = false;
-            btn.innerHTML = "<span>💾</span> SAVE ALL CHANGES";
-            const msg = document.getElementById('successMsg');
-            msg.style.display = 'block';
-            setTimeout(() => msg.style.display = 'none', 3000);
+        // ASSET LIBRARY LOGIC
+        let currentTargetField = null;
+        let currentStatusEl = null;
+
+        async function openLibrary(field, statusId) {
+            currentTargetField = field;
+            currentStatusEl = statusId;
+            document.getElementById('libraryModal').style.display = 'flex';
+            loadAssets();
+        }
+
+        function closeLibrary() {
+            document.getElementById('libraryModal').style.display = 'none';
+        }
+
+        async function loadAssets() {
+            const grid = document.getElementById('assetGrid');
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Loading assets...</p>';
+            
+            try {
+                const res = await fetch('/api/config/assets-list');
+                const data = await res.json();
+                grid.innerHTML = '';
+                
+                if (data.assets.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No assets found.</p>';
+                }
+
+                data.assets.forEach(asset => {
+                    const item = document.createElement('div');
+                    item.className = 'asset-item';
+                    
+                    const isVideo = asset.url.toLowerCase().endsWith('.mp4') || asset.url.toLowerCase().endsWith('.webm');
+                    
+                    if (isVideo) {
+                        item.innerHTML = `<video src="${asset.url}" muted></video>`;
+                    } else {
+                        item.innerHTML = `<img src="${asset.url}" alt="${asset.name}">`;
+                    }
+                    
+                    item.innerHTML += `
+                        <div class="delete-btn" onclick="confirmDelete(event, '${asset.url}')">🗑️</div>
+                        <div class="asset-name">${asset.name}</div>
+                    `;
+                    
+                    item.onclick = (e) => {
+                        if (e.target.classList.contains('delete-btn')) return;
+                        selectAsset(asset.url);
+                    };
+                    
+                    grid.appendChild(item);
+                });
+            } catch (err) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ff0000;">Error loading assets.</p>';
+            }
+        }
+
+        function selectAsset(url) {
+            const statusEl = document.getElementById(currentStatusEl);
+            if (statusEl.tagName === 'IMG') {
+                statusEl.src = url;
+            } else {
+                statusEl.innerText = url;
+            }
+            dataBackup[currentTargetField] = url;
+            closeLibrary();
+        }
+
+        async function confirmDelete(event, url) {
+            event.stopPropagation();
+            if (!confirm(`Are you sure you want to delete this asset?\n${url}`)) return;
+            
+            try {
+                const res = await fetch('/api/config/asset-delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileUrl: url })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    loadAssets();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('Connection error.');
+            }
         }
     </script>
 </body>

@@ -497,6 +497,57 @@ app.post('/api/config/asset', uploadAsset.single('asset'), (req, res) => {
     res.json({ status: 'success', fileUrl });
 });
 
+// --- ASSET MANAGEMENT ENDPOINTS (LIST & DELETE) ---
+app.get('/api/config/assets-list', (req, res) => {
+    const dirs = [
+        { path: path.join(__dirname, 'public', 'uploads_logo'), url: '/uploads_logo' },
+        { path: path.join(__dirname, 'public', 'uploads_assets'), url: '/uploads_assets' }
+    ];
+
+    let allFiles = [];
+
+    dirs.forEach(dir => {
+        if (fs.existsSync(dir.path)) {
+            const files = fs.readdirSync(dir.path);
+            files.forEach(file => {
+                // Ignore hidden files and directories
+                if (!file.startsWith('.') && fs.lstatSync(path.join(dir.path, file)).isFile()) {
+                    allFiles.push({
+                        name: file,
+                        url: `${dir.url}/${file}`,
+                        type: dir.url.includes('logo') ? 'logo' : 'asset'
+                    });
+                }
+            });
+        }
+    });
+
+    res.json({ status: 'success', assets: allFiles });
+});
+
+app.delete('/api/config/asset-delete', (req, res) => {
+    const { fileUrl } = req.body;
+    if (!fileUrl) return res.status(400).json({ status: 'error', message: 'No file URL provided' });
+
+    // Security: Only allow deleting from authorized folders
+    if (!fileUrl.startsWith('/uploads_logo/') && !fileUrl.startsWith('/uploads_assets/')) {
+        return res.status(403).json({ status: 'error', message: 'Unauthorized path' });
+    }
+
+    const filePath = path.join(__dirname, 'public', fileUrl);
+
+    if (fs.existsSync(filePath)) {
+        try {
+            fs.unlinkSync(filePath);
+            res.json({ status: 'success', message: 'File deleted successfully' });
+        } catch (err) {
+            res.status(500).json({ status: 'error', message: 'Failed to delete file' });
+        }
+    } else {
+        res.status(404).json({ status: 'error', message: 'File not found on server' });
+    }
+});
+
 app.listen(port, () => {
     console.log(`🚀 Videobooth Backend Server beroperasi di http://localhost:${port}`);
     console.log(`📱 Panel Config UI di: http://localhost:${port}/config.html`);

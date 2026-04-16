@@ -35,5 +35,6 @@
     "titleFontFamily": "'Luxurious Script', cursive",
     "readyCdText": "",
     "recordingCdText": "",
-    "photoCdText": ""
+    "photoCdText": "",
+    "idleHeadMode": "title"
 }
