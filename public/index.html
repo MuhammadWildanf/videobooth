@@ -668,6 +668,52 @@
             opacity: 1;
             transition: none;
         }
+
+        /* RESPONSIVE DESIGN FOR SMALLER SCREENS */
+        @media (max-width: 1400px) {
+            .side-panel {
+                height: 75vh;
+                max-width: 30vw;
+            }
+            .scribble-title { font-size: min(8vh, 90px); }
+            .btn-action { padding: 15px; font-size: 18px; }
+        }
+
+        @media (max-width: 1024px) {
+            .main-wrapper { padding: 15px; gap: 15px; }
+            .side-panel {
+                height: 70vh;
+                max-width: 32vw;
+                padding: 40px 20px 30px 20px;
+            }
+            .scribble-title { font-size: min(6vh, 60px); }
+            .subtitle-premium { font-size: 16px; }
+            .keyboard-wrapper { width: 100% !important; border-radius: 20px !important; }
+            .key { height: 45px; font-size: 16px; }
+            .btn-primary, .btn-start { padding: 12px 24px !important; font-size: 16px !important; }
+            .side-panel .panel-footer { font-size: 14px; }
+            .wedding-logo { max-width: 150px; }
+            #idle-header { margin-top: 5vh; }
+        }
+
+        @media (max-width: 768px) {
+            .main-wrapper { padding: 10px; gap: 10px; }
+            .side-panel {
+                height: 65vh;
+                max-width: 33vw;
+                padding: 20px 10px 15px 10px;
+            }
+            .scribble-title { font-size: min(5vh, 40px); }
+            .desc-premium { font-size: 12px; }
+            .key { height: 35px; max-width: 50px; font-size: 12px; }
+            .keyboard-row { gap: 4px; }
+            .keyboard-wrapper { padding: 10px !important; }
+            .side-panel .panel-footer { font-size: 10px; margin-top: 5px; }
+            #countdown-area { font-size: 14px; }
+            .btn-action { padding: 10px; font-size: 14px; }
+            #ready-text, #review-video-text, #success-text { font-size: 20px !important; }
+            #ready-text span, #review-video-text span, #success-text span { font-size: 14px !important; }
+        }
     </style>
 </head>
 
