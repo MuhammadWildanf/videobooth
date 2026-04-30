@@ -306,7 +306,14 @@ const worker = async (task) => {
             fs.writeFileSync(sessionFilePath, JSON.stringify(sessionData, null, 2));
             
             // This is the link we actually send to the user
-            const localResultLink = `http://${process.env.PUBLIC_DOMAIN || 'localhost:3000'}/result.html?id=${sessionId}`;
+            let domainStr = process.env.PUBLIC_DOMAIN || 'localhost:3000';
+            let localResultLink = '';
+            if (domainStr.startsWith('http')) {
+                localResultLink = `${domainStr}/result.html?id=${sessionId}`;
+            } else {
+                const protocol = domainStr === 'localhost:3000' ? 'http' : 'https';
+                localResultLink = `${protocol}://${domainStr}/result.html?id=${sessionId}`;
+            }
 
             // 5. Send Notification
             if (videoLink || photoLink) {
