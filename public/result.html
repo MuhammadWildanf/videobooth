@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Special Moment - ScribbleBooth</title>
+    <style>
+        @font-face {
+            font-family: 'Luxurious Script';
+            src: url('/fonts/LuxuriousScript-Regular.ttf') format('truetype');
+            font-weight: normal;
+        }
+
+        @font-face {
+            font-family: 'Kaisei Opti';
+            src: url('/fonts/KaiseiOpti-Regular.ttf') format('truetype');
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: 'Kaisei Opti';
+            src: url('/fonts/KaiseiOpti-Bold.ttf') format('truetype');
+            font-weight: 700;
+        }
+
+        :root {
+            --accent: #c5a059;
+            --gold-gradient: linear-gradient(135deg, #c5a059 0%, #d4af37 50%, #b38b4d 100%);
+            --bg-dark: #1a0f0a;
+            --text-main: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Kaisei Opti', serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            background-image: url('/bg1.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(20, 15, 10, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            margin-top: 20px;
+        }
+
+        .title {
+            font-family: 'Luxurious Script', cursive;
+            font-size: 60px;
+            color: var(--accent);
+            margin-bottom: 10px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+
+        .media-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .media-card {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(197, 160, 89, 0.5);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .media-card video,
+        .media-card img {
+            width: 100%;
+            display: block;
+            aspect-ratio: 9/16;
+            object-fit: cover;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 30px;
+            background: var(--gold-gradient);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Kaisei Opti', serif;
+            font-weight: 700;
+            font-size: 16px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(197, 160, 89, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(197, 160, 89, 0.5);
+        }
+
+        .loading {
+            font-size: 24px;
+            color: var(--accent);
+            margin-top: 50px;
+        }
+
+        .error-state {
+            color: #ef4444;
+            font-size: 20px;
+            margin-top: 50px;
+            display: none;
+        }
+
+        .footer-text {
+            margin-top: 50px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Responsive Design untuk Mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                padding: 30px 15px;
+                border-radius: 15px;
+                margin-top: 10px;
+            }
+
+            .title {
+                font-size: 42px;
+            }
+
+            .subtitle {
+                font-size: 15px;
+                margin-bottom: 25px;
+            }
+
+            .media-grid {
+                gap: 20px;
+            }
+
+            .media-card {
+                min-width: 100%;
+                border-radius: 12px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading" class="loading">Memuat kenangan Anda... ✨</div>
+
+    <div id="error" class="error-state">
+        Maaf, sesi Anda tidak ditemukan atau sudah kadaluarsa.
+    </div>
+
+    <div id="content" class="container" style="display: none;">
+        <h1 class="title">Thank You, <span id="userName"></span>!</h1>
+        <p class="subtitle">Momen istimewa Anda di ScribbleBooth telah berhasil diabadikan. Silakan lihat dan unduh hasilnya di bawah ini.</p>
+
+        <div class="media-grid">
+            <div class="media-card" id="videoContainer" style="display: none;">
+                <video id="videoElement" autoplay loop muted playsinline controls></video>
+                <div style="padding: 15px; background: rgba(20, 15, 10, 0.9);">
+                    <a id="videoDownload" href="#" target="_blank" class="btn" style="width: 100%;">🎬 Unduh Video</a>
+                </div>
+            </div>
+
+            <div class="media-card" id="photoContainer" style="display: none;">
+                <img id="photoElement" src="" alt="ScribbleBooth Photo">
+                <div style="padding: 15px; background: rgba(20, 15, 10, 0.9);">
+                    <a id="photoDownload" href="#" target="_blank" class="btn" style="width: 100%;">📸 Unduh Foto</a>
+                </div>
+            </div>
+        </div>
+
+        <p class="footer-text">Jangan lupa bagikan momen ini dan tag kami di media sosial! ✨</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('id');
+
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            const contentEl = document.getElementById('content');
+
+            if (!sessionId) {
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/result/${sessionId}`);
+                const result = await response.json();
+
+                loadingEl.style.display = 'none';
+
+                if (result.status === 'success' && result.data) {
+                    contentEl.style.display = 'block';
+                    document.getElementById('userName').innerText = result.data.name;
+
+                    if (result.data.videoLink) {
+                        const vContainer = document.getElementById('videoContainer');
+                        vContainer.style.display = 'block';
+                        document.getElementById('videoElement').src = result.data.videoLink;
+                        // Use proxy route to force download dialog
+                        document.getElementById('videoDownload').href = `/api/download?url=${encodeURIComponent(result.data.videoLink)}&name=Video-${result.data.name.replace(/\s+/g, '-')}.mp4`;
+                    }
+
+                    if (result.data.photoLink) {
+                        const pContainer = document.getElementById('photoContainer');
+                        pContainer.style.display = 'block';
+                        document.getElementById('photoElement').src = result.data.photoLink;
+                        // Use proxy route to force download dialog
+                        document.getElementById('photoDownload').href = `/api/download?url=${encodeURIComponent(result.data.photoLink)}&name=Photo-${result.data.name.replace(/\s+/g, '-')}.jpg`;
+                    }
+                } else {
+                    errorEl.style.display = 'block';
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+            }
+            
+            // Dynamic theme loader (optional, to sync fonts/colors if needed)
+            try {
+                const configRes = await fetch('/api/config');
+                const configData = await configRes.json();
+                
+                if (configData.bgImageUrl) {
+                    document.body.style.backgroundImage = `url('${configData.bgImageUrl}')`;
+                }
+                if (configData.accentColor) {
+                    document.documentElement.style.setProperty('--accent', configData.accentColor);
+                }
+            } catch(e) {}
+        });
+    </script>
+</body>
+
+</html>

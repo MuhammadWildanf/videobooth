@@ -30,7 +30,7 @@
     "descPremium": "",
     "startText": "",
     "emailSubject": "",
-    "messageTemplate": "",
+    "messageTemplate": "Hi {name}! ✨\n\nYour special moment is here! 🎬 Video dan foto ScribbleBooth Anda sudah siap untuk di-download dan dibagikan.\n\nAmbil file Anda di sini: 🔗 {link}\n\nSave it, love it, share it! Jangan lupa tag kami di sosial media ya! 📸✨",
     "fontSelector": "luxury",
     "titleFontFamily": "'Luxurious Script', cursive",
     "readyCdText": "",

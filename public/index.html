@@ -108,9 +108,9 @@
             transform: translateX(-50%) translateY(120%) !important;
             width: 95% !important;
             max-width: 900px !important;
-            background: rgba(30, 25, 20, 0.8) !important;
-            backdrop-filter: blur(25px) !important;
-            border: 1px solid rgba(197, 160, 89, 0.3) !important;
+            background: rgba(26, 18, 11, 0.75) !important;
+            backdrop-filter: blur(30px) !important;
+            border: 1px solid rgba(197, 160, 89, 0.4) !important;
             padding: 15px !important;
             border-radius: 30px !important;
             z-index: 9999 !important;
@@ -123,6 +123,11 @@
             transform: translateX(-50%) translateY(0) !important;
             opacity: 1 !important;
             visibility: visible !important;
+        }
+
+        /* Shift layout up when keyboard is active */
+        .center-panel.keyboard-active {
+            transform: translateY(-10vh);
         }
 
         * {
@@ -412,41 +417,55 @@
         .keyboard-row {
             display: flex;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
         .key {
             flex: 1;
-            height: 48px;
-            max-width: 80px;
-            background: #4a4a4a;
-            border-radius: 8px;
+            height: 54px;
+            max-width: 85px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: 400;
-            color: #fff;
+            font-size: 20px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
             cursor: pointer;
-            transition: all 0.1s;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
+            font-family: 'Kaisei Opti', serif;
         }
 
         .key:active {
             background: var(--accent) !important;
-            transform: scale(0.95);
+            transform: scale(0.92);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.5);
         }
 
         .key.wide {
-            max-width: 120px;
-            background: #adb5bd;
-            font-size: 16px;
-            color: #fff;
+            max-width: 130px;
+            background: rgba(255, 255, 255, 0.15);
+            font-size: 17px;
+        }
+
+        /* Gold Action Keys (Next / Mode) */
+        .key.wide:last-child {
+            background: var(--gold-gradient) !important;
+            border: none;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
         }
 
         .key.space {
             flex: 3;
-            max-width: 400px;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* STATES (READY, REVIEW, SUCCESS) */
@@ -611,7 +630,7 @@
             font-size: 24px;
         }
 
-        /* PROGRESS BORDER ANIMATION */
+        /* PROGRESS BORDER ANIMATION (GOLD GLOW) */
         .timer-progress-container {
             position: absolute;
             top: 0;
@@ -624,9 +643,10 @@
 
         .progress-rect {
             fill: none;
-            stroke: #FFFFFF;
-            stroke-width: 7;
+            stroke: var(--accent, #c5a059);
+            stroke-width: 4;
             stroke-linecap: round;
+            filter: drop-shadow(0 0 8px rgba(197, 160, 89, 0.8));
             transition: none;
         }
 
@@ -698,7 +718,8 @@
                         <label>Name</label>
                         <div class="input-wrapper">
                             <span class="input-icon">👤</span>
-                            <input type="text" id="name" placeholder="Please input your name" inputmode="none" autocomplete="off" spellcheck="false">
+                            <input type="text" id="name" placeholder="Please input your name" inputmode="none"
+                                autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                     <div class="input-group">
@@ -728,18 +749,6 @@
                         <span style="font-size: min(3vh, 24px);">✨</span> <span id="start-btn-text">Begin your
                             experience</span>
                     </button>
-                </div>
-
-                <!-- KEYBOARD (FRAME 3 PREMIUM DESIGN) -->
-                <div class="keyboard-wrapper" id="kbd-container">
-                    <div class="keyboard-row" id="kbd-1"></div>
-                    <div class="keyboard-row" id="kbd-2"></div>
-                    <div class="keyboard-row" id="kbd-3"></div>
-                    <div class="keyboard-row">
-                        <div class="key wide" onclick="kMode()">123</div>
-                        <div class="key space" onclick="kPress(' ')"></div>
-                        <div class="key wide" onclick="kNext()">➔</div>
-                    </div>
                 </div>
             </div>
 
@@ -816,9 +825,6 @@
         <!-- RIGHT PANEL -->
         <div class="side-panel" id="panel-right">
             <div class="video-container" style="background: #000;">
-                <svg class="timer-progress-container hidden" id="svg-timer">
-                    <rect class="progress-rect" id="rect-timer" x="7" y="7" rx="15" ry="15"></rect>
-                </svg>
                 <video id="webcam" autoplay muted playsinline class="hidden" style="z-index: 20;"></video>
                 <canvas id="output_canvas" class="hidden"></canvas>
                 <canvas id="drawing_canvas"></canvas>
@@ -829,10 +835,26 @@
                 <div id="label-right-overlay"
                     style="color:rgba(255,255,255,0.3); font-weight:700; font-size:24px; position:absolute; z-index: 5;">
                     Loading Tutorial...</div>
+                <!-- TIMER SVG (MOVED TO END FOR TOP STACKING) -->
+                <svg class="timer-progress-container hidden" id="svg-timer">
+                    <rect class="progress-rect" id="rect-timer" x="5" y="5" rx="15" ry="15"></rect>
+                </svg>
             </div>
             <div class="panel-footer" style="margin-top: auto; margin-bottom: 25px; font-size: 20px;">How It Works</div>
         </div>
 
+    </div>
+
+    <!-- KEYBOARD (MOVED TO BEFORE SCRIPT TO AVOID NULL REFERENCES) -->
+    <div class="keyboard-wrapper" id="kbd-container">
+        <div class="keyboard-row" id="kbd-1"></div>
+        <div class="keyboard-row" id="kbd-2"></div>
+        <div class="keyboard-row" id="kbd-3"></div>
+        <div class="keyboard-row">
+            <div class="key wide" onclick="kMode()">123</div>
+            <div class="key space" onclick="kPress(' ')"></div>
+            <div class="key wide" onclick="kNext()">➔</div>
+        </div>
     </div>
 
     <script>
@@ -898,12 +920,14 @@
             num = false;
             drawKbd();
             document.getElementById('kbd-container').classList.add('show');
+            document.querySelector('.center-panel').classList.add('keyboard-active');
         });
         document.getElementById('phone').addEventListener('click', () => {
             activeInput = document.getElementById('phone');
             num = (deliveryMethod === 'whatsapp');
             drawKbd();
             document.getElementById('kbd-container').classList.add('show');
+            document.querySelector('.center-panel').classList.add('keyboard-active');
         });
 
         function kPress(k) { if (activeInput) activeInput.value += k; }
@@ -918,6 +942,7 @@
             } else {
                 activeInput = null;
                 document.getElementById('kbd-container').classList.remove('show');
+                document.querySelector('.center-panel').classList.remove('keyboard-active');
             }
         }
 
@@ -925,6 +950,7 @@
         document.querySelector('.center-panel').addEventListener('click', (e) => {
             if (e.target.tagName !== 'INPUT' && !e.target.closest('.keyboard-wrapper')) {
                 document.getElementById('kbd-container').classList.remove('show');
+                document.querySelector('.center-panel').classList.remove('keyboard-active');
             }
         });
 
@@ -1002,11 +1028,11 @@
                         titleRow.innerHTML = `<span>${data.title}</span>`;
                     }
                 }
-                
+
                 // Toggle Header Mode (Title vs Logo)
                 const mainTitleEl = document.getElementById('main-title');
                 const brandingLogoEl = document.getElementById('branding-logo');
-                
+
                 if (data.idleHeadMode === 'logo' && data.logoUrl) {
                     if (mainTitleEl) mainTitleEl.classList.add('hidden');
                     if (brandingLogoEl) {
@@ -1147,7 +1173,8 @@
             const n = document.getElementById('name').value, p = document.getElementById('phone').value;
             if (!n || !p) return alert("Please input your name and contact details!");
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1080, height: 1920 }, audio: true });
+                // Jangan paksakan ukuran 1080x1920 di sini agar browser tidak melakukan Auto-Crop (Zoom)
+                stream = await navigator.mediaDevices.getUserMedia({ video: { ideal: 1080 }, audio: true });
                 webcam.srcObject = stream;
                 changeState('ready');
                 if (window.enableGesture) initHandTracking();
@@ -1244,20 +1271,21 @@
             const rectTimer = document.getElementById('rect-timer');
             svgTimer.classList.remove('hidden');
 
-            // Berikan jeda sangat singkat agar browser merender elemen sebelum dihitung
             setTimeout(() => {
                 const parent = svgTimer.parentElement;
-                const w = parent.clientWidth - 14;
-                const h = parent.clientHeight - 14;
+                const offset = 10; // Padding agar glow tidak terpotong
+                const w = parent.clientWidth - offset;
+                const h = parent.clientHeight - offset;
 
-                // Set dimensi rect secara eksplisit (karena calc() di atribut SVG sering bermasalah)
                 rectTimer.setAttribute('width', w);
                 rectTimer.setAttribute('height', h);
+                rectTimer.setAttribute('x', offset / 2);
+                rectTimer.setAttribute('y', offset / 2);
 
                 const perimeter = 2 * (w + h);
                 rectTimer.style.strokeDasharray = perimeter;
                 rectTimer.style.strokeDashoffset = 0;
-                rectTimer.style.transition = 'none';
+                rectTimer.style.transition = 'none'; // Reset transition
                 rectTimer.offsetHeight; // Force reflow
                 rectTimer.style.transition = `stroke-dashoffset ${duration}s linear`;
                 rectTimer.style.strokeDashoffset = perimeter;

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "videobooth-492110",
+  "private_key_id": "e7a9dbddc84e5ebe45b84119229aa3fe62178e63",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQD9Jo7Q2bUnMIHu\n0Hv01OGw9x/TmtU/FtiYipbuYB5LwuvUHY7gqxRXr2r68FgBvakBLOo6xRXhXKjL\nAl/+jJMuBrcDeVcxNqgz+CSFGgfOOOnAYeW27XbjcPM3bmvAelgU9p/FFtRCm/Ga\nTjWVTLVXlOvblBRuQaEVseGaOOzvKxU+XQ/+1cLPgKaJGpZIVLbqKNa4Q951Gs2j\nYhuGu4ysSq5GySZsMpF1JOgDhwsWpcpmdAFPQb02fyimilbT4dQNVIdzMJjx61L+\n3F6TSq4MypyW2OFhjBILQFoOkxXFC2EyHGK1e/aDr+qczmcIlleduDQcRz41yFbU\nxFebJPXPAgMBAAECggEATKbUL6D8HTWu4iT2o5eiDveFB4mmcEf2pZmxQdSQ19fZ\nmIyqqpSiwDo5ZmpH+572AYkcE1eB3I81/OJnNqhSGGmoGMExCZHHNJU6WaMcIfFR\nthLuf4k/qnaU7n/c2Jcy/IYAsqjK9LBLY7Gyv9ZOQoqxL/eSiCAPKoaGDTCXbYM/\n7NjON/JyLLjrkU7Fv/XMmG69ED+yxEzj6B3SY2gmSNfTtKx+jk7dvwt2+EtpTT3T\nWcdmJtZUyxWfJVpPnb9vKvJkQhiLzeGJrwLXWelr3OUkf8rBvwj29k8p5Oss3lrT\ngiG5D+/oye1jRXYgsxsW0M95viZOG3jtLbSVQ3GpYQKBgQD/KIgSUsgi2Jfinu16\nILjWeAzg/HhTSp3Ahj9JxshAE7Nq32VA23C9HeFXoxwPbk1OksxcET/IRvYLCSuL\nt7BtHMrvfPSh8YU49RUE8LADxI8DKk9q+mA2e2zUcQ2v/bAlCLhWwW03tgPIMHS/\n9PIpQQOc//TxwDx7hVhXV/wIGwKBgQD9/FS4GioVAnrZJW/yhyGFIdMGuU7vsApI\n20TYPGIEL1icXDCdIYkQ5cY/Qrc7Hsjdxf8PniMJ622H+w/HCGPOUf6WM3ndA6Hq\nJNz+Ilyq7FDXcCii6bDPwRRHy2HEz5Cr0S+uOMeTfDcwD6dw+zxvbyZKDBDqPJbx\nXLZs1WpMXQKBgQDoa9Iu5qsZWrRXoK7u7TmRWr9YfYFZVYGG6oJhwKmN/KQU+LLx\ntjHmgn5OZuxbffz7UqrGPowb8c+TU+IPnd4eNfkA15C6pxbUQCLKYjfi5rvihTrc\nVn8ngZwrk2OFaQ93XI8Vr5G+CpU9WC4w4H1paKhS7bAAOjydw2QqA6I2+wKBgQCB\n9p9nQUQtUgKIoMaC5LC7Tg6Mj0AcGAl7NHAq8eL53zxJbkcV8HYRpnHmJv5Ziywf\nh1Q3qqSlS8nVXhu5rcpcZcqPEzIVbOlqRYirpeujLp9DTkoM6uWluVfmUOTrb4bI\n1JbAYJ+HEXWv6yK0BmrrXoXKOBhjs7NNODLEyAPHpQKBgQDINQmdwZXa/tjJC1dW\nP7CmcKPr/LnU8cqFjjtn3Ecr7gEpHF/kSgG1o1M59y//JCVW8tNccBvBQdQBcnGl\nkTpcLEVNZR6bvLEJPxCMmrcYPZt6+sgiVLPa33BfiJUg12vrW4E3cgl1zB4xceab\nLH4IX6uQr0aF5AY5orif6+GpQQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "scribblebooth@videobooth-492110.iam.gserviceaccount.com",
+  "client_id": "105728316437930267903",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/scribblebooth%40videobooth-492110.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

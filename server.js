@@ -8,6 +8,7 @@ const cloudscraper = require('cloudscraper');
 
 require('dotenv').config();
 const { google } = require('googleapis');
+const { Storage } = require('@google-cloud/storage');
 const { Readable } = require('stream');
 const nodemailer = require('nodemailer');
 
@@ -107,6 +108,36 @@ const createDriveFolder = async (folderName) => {
 
     return { id: response.data.id, link: response.data.webViewLink };
 };
+
+// --- SETUP GCP STORAGE ---
+let gcpStorage = null;
+try {
+    gcpStorage = new Storage({
+        projectId: process.env.GCP_PROJECT_ID,
+        keyFilename: path.join(__dirname, 'gcp-key.json')
+    });
+} catch (err) {
+    console.error('[GCP] ❌ Error inisialisasi GCP Storage (pastikan gcp-key.json ada):', err.message);
+}
+
+const uploadToGCP = async (filePath, fileName, folderName = 'videobooth') => {
+    const bucketName = process.env.GCP_BUCKET_NAME;
+    if (!bucketName) throw new Error("GCP_BUCKET_NAME tidak diatur di .env");
+    const bucket = gcpStorage.bucket(bucketName);
+    
+    // Hapus karakter aneh dari nama folder agar URL lebih aman
+    const safeFolderName = folderName.replace(/[^a-zA-Z0-9 ]/g, '_');
+    const destination = `${safeFolderName}/${fileName}`;
+    
+    await bucket.upload(filePath, {
+        destination: destination,
+        metadata: {
+            cacheControl: 'public, max-age=31536000',
+        },
+    });
+    
+    return `https://storage.googleapis.com/${bucketName}/${destination}`;
+};
 // ------------------------------
 
 // --- SETUP NODEMAILER (EMAIL) ---
@@ -163,12 +194,21 @@ const worker = async (task) => {
             const timestamp = Date.now();
             const outputVideoPath = path.join('uploads', `FINAL-${timestamp}-video.mp4`);
             const outputPhotoPath = path.join('uploads', `FINAL-${timestamp}-photo.jpg`);
+            const sessionId = `session-${timestamp}-${Math.random().toString(36).substring(2, 8)}`;
 
-            // 1. Create Folder
-            console.log(`[G-DRIVE] 📂 Creating folder for ${task.name}...`);
-            const driveFolder = await createDriveFolder(`${task.name} - ${task.phone}`);
-            const userFolderId = driveFolder.id;
-            const userFolderLink = driveFolder.link;
+            const storageProvider = (process.env.STORAGE_PROVIDER || 'drive').toLowerCase();
+            let userFolderId = null;
+            let userFolderLink = null; // Unused directly for user if using result page, but useful for Drive tracking
+
+            // 1. Create Folder (Only for Drive)
+            if (storageProvider === 'drive') {
+                console.log(`[G-DRIVE] 📂 Creating folder for ${task.name}...`);
+                const driveFolder = await createDriveFolder(`${task.name} - ${task.phone}`);
+                userFolderId = driveFolder.id;
+                userFolderLink = driveFolder.link;
+            } else {
+                console.log(`[GCP] ☁️ Using Google Cloud Storage (Bucket: ${process.env.GCP_BUCKET_NAME})`);
+            }
 
             // 2. Process Video
             console.log(`[RENDER] 🎬 Step 2/6: Processing Video with Overlay...`);
@@ -222,28 +262,56 @@ const worker = async (task) => {
                         .run();
                 });
             }
-            // 4. Upload to Folder
-            console.log(`[G-DRIVE] ☁️ Step 4/6: Uploading to Cloud...`);
+            // 4. Upload to Cloud
+            console.log(`[UPLOAD] ☁️ Step 4/6: Uploading to Cloud...`);
             let videoLink = null;
             let photoLink = null;
+            const gcpFolderName = `${task.name} - ${task.phone}`;
 
             if (videoProcessed) {
-                console.log(`[G-DRIVE] ☁️ Sedang mengunggah ke Google Drive...`);
-                const driveVideo = await uploadToDrive(outputVideoPath, `Video-${task.name}-${timestamp}.mp4`, userFolderId);
-                videoLink = driveVideo.webViewLink;
-                console.log(`[G-DRIVE] ✅ Sukses diunggah! Link: ${videoLink}`);
+                console.log(`[UPLOAD] ☁️ Mengunggah video...`);
+                if (storageProvider === 'drive') {
+                    const driveVideo = await uploadToDrive(outputVideoPath, `Video-${task.name}-${timestamp}.mp4`, userFolderId);
+                    videoLink = driveVideo.webViewLink;
+                } else {
+                    videoLink = await uploadToGCP(outputVideoPath, `Video-${task.name}-${timestamp}.mp4`, gcpFolderName);
+                }
+                console.log(`[UPLOAD] ✅ Sukses! Link Video: ${videoLink}`);
             }
 
             if (photoProcessed) {
-                console.log(`[G-DRIVE] 📸 Uploading photo: ${outputPhotoPath}`);
-                const drivePhoto = await uploadToDrive(outputPhotoPath, `Photo-${task.name}-${timestamp}.jpg`, userFolderId);
-                photoLink = drivePhoto.webViewLink;
-                console.log(`[G-DRIVE] ✅ Photo Uploaded.`);
+                console.log(`[UPLOAD] 📸 Mengunggah photo...`);
+                if (storageProvider === 'drive') {
+                    const drivePhoto = await uploadToDrive(outputPhotoPath, `Photo-${task.name}-${timestamp}.jpg`, userFolderId);
+                    photoLink = drivePhoto.webViewLink;
+                } else {
+                    photoLink = await uploadToGCP(outputPhotoPath, `Photo-${task.name}-${timestamp}.jpg`, gcpFolderName);
+                }
+                console.log(`[UPLOAD] ✅ Sukses! Link Photo: ${photoLink}`);
             }
+            
+            // 4.5 Save Session Data locally for Result Preview Page
+            const sessionData = {
+                id: sessionId,
+                name: task.name,
+                videoLink: videoLink,
+                photoLink: photoLink,
+                createdAt: new Date().toISOString()
+            };
+            const sessionsDir = path.join(__dirname, 'data', 'sessions');
+            if (!fs.existsSync(sessionsDir)) {
+                fs.mkdirSync(sessionsDir, { recursive: true });
+            }
+            const sessionFilePath = path.join(sessionsDir, `${sessionId}.json`);
+            fs.writeFileSync(sessionFilePath, JSON.stringify(sessionData, null, 2));
+            
+            // This is the link we actually send to the user
+            const localResultLink = `http://${process.env.PUBLIC_DOMAIN || 'localhost:3000'}/result.html?id=${sessionId}`;
+
             // 5. Send Notification
-            if (userFolderLink) {
-                let msgTemplate = config.messageTemplate || `Halo {name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!`;
-                const customMsg = msgTemplate.replace(/{name}/g, task.name).replace(/{link}/g, userFolderLink);
+            if (videoLink || photoLink) {
+                let msgTemplate = config.messageTemplate || `Halo {name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!`;
+                const customMsg = msgTemplate.replace(/{name}/g, task.name).replace(/{link}/g, localResultLink);
 
                 let emailSubj = config.emailSubject || "Kenangan ScribbleBooth Anda sudah siap! ✨";
                 
@@ -290,6 +358,19 @@ const worker = async (task) => {
 
 // Initiate FastQ with concurrency = 2 (allow simultaneous upload while rendering)
 const queue = fastq.promise(worker, 2);
+
+// API Endpoint: Get Session Result
+app.get('/api/result/:id', (req, res) => {
+    const sessionId = req.params.id;
+    const sessionFilePath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
+    
+    if (fs.existsSync(sessionFilePath)) {
+        const data = JSON.parse(fs.readFileSync(sessionFilePath, 'utf8'));
+        res.json({ status: 'success', data });
+    } else {
+        res.status(404).json({ status: 'error', message: 'Session not found' });
+    }
+});
 
 // API Endpoint: Submit Video
 app.post('/api/videobooth/submit', (req, res, next) => {
@@ -546,6 +627,29 @@ app.delete('/api/config/asset-delete', (req, res) => {
     } else {
         res.status(404).json({ status: 'error', message: 'File not found on server' });
     }
+});
+
+// --- API TO FORCE DOWNLOAD (Bypass Browser Player) ---
+const https = require('https');
+app.get('/api/download', (req, res) => {
+    const fileUrl = req.query.url;
+    const filename = req.query.name || `ScribbleBooth-${Date.now()}`;
+    
+    if (!fileUrl || !fileUrl.startsWith('http')) {
+        return res.status(400).send('Invalid URL');
+    }
+    
+    https.get(fileUrl, (response) => {
+        // Set attachment header to force download dialog
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
+        
+        // Pipe the cloud storage stream directly to the user
+        response.pipe(res);
+    }).on('error', (err) => {
+        console.error('[DOWNLOAD] Error proxying file:', err.message);
+        res.status(500).send('Gagal mengunduh file.');
+    });
 });
 
 app.listen(port, () => {
