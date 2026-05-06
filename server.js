@@ -19,7 +19,7 @@ const port = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve frontend html
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] })); // Serve frontend html with clean URLs
 
 // Setup Multer for Video Uploads
 const storage = multer.diskStorage({
@@ -309,10 +309,10 @@ const worker = async (task) => {
             let domainStr = process.env.PUBLIC_DOMAIN || 'localhost:3000';
             let localResultLink = '';
             if (domainStr.startsWith('http')) {
-                localResultLink = `${domainStr}/result.html?id=${sessionId}`;
+                localResultLink = `${domainStr}/result?id=${sessionId}`;
             } else {
                 const protocol = domainStr === 'localhost:3000' ? 'http' : 'https';
-                localResultLink = `${protocol}://${domainStr}/result.html?id=${sessionId}`;
+                localResultLink = `${protocol}://${domainStr}/result?id=${sessionId}`;
             }
 
             // 5. Send Notification
@@ -322,22 +322,23 @@ const worker = async (task) => {
 
                 let emailSubj = config.emailSubject || "Kenangan ScribbleBooth Anda sudah siap! ✨";
                 
-                if (task.deliveryMethod === 'email') {
-                    console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.phone}`);
-
+                if (task.email) {
+                    console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.email}`);
                     try {
-                        await sendEmailMessage(task.phone, emailSubj, customMsg);
-                        console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.phone}`);
+                        await sendEmailMessage(task.email, emailSubj, customMsg);
+                        console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.email}`);
                     } catch (err) {
-                        console.log(`[EMAIL] ❌ Email gagal, fallback ke WhatsApp...`);
-
-                        const result = await sendWhatsAppMessage(task.phone, customMsg);
-                        console.log(`[WhatsApp] ✅ Pesan fallback dikirim ke ${task.phone}`);
+                        console.log(`[EMAIL] ❌ Email gagal dikirim ke ${task.email}: ${err.message}`);
                     }
-
-                } else {
-                    const result = await sendWhatsAppMessage(task.phone, customMsg);
-                    console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}: ${result?.message || "Berhasil"}`);
+                }
+                
+                if (task.phone) {
+                    try {
+                        const result = await sendWhatsAppMessage(task.phone, customMsg);
+                        console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}`);
+                    } catch (err) {
+                        console.log(`[WhatsApp] ❌ Pesan gagal dikirim ke ${task.phone}: ${err.message}`);
+                    }
                 }
             }
 
@@ -401,8 +402,9 @@ app.post('/api/videobooth/submit', (req, res, next) => {
         // PUSH task ke Queue (Background)
         queue.push({
             name: name,
-            phone: phone,
-            deliveryMethod: req.body.deliveryMethod || 'whatsapp',
+            phone: phone || null,
+            email: req.body.email || null,
+            deliveryMethod: req.body.deliveryMethod || 'both',
             videoPath: videoFile.path,
             photoPath: photoFile ? photoFile.path : null
         });

@@ -8,8 +8,8 @@
     "bgColor2": "#3c2a21",
     "accentColor": "#d3bb7c",
     "fontUrl": "https://fonts.googleapis.com/css2?family=Luxurious+Script&family=Kaisei+Opti&display=swap",
-    "fontFamily": "'Kaisei Opti', serif",
-    "bgImageUrl": "/bg1.png",
+    "fontFamily": "'Aref Ruqaa', serif",
+    "bgImageUrl": "/uploads_assets/asset-1777994854757.png",
     "enableGesture": false,
     "logoUrl": "http://localhost:3000/uploads_logo/logo-1776251515850.png",
     "frameColor": "#333333",
@@ -25,8 +25,8 @@
         "fromName": "ScribbleBooth Wedding"
     },
     "titleColor": "#d3bb7c",
-    "frameImageUrl": "/frame_gold.png",
-    "overlayImageUrl": "/uploads_assets/asset-1776355868620.png",
+    "frameImageUrl": "/uploads_assets/asset-1777994601156.png",
+    "overlayImageUrl": "/uploads_assets/asset-1777994601165.png",
     "descPremium": "",
     "startText": "",
     "emailSubject": "",
@@ -36,5 +36,8 @@
     "readyCdText": "",
     "recordingCdText": "",
     "photoCdText": "",
-    "idleHeadMode": "logo"
+    "idleHeadMode": "logo",
+    "descColor": "#cdcdcd",
+    "showLeftPanel": false,
+    "showRightPanel": false
 }

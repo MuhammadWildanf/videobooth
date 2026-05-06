@@ -23,20 +23,14 @@
         }
 
         @font-face {
-            font-family: 'Kaisei Opti';
-            src: url('/fonts/KaiseiOpti-Regular.ttf') format('truetype');
+            font-family: 'Aref Ruqaa';
+            src: url('/fonts/ArefRuqaa-Regular.ttf') format('truetype');
             font-weight: 400;
         }
 
         @font-face {
-            font-family: 'Kaisei Opti';
-            src: url('/fonts/KaiseiOpti-Medium.ttf') format('truetype');
-            font-weight: 500;
-        }
-
-        @font-face {
-            font-family: 'Kaisei Opti';
-            src: url('/fonts/KaiseiOpti-Bold.ttf') format('truetype');
+            font-family: 'Aref Ruqaa';
+            src: url('/fonts/ArefRuqaa-Bold.ttf') format('truetype');
             font-weight: 700;
         }
 
@@ -49,55 +43,105 @@
             --text-gold: #c5a059;
         }
 
-        /* PREMIUM BUTTONS */
+        /* PREMIUM BUTTONS (LUMEA STYLE) */
         .btn-primary,
         .btn-start {
+            position: relative;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 12px !important;
-            padding: 16px 42px !important;
-            background: var(--gold-gradient) !important;
-            color: white !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            padding: 12px 40px !important;
+            background: #e7e5d8 !important;
+            color: #1a0f0a !important;
+            border: none !important;
             border-radius: 50px !important;
             font-weight: 700 !important;
-            font-size: 18px !important;
-            text-transform: none !important;
+            font-size: min(2.5vh, 20px) !important;
+            text-transform: uppercase !important;
             cursor: pointer !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
             transition: all 0.3s ease !important;
             text-decoration: none !important;
+            font-family: 'Aref Ruqaa', serif !important;
+            letter-spacing: 1px !important;
+        }
+
+        .btn-primary::after,
+        .btn-start::after,
+        .btn-outline::after,
+        .btn-record-circle::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border: 1px solid #e7e5d8;
+            border-radius: 60px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover::after,
+        .btn-start:hover::after,
+        .btn-outline:hover::after,
+        .btn-record-circle:hover::after {
+            transform: scale(1.02);
+            border-color: #D3BB7C;
         }
 
         .btn-primary:hover,
         .btn-start:hover {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 15px 35px rgba(197, 160, 89, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 15px rgba(231, 229, 216, 0.2) !important;
         }
 
         .btn-outline {
+            position: relative;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             gap: 10px !important;
             padding: 12px 32px !important;
-            background: rgba(255, 255, 255, 0.8) !important;
-            color: #475569 !important;
-            border: 2px solid #e2e8f0 !important;
-            border-radius: 12px !important;
+            background: transparent !important;
+            color: #e7e5d8 !important;
+            border: 1px solid #e7e5d8 !important;
+            border-radius: 50px !important;
             font-weight: 700 !important;
-            font-size: 15px !important;
+            font-size: min(2.5vh, 20px) !important;
             cursor: pointer !important;
             transition: all 0.2s !important;
-            margin-top: 20px !important;
+            text-transform: uppercase !important;
+            font-family: 'Aref Ruqaa', serif !important;
+            letter-spacing: 1px !important;
         }
 
         .btn-outline:hover {
-            background: #fff !important;
-            border-color: var(--accent) !important;
-            color: var(--accent) !important;
-            box-shadow: 0 5px 15px rgba(197, 160, 89, 0.1) !important;
+            background: rgba(231, 229, 216, 0.1) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        /* CIRCLE RECORD BUTTON */
+        .btn-record-circle {
+            position: relative;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: min(10vh, 80px) !important;
+            height: min(10vh, 80px) !important;
+            background: #e7e5d8 !important;
+            border: none !important;
+            border-radius: 50% !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-record-circle::after {
+            border-radius: 50%;
+        }
+
+        .btn-record-circle:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 15px rgba(231, 229, 216, 0.5) !important;
         }
 
         /* IOS KEYBOARD */
@@ -136,7 +180,7 @@
 
         body {
             --title-color: #D3BB7C;
-            font-family: 'Kaisei Opti', serif;
+            font-family: 'Aref Ruqaa', serif;
             background-color: #1a0f0a;
             /* Dark base matching the wedding theme */
             color: var(--text-main);
@@ -169,19 +213,31 @@
 
         .side-panel {
             height: 85vh;
-            aspect-ratio: 564 / 990;
+            aspect-ratio: 9 / 16;
             background: rgba(0, 0, 0, 0.05);
-            background-image: var(--frame-image, url('/frame_gold.png'));
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
+            padding: 0;
             border: none;
-            border-radius: 0;
-            padding: 80px 42px 65px 42px;
+            border-radius: 1.72vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .side-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: var(--frame-image, url('/frame_gold.png'));
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 5;
         }
 
         .side-panel.hidden-panel {
@@ -195,24 +251,32 @@
 
         .side-panel .video-container {
             width: 100%;
-            flex-grow: 1;
+            height: 100%;
             background: #000;
-            border-radius: 20px;
+            border-radius: 1.72vh;
             overflow: hidden;
             border: none;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1;
         }
 
         .side-panel .panel-footer {
-            margin-top: 15px;
+            position: absolute;
+            bottom: 2.5vh;
+            width: 100%;
+            text-align: center;
+            margin: 0 !important;
             font-weight: 400;
-            font-size: 18px;
+            font-size: min(1.8vh, 18px) !important;
             color: #fff;
             letter-spacing: 0.5px;
-            font-family: 'Kaisei Opti', serif;
+            font-family: 'Aref Ruqaa', serif;
+            z-index: 10;
         }
 
         .center-panel {
@@ -311,8 +375,9 @@
         }
 
         .subtitle-premium {
-            font-family: 'Kaisei Opti', serif;
-            font-size: min(2.5vh, 22px);
+            font-family: 'Aref Ruqaa', serif;
+            color: #d4af37;
+            font-size: min(3vh, 32px);
             color: var(--title-color, #D3BB7C);
             max-width: 600px;
             margin-bottom: 0.5vh;
@@ -321,13 +386,14 @@
         }
 
         .desc-premium {
-            font-family: 'Kaisei Opti', serif;
+            font-family: 'Aref Ruqaa', serif;
             font-size: min(1.8vh, 14px);
-            color: #CDCDCD;
+            color: var(--desc-color, #CDCDCD);
             max-width: 400px;
             margin-bottom: 2vh;
             line-height: 1.6;
             letter-spacing: 0.3px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         /* INPUTS & FORM */
@@ -344,10 +410,11 @@
         .input-group label {
             font-size: min(1.5vh, 12px);
             font-weight: 700;
-            color: #94a3b8;
+            color: var(--desc-color, #94a3b8);
             margin-bottom: 0.5vh;
             display: block;
             text-transform: capitalize;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .input-wrapper {
@@ -437,7 +504,7 @@
             cursor: pointer;
             transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
-            font-family: 'Kaisei Opti', serif;
+            font-family: 'Aref Ruqaa', serif;
         }
 
         .key:active {
@@ -521,34 +588,26 @@
         }
 
         /* RECORD BUTTON (FRAME 4) */
-        .btn-record-large {
-            width: 115px;
-            height: 115px;
-            border-radius: 50%;
-            background: #ff4d4d;
-            border: 8px solid #fff;
-            box-shadow: 0 0 0 5px #ff4d4d, 20px 20px 40px rgba(0, 0, 0, 0.35);
-            cursor: pointer;
-            transition: 0.3s;
-            margin-bottom: 25px;
+        .btn-record-circle.recording {
+            animation: pulse-ring 1.5s infinite;
+            background: #e11d48 !important;
         }
 
-        .btn-record-large.recording {
-            animation: pulse 1.5s infinite;
-            background: #e11d48;
+        .btn-record-circle.recording::after {
+            border-color: #e11d48 !important;
         }
 
-        @keyframes pulse {
+        @keyframes pulse-ring {
             0% {
-                box-shadow: 0 0 0 0px rgba(255, 77, 77, 0.5);
+                box-shadow: 0 0 0 0px rgba(225, 29, 72, 0.5);
             }
 
             70% {
-                box-shadow: 0 0 0 25px rgba(255, 77, 77, 0);
+                box-shadow: 0 0 0 15px rgba(225, 29, 72, 0);
             }
 
             100% {
-                box-shadow: 0 0 0 0px rgba(255, 77, 77, 0);
+                box-shadow: 0 0 0 0px rgba(225, 29, 72, 0);
             }
         }
 
@@ -556,8 +615,9 @@
             display: flex;
             gap: 20px;
             width: 100%;
-            max-width: 440px;
+            max-width: 800px;
             margin-top: 40px;
+            justify-content: center;
         }
 
         .btn-action {
@@ -604,9 +664,16 @@
             left: 0;
         }
 
+        /* Webcam: object-fit contain agar tampil sesuai OBS preview (letterbox jika landscape) */
         #webcam {
-            /* No mirror for normal view */
             background: #000;
+            width: 100% !important;
+            height: 100% !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            object-fit: cover !important;
+            z-index: 20 !important;
         }
 
         #preview {
@@ -675,44 +742,156 @@
                 height: 75vh;
                 max-width: 30vw;
             }
-            .scribble-title { font-size: min(8vh, 90px); }
-            .btn-action { padding: 15px; font-size: 18px; }
+
+            .scribble-title {
+                font-size: min(8vh, 90px);
+            }
+
+            .btn-action {
+                padding: 15px;
+                font-size: 18px;
+            }
         }
 
         @media (max-width: 1024px) {
-            .main-wrapper { padding: 15px; gap: 15px; }
+            .main-wrapper {
+                padding: 15px;
+                gap: 15px;
+            }
+
             .side-panel {
                 height: 70vh;
                 max-width: 32vw;
                 padding: 40px 20px 30px 20px;
             }
-            .scribble-title { font-size: min(6vh, 60px); }
-            .subtitle-premium { font-size: 16px; }
-            .keyboard-wrapper { width: 100% !important; border-radius: 20px !important; }
-            .key { height: 45px; font-size: 16px; }
-            .btn-primary, .btn-start { padding: 12px 24px !important; font-size: 16px !important; }
-            .side-panel .panel-footer { font-size: 14px; }
-            .wedding-logo { max-width: 150px; }
-            #idle-header { margin-top: 5vh; }
+
+            .scribble-title {
+                font-size: min(6vh, 60px);
+            }
+
+            .subtitle-premium {
+                font-size: 16px;
+            }
+
+            .keyboard-wrapper {
+                width: 100% !important;
+                border-radius: 20px !important;
+            }
+
+            .key {
+                height: 45px;
+                font-size: 16px;
+            }
+
+            .btn-primary,
+            .btn-start {
+                padding: 12px 24px !important;
+                font-size: 16px !important;
+            }
+
+            .side-panel .panel-footer {
+                font-size: 14px;
+            }
+
+            .wedding-logo {
+                max-width: 150px;
+            }
+
+            #idle-header {
+                margin-top: 5vh;
+            }
         }
 
         @media (max-width: 768px) {
-            .main-wrapper { padding: 10px; gap: 10px; }
+            .main-wrapper {
+                padding: 10px;
+                gap: 10px;
+            }
+
             .side-panel {
                 height: 65vh;
                 max-width: 33vw;
                 padding: 20px 10px 15px 10px;
             }
-            .scribble-title { font-size: min(5vh, 40px); }
-            .desc-premium { font-size: 12px; }
-            .key { height: 35px; max-width: 50px; font-size: 12px; }
-            .keyboard-row { gap: 4px; }
-            .keyboard-wrapper { padding: 10px !important; }
-            .side-panel .panel-footer { font-size: 10px; margin-top: 5px; }
-            #countdown-area { font-size: 14px; }
-            .btn-action { padding: 10px; font-size: 14px; }
-            #ready-text, #review-video-text, #success-text { font-size: 20px !important; }
-            #ready-text span, #review-video-text span, #success-text span { font-size: 14px !important; }
+
+            .scribble-title {
+                font-size: min(5vh, 40px);
+            }
+
+            .desc-premium {
+                font-size: 12px;
+            }
+
+            .key {
+                height: 35px;
+                max-width: 50px;
+                font-size: 12px;
+            }
+
+            .keyboard-row {
+                gap: 4px;
+            }
+
+            .keyboard-wrapper {
+                padding: 10px !important;
+            }
+
+            .side-panel .panel-footer {
+                font-size: 10px;
+                margin-top: 5px;
+            }
+
+            #countdown-area {
+                font-size: 14px;
+            }
+
+            .btn-action {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            #ready-text,
+            #review-video-text,
+            #success-text {
+                font-size: 20px !important;
+            }
+
+            #ready-text span,
+            #review-video-text span,
+            #success-text span {
+                font-size: 14px !important;
+            }
+        }
+
+        /* ========================
+           STATE SPECIFIC STYLES
+           ======================== */
+        .state-form-active .side-panel {
+            opacity: 0;
+            pointer-events: none;
+            flex: 0;
+            width: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .state-form-active .center-panel {
+            justify-content: center;
+        }
+
+        .state-form-active #idle-header {
+            margin-top: 15vh;
+        }
+
+        body.logo-top-left #idle-header .logo,
+        body.logo-top-left #idle-header .idle-branding-logo {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            transform: scale(0.6);
+            transform-origin: top left;
+            margin: 0 !important;
+            z-index: 100;
         }
     </style>
 </head>
@@ -750,72 +929,92 @@
                     <img src="/after.png" alt="" class="title-ornament">
                 </div>
                 <img id="branding-logo" src="" alt="Logo" class="idle-branding-logo">
-                <div class="subtitle-premium" id="idle-sub">A special moment awaits you.</div>
-                <div class="desc-premium" id="desc-premium">Enter your details to unveil a personalized wedding
-                    experience.</div>
-                <img src="/dibawah_enter_your_detail.png"
-                    style="width: min(25vh, 250px); margin-bottom: 2vh; opacity: 0.8;" alt="">
             </div>
 
-            <!-- STATE IDLE (FRAME 3) -->
+            <!-- STATE IDLE (FRAME 3) -> NOW JUST START BUTTON -->
             <div id="state-idle" class="ui-state active">
-                <div class="form-container">
-                    <div class="input-group">
+                <div class="welcome-container" style="display: flex; flex-direction: column; align-items: center;">
+                    <button class="btn-start" onclick="changeState('form')" style="margin-top: 2vh;">
+                        <span>START HERE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATE FORM (NEW) -->
+            <div id="state-form" class="ui-state">
+                <div class="form-container"
+                    style="width: 100%; max-width: 800px; padding: 20px; display: flex; flex-direction: column; align-items: center;">
+
+                    <div class="subtitle-premium" id="idle-sub" style="margin-bottom: 10px;">A special moment awaits
+                        you.</div>
+                    <div class="desc-premium" id="desc-premium" style="text-align: center; margin-bottom: 15px;">Enter
+                        your details to unveil a personalized </br> wedding experience.</div>
+                    <div class="input-group" style="width: 100%;">
                         <label>Name</label>
                         <div class="input-wrapper">
-                            <span class="input-icon">👤</span>
                             <input type="text" id="name" placeholder="Please input your name" inputmode="none"
-                                autocomplete="off" spellcheck="false">
+                                autocomplete="off" spellcheck="false" style="padding-left: 20px;">
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label>Delivery Method</label>
-                        <div class="delivery-selector">
-                            <div class="delivery-tab active" id="tab-whatsapp" onclick="setDelivery('whatsapp')">
-                                <span>📱 WhatsApp</span>
+
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-top: 20px;">
+                        <div class="input-group">
+                            <label>Whatsapp number</label>
+                            <div class="input-wrapper">
+                                <div class="prefix-overlay" id="phone-prefix-overlay">
+                                    <img src="https://flagcdn.com/w20/id.png" width="20">
+                                    <span class="phone-prefix">(+62)</span>
+                                </div>
+                                <input type="text" id="phone" class="phone-input" placeholder="8XX-XXXX-XXXX"
+                                    inputmode="none" autocomplete="off" spellcheck="false">
                             </div>
-                            <div class="delivery-tab" id="tab-email" onclick="setDelivery('email')">
-                                <span>📧 Email</span>
+                        </div>
+
+                        <div class="input-group">
+                            <label>EMAIL</label>
+                            <div class="input-wrapper">
+                                <input type="email" id="email-input" placeholder="your@email.com" inputmode="none"
+                                    autocomplete="off" spellcheck="false" style="padding-left: 20px;">
                             </div>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label id="phone-label">Whatsapp number</label>
-                        <div class="input-wrapper">
-                            <div class="prefix-overlay" id="phone-prefix-overlay">
-                                <img src="https://flagcdn.com/w20/id.png" width="20">
-                                <span class="phone-prefix">(+62)</span>
-                            </div>
-                            <input type="text" id="phone" class="phone-input" placeholder="8XX-XXXX-XXXX"
-                                inputmode="none" autocomplete="off" spellcheck="false">
-                        </div>
+
+                    <div style="display: flex; justify-content: center;">
+                        <button class="btn-start" onclick="startCameraFlow()" style="margin-top: 4vh;">
+                            <span>SUBMIT</span>
+                        </button>
                     </div>
-                    <button class="btn-start" onclick="startCameraFlow()"
-                        style="margin-top: 1vh; font-size: min(2.5vh, 20px); padding: min(2vh, 15px);">
-                        <span style="font-size: min(3vh, 24px);">✨</span> <span id="start-btn-text">Begin your
-                            experience</span>
-                    </button>
                 </div>
             </div>
 
             <!-- STATE READY (FRAME 4) -->
             <div id="state-ready" class="ui-state">
+                <div style="margin-bottom: 40px; text-align: center;">
+                    <h1
+                        style="font-size: min(5vh, 48px); color: #D3BB7C; font-weight: 700; margin-bottom: 10px; font-family: var(--body-font-dyn) !important;">
+                        Ready To Play Words?</h1>
+                    <p
+                        style="font-size: min(3vh, 28px); color: #D3BB7C; font-family: var(--body-font-dyn) !important; font-style: italic;">
+                        Write a simple letter to the Bride and Groom</p>
+                </div>
                 <h2 id="ready-text"
                     style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
-                    your pen and look at mirror. <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">Hit
+                    your pen and look at mirror. <br> <span style="color:#D3BB7C; font-size:24px; font-weight:400;">Hit
                         the record button when you are ready.</span></h2>
-                <button class="btn-primary" id="btn-record" onclick="startRecording()">
-                    <div class="record-icon"></div>
+                <button class="btn-record-circle" id="btn-record" onclick="startRecording()"></button>
+                <div class="countdown-text"
+                    style="margin-top: 15px; font-weight: 700; color: #CDCDCD; font-size: 24px;">
                     <span id="countdown-area">Start Recording</span>
-                </button>
+                </div>
                 <br>
-                <button class="btn-outline" onclick="changeState('idle')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
-                    Kembali
+                <button class="btn-outline" onclick="changeState('idle')" style="margin-top: 20px;">
+                    KEMBALI
                 </button>
+
+                <!-- Tempat Logo Lumea (Kiri Bawah) -->
+                <img id="bottom-left-logo" src="/logo-lumea.png" alt="Bottom Logo"
+                    style="position: fixed; bottom: 40px; left: 40px; width: min(15vh, 180px); z-index: 100; object-fit: contain;">
             </div>
 
             <!-- STATE REVIEW VIDEO (NEW) -->
@@ -824,9 +1023,9 @@
                     style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
                     review your video, <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">you can RETAKE
                         or NEXT.</span></h2>
-                <div class="btn-row">
-                    <button class="btn-action btn-retake" onclick="retakeVideo()">Retake</button>
-                    <button class="btn-action btn-upload" onclick="startPhotoSession()">Next: Take Photo</button>
+                <div class="btn-row" style="gap: 20px;">
+                    <button class="btn-outline" onclick="retakeVideo()">RETAKE</button>
+                    <button class="btn-primary" onclick="startPhotoSession()">NEXT: TAKE PHOTO</button>
                 </div>
             </div>
 
@@ -849,21 +1048,21 @@
                             style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.5); color:#fff; padding:2px 8px; border-radius:5px; font-size:10px;">PHOTO</span>
                     </div>
                 </div>
-                <div class="btn-row" style="flex-wrap: wrap;">
-                    <button class="btn-action btn-retake" style="background:#fff; color:#e11d48;"
-                        onclick="retakeVideo()">Retake All</button>
-                    <button class="btn-action btn-retake" style="background:#D3BB7C; color:#fff;"
-                        onclick="retakePhotoOnly()">Retake Photo</button>
-                    <button class="btn-action btn-upload" onclick="submitVideo()">Upload Both</button>
+                <div class="btn-row" style="flex-wrap: wrap; gap: 20px;">
+                    <button class="btn-outline" onclick="retakeVideo()">RETAKE ALL</button>
+                    <button class="btn-outline" onclick="retakePhotoOnly()">RETAKE PHOTO</button>
+                    <button class="btn-primary" onclick="submitVideo()">UPLOAD BOTH</button>
                 </div>
             </div>
 
             <!-- STATE SUCCESS (FRAME 6) -->
             <div id="state-processing" class="ui-state">
                 <h2 id="success-text" style="font-size:30px; color:#D3BB7C; line-height:1.5; font-weight:600;">Your
-                    video is still processing, <br> <span style="color:#CDCDCD; font-size:20px; font-weight:400;">we
-                        will notify on your WhatsApp number ketika selesai.</span> <br><br>
-                    <span style="font-size:40px; font-family:'Luxurious Script', cursive;">Thank You</span>
+                    video is currently being processed, <br> <span
+                        style="color:#CDCDCD; font-size:20px; font-weight:400;">we
+                        We’ll notify you via WhatsApp <br>once it’s ready.</span> <br><br>
+                    <span style="font-size:40px; font-family:'Luxurious Script', cursive;">Thank you for being part of
+                        this moment</span>
                 </h2>
             </div>
         </div>
@@ -886,7 +1085,6 @@
                     <rect class="progress-rect" id="rect-timer" x="5" y="5" rx="15" ry="15"></rect>
                 </svg>
             </div>
-            <div class="panel-footer" style="margin-top: auto; margin-bottom: 25px; font-size: 20px;">How It Works</div>
         </div>
 
     </div>
@@ -910,32 +1108,7 @@
         let num = false;
         const row1 = "QWERTYUIOP".split(''), row2 = "ASDFGHJKL".split(''), row3 = "ZXCVBNM".split('');
         const nums = "1234567890-/@:();\"+!?. ,*#&".split('');
-        let deliveryMethod = 'whatsapp';
-
-        function setDelivery(method) {
-            deliveryMethod = method;
-            document.querySelectorAll('.delivery-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(`tab-${method}`).classList.add('active');
-
-            const phoneInput = document.getElementById('phone');
-            const phoneLabel = document.getElementById('phone-label');
-            const prefixOverlay = document.getElementById('phone-prefix-overlay');
-
-            if (method === 'email') {
-                phoneLabel.innerText = 'Email Address';
-                phoneInput.placeholder = 'you@example.com';
-                phoneInput.style.paddingLeft = '20px';
-                prefixOverlay.style.display = 'none';
-                num = false;
-            } else {
-                phoneLabel.innerText = 'Whatsapp number';
-                phoneInput.placeholder = '8XX-XXXX-XXXX';
-                phoneInput.style.paddingLeft = '100px';
-                prefixOverlay.style.display = 'flex';
-                num = true;
-            }
-            drawKbd();
-        }
+        let deliveryMethod = 'whatsapp'; // Default, but we collect both now
 
         function drawKbd() {
             const draw = (id, keys) => {
@@ -950,7 +1123,7 @@
             let r3 = num ? nums.slice(19, 26) : row3;
 
             // In email mode (non-num), let's swap some less used keys for @ and .
-            if (!num && deliveryMethod === 'email') {
+            if (!num && activeInput?.id === 'email-input') {
                 r3 = [...r3];
                 r3.push('@', '.');
             }
@@ -970,7 +1143,14 @@
         });
         document.getElementById('phone').addEventListener('click', () => {
             activeInput = document.getElementById('phone');
-            num = (deliveryMethod === 'whatsapp');
+            num = true;
+            drawKbd();
+            document.getElementById('kbd-container').classList.add('show');
+            document.querySelector('.center-panel').classList.add('keyboard-active');
+        });
+        document.getElementById('email-input').addEventListener('click', () => {
+            activeInput = document.getElementById('email-input');
+            num = false;
             drawKbd();
             document.getElementById('kbd-container').classList.add('show');
             document.querySelector('.center-panel').classList.add('keyboard-active');
@@ -983,7 +1163,11 @@
         function kNext() {
             if (activeInput?.id === 'name') {
                 activeInput = document.getElementById('phone');
-                num = (deliveryMethod === 'whatsapp');
+                num = true;
+                drawKbd();
+            } else if (activeInput?.id === 'phone') {
+                activeInput = document.getElementById('email-input');
+                num = false;
                 drawKbd();
             } else {
                 activeInput = null;
@@ -1002,22 +1186,57 @@
 
         // --- STATE & UI TRANSITION ---
         function changeState(state) {
+            window.currentState = state;
             document.querySelectorAll('.ui-state').forEach(el => el.classList.remove('active'));
             document.getElementById('state-' + state).classList.add('active');
 
             const leftPanel = document.getElementById('panel-left');
+            const rightPanel = document.getElementById('panel-right');
             const rightLabel = document.getElementById('label-right-overlay');
             const idleHeader = document.getElementById('idle-header');
 
+            if (state === 'form') {
+                document.body.classList.add('state-form-active');
+            } else {
+                document.body.classList.remove('state-form-active');
+            }
+
             if (state === 'idle') {
-                if (idleHeader) idleHeader.classList.remove('hidden');
-                leftPanel.classList.remove('hidden-panel');
+                document.body.classList.remove('logo-top-left');
+            } else if (state === 'form') {
+                document.body.classList.add('logo-top-left');
+            } else {
+                document.body.classList.add('logo-top-left');
+            }
+
+            // idleHeader is ALWAYS visible now, we just hide its children using CSS
+            if (idleHeader) idleHeader.classList.remove('hidden');
+
+            const webcamEl = document.getElementById('webcam');
+
+            if (state === 'idle' || state === 'form') {
+                if (state === 'idle') {
+                    if (window.showLeftPanel !== false) {
+                        leftPanel.classList.remove('hidden-panel');
+                    } else {
+                        leftPanel.classList.add('hidden-panel');
+                    }
+                    
+                    if (window.showRightPanel !== false) {
+                        rightPanel.classList.remove('hidden-panel');
+                    } else {
+                        rightPanel.classList.add('hidden-panel');
+                    }
+                } else {
+                    leftPanel.classList.add('hidden-panel');
+                    rightPanel.classList.add('hidden-panel');
+                }
+
                 rightLabel.classList.remove('hidden');
 
                 // Tampilkan video jika URL-nya ada
                 const previewVid = document.getElementById('preview');
                 const loopVid = document.getElementById('loop-preview');
-                const webcamEl = document.getElementById('webcam');
 
                 if (webcamEl) webcamEl.classList.add('hidden');
 
@@ -1031,11 +1250,11 @@
                     loopVid.play().catch(e => console.log("Result preview play error:", e));
                 }
             } else {
-                if (idleHeader) idleHeader.classList.add('hidden');
                 leftPanel.classList.add('hidden-panel');
+                rightPanel.classList.remove('hidden-panel');
                 rightLabel.classList.add('hidden');
                 if (state === 'ready') {
-                    document.getElementById('webcam').classList.remove('hidden');
+                    if (webcamEl) webcamEl.classList.remove('hidden');
                     document.getElementById('preview').classList.add('hidden');
                     // Reset Button UI
                     const btn = document.getElementById('btn-record');
@@ -1043,7 +1262,7 @@
                     btn.style.pointerEvents = 'auto';
                     document.getElementById('countdown-area').innerText = 'Start Recording';
                 } else {
-                    document.getElementById('webcam').classList.add('hidden');
+                    if (webcamEl) webcamEl.classList.add('hidden');
                     if (state === 'review-video') {
                         document.getElementById('preview').classList.remove('hidden');
                     } else if (state === 'review-final') {
@@ -1153,9 +1372,11 @@
 
                 if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
                 if (data.titleColor) document.documentElement.style.setProperty('--title-color', data.titleColor);
+                if (data.descColor) document.documentElement.style.setProperty('--desc-color', data.descColor);
                 document.documentElement.style.setProperty('--frame', data.frameColor || 'rgba(30, 41, 59, 0.95)');
                 document.documentElement.style.setProperty('--bg-1', data.bgColor1 || '#fdfbfb');
                 document.documentElement.style.setProperty('--bg-2', data.bgColor2 || '#ebedee');
+                document.documentElement.style.setProperty('--body-font-dyn', data.fontFamily || "'Aref Ruqaa', serif");
 
                 if (data.bgImageUrl) {
                     document.body.style.backgroundImage = `url('${data.bgImageUrl}')`;
@@ -1169,6 +1390,13 @@
                 window.readyCdText = data.readyCdText || 'Bersiap dalam...';
                 window.recordingCdText = data.recordingCdText || 'Recording...';
                 window.photoCdText = data.photoCdText || 'Lanjut Foto dalam...';
+                window.showLeftPanel = data.showLeftPanel !== false;
+                window.showRightPanel = data.showRightPanel !== false;
+
+                // Re-apply current state if currently idle/form to immediately reflect left/right panel toggle updates
+                if (window.currentState === 'idle') {
+                    changeState('idle');
+                }
 
                 // Update Font if provided
                 if (data.fontUrl) {
@@ -1192,13 +1420,16 @@
                     styleParams.innerHTML = `
                         :root { 
                             --title-font-dyn: ${data.titleFontFamily || "'Luxurious Script', cursive"}; 
-                            --body-font-dyn: ${data.fontFamily || "'Kaisei Opti', serif"};
+                            --body-font-dyn: ${data.fontFamily || "'Aref Ruqaa', serif"};
                         }
-                        body, input, button, textarea, .subtitle-premium, .desc-premium, .panel-footer, .ui-state h2, .delivery-tab, .countdown-text {
+                        body, input, button, textarea, .subtitle-premium, .desc-premium, .panel-footer, .ui-state h2, .delivery-tab {
                             font-family: var(--body-font-dyn) !important;
                         }
                         .scribble-title, .scribble-title span, .names-row, .names-row span {
                             font-family: var(--title-font-dyn) !important;
+                        }
+                        #countdown-area, #countdown-val, .countdown-text {
+                            font-family: 'Roboto', sans-serif !important;
                         }
                     `;
                 }
@@ -1219,12 +1450,37 @@
             const n = document.getElementById('name').value, p = document.getElementById('phone').value;
             if (!n || !p) return alert("Please input your name and contact details!");
             try {
-                // Jangan paksakan ukuran 1080x1920 di sini agar browser tidak melakukan Auto-Crop (Zoom)
-                stream = await navigator.mediaDevices.getUserMedia({ video: { ideal: 1080 }, audio: true });
+                // Cari OBS Virtual Camera secara eksplisit
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const obsCamera = devices.find(d =>
+                    d.kind === 'videoinput' && d.label.toLowerCase().includes('obs')
+                );
+
+                // Paksa resolusi 1080x1920 — tanpa ini browser hanya minta 360x634 (default)
+                // yang menyebabkan OBS driver crop frame → terlihat zoom
+                const videoConstraints = obsCamera
+                    ? {
+                        deviceId: { exact: obsCamera.deviceId },
+                        width: { exact: 1080 },
+                        height: { exact: 1920 },
+                        resizeMode: 'none'
+                    }
+                    : { width: { exact: 1080 }, height: { exact: 1920 }, resizeMode: 'none' };
+
+                console.log('Kamera dipilih:', obsCamera ? obsCamera.label : 'Default Camera');
+                stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
                 webcam.srcObject = stream;
+
+                webcam.onloadedmetadata = () => {
+                    const vw = webcam.videoWidth, vh = webcam.videoHeight;
+                    console.log(`[Camera] Resolusi: ${vw}x${vh} | Rasio: ${(vw / vh).toFixed(4)}`);
+                    const track = stream.getVideoTracks()[0];
+                    console.log('[Camera] Track settings:', JSON.stringify(track.getSettings()));
+                };
+
                 changeState('ready');
                 if (window.enableGesture) initHandTracking();
-            } catch (e) { alert("Camera Error: Check permissions."); }
+            } catch (e) { alert("Camera Error: Check permissions."); console.error(e); }
         }
 
         let hands = null;
@@ -1438,17 +1694,21 @@
             if (photoBlob) fd.append('photo', photoBlob, 'photo.jpg');
             fd.append('name', document.getElementById('name').value);
 
-            let finalContact = document.getElementById('phone').value;
-            if (deliveryMethod === 'whatsapp') {
+            let phoneValueRaw = document.getElementById('phone').value;
+            let emailValue = document.getElementById('email-input').value;
+
+            if (phoneValueRaw) {
                 const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
-                let phoneValue = finalContact.replace(/[^0-9]/g, '');
+                let phoneValue = phoneValueRaw.replace(/[^0-9]/g, '');
                 if (phoneValue.startsWith('62')) phoneValue = phoneValue.substring(2);
                 else if (phoneValue.startsWith('0')) phoneValue = phoneValue.substring(1);
-                finalContact = prefix + phoneValue;
+                fd.append('phone', prefix + phoneValue);
+            }
+            if (emailValue) {
+                fd.append('email', emailValue);
             }
 
-            fd.append('phone', finalContact);
-            fd.append('deliveryMethod', deliveryMethod);
+            fd.append('deliveryMethod', 'both');
 
             try {
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });

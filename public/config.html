@@ -559,20 +559,21 @@
             <h1>ScribbleBooth</h1>
             <span>Config Suite 1.0</span>
         </div>
-        <div class="nav-item active" onclick="showSection('visuals')">🎨 Appearance</div>
-        <div class="nav-item" onclick="showSection('content')">✍️ Text Content</div>
-        <div class="nav-item" onclick="showSection('media')">🎬 Media Assets</div>
-        <div class="nav-item" onclick="showSection('delivery')">📨 Delivery Systems</div>
-        <div class="nav-item" onclick="showSection('system')">⚙️ Core System</div>
+        <div class="nav-item active" onclick="showSection('visuals')">🎨 Tampilan Visual</div>
+        <div class="nav-item" onclick="showSection('content')">✍️ Konten Teks</div>
+        <div class="nav-item" onclick="showSection('media')">🎬 Aset Media</div>
+        <div class="nav-item" onclick="showSection('delivery')">📨 Sistem Pengiriman</div>
+        <div class="nav-item" onclick="showSection('system')">⚙️ Pengaturan Inti</div>
     </div>
 
     <div class="main-view">
 
         <!-- SECTION: VISUALS -->
         <div id="section-visuals" class="view-section active">
-            <h2>Look & Feel</h2>
+            <h2>Tampilan Visual Layar</h2>
             <div class="card">
-                <label>Theme Presets</label>
+                <label>Pilihan Tema Cepat</label>
+                <small style="color:var(--text-muted); display:block; margin-bottom:15px;">Pilih salah satu tema ini untuk mengubah semua warna secara otomatis.</small>
                 <div class="preset-grid">
                     <div class="preset-card active" id="preset-gold" onclick="applyPreset('gold')">
                         <span class="preset-icon">👑</span>
@@ -595,28 +596,34 @@
 
             <div class="grid-2">
                 <div class="card">
-                    <label>Colors</label>
-                    <div class="grid-2">
+                    <label>Pengaturan Warna Utama</label>
+                    <div class="grid-3">
                         <div class="input-group">
-                            <label>Accent Glow</label>
+                            <label>Warna Aksen</label>
                             <div class="color-row">
                                 <input type="color" id="accentColor">
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>Title Text</label>
+                            <label>Warna Judul</label>
                             <div class="color-row">
                                 <input type="color" id="titleColor">
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>Panel Bg</label>
+                            <label>Teks Deskripsi</label>
+                            <div class="color-row">
+                                <input type="color" id="descColor">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Latar Panel Kanan Kiri</label>
                             <div class="color-row">
                                 <input type="color" id="bgColor1">
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>Frame Line</label>
+                            <label>Garis Bingkai</label>
                             <div class="color-row">
                                 <input type="color" id="frameColor">
                             </div>
@@ -625,7 +632,7 @@
                 </div>
 
                 <div class="card">
-                    <label>Typography Style</label>
+                    <label>Gaya Huruf (Tipografi)</label>
                     <div class="input-group">
                         <select id="fontSelector" onchange="updateFontHidden()">
                             <option value="luxury">Luxury Script (ScribbleBooth Default)</option>
@@ -644,10 +651,10 @@
             </div>
 
             <div class="card">
-                <label>Dynamic Assets (Direct Upload)</label>
+                <label>Gambar Latar & Bingkai</label>
                 <div class="grid-3">
                     <div class="input-group">
-                        <label>Wallpaper Background</label>
+                        <label>Latar Belakang (Wallpaper)</label>
                         <div class="upload-box">
                             <small id="bgStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/bg1.png</small>
@@ -657,7 +664,7 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>Side Panels Frame</label>
+                        <label>Bingkai Kiri Kanan</label>
                         <div class="upload-box">
                             <small id="frameStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/frame_gold.png</small>
@@ -667,7 +674,7 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>Rendering Video Overlay</label>
+                        <label>Bingkai Hasil Video (Overlay)</label>
                         <div class="upload-box">
                             <small id="overlayStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/overlay.png</small>
@@ -682,10 +689,10 @@
 
         <!-- SECTION: CONTENT -->
         <div id="section-content" class="view-section">
-            <h2>Interface Copy</h2>
+            <h2>Konten Teks Layar</h2>
             <div class="card">
                 <div class="input-group">
-                    <label>Header Display Mode</label>
+                    <label>Mode Tampilan Judul Utama</label>
                     <div class="radio-group">
                         <div class="radio-item">
                             <input type="radio" name="idleHeadMode" id="mode-title" value="title" checked>
@@ -698,52 +705,55 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Header Title</label>
+                    <label>Teks Judul Utama</label>
                     <input type="text" id="title" placeholder="Audric & Catherine">
                 </div>
                 <div class="input-group">
-                    <label>Header Subtitle</label>
-                    <textarea id="subtitle" rows="2">A special moment awaits you.</textarea>
+                    <label>Teks Subjudul</label>
+                    <textarea id="subtitle" rows="2">Momen spesial menanti Anda.</textarea>
                 </div>
                 <div class="input-group">
-                    <label>Description Text</label>
+                    <label>Teks Deskripsi Singkat</label>
                     <textarea id="descPremium"
-                        rows="2">Enter your details to unveil a personalized wedding experience.</textarea>
+                        rows="2">Masukkan data Anda untuk merekam kenangan indah bersama kami.</textarea>
                 </div>
                 <div class="input-group">
-                    <label>Start Button Text</label>
-                    <input type="text" id="startText" placeholder="Begin your experience">
+                    <label>Teks Tombol Mulai</label>
+                    <input type="text" id="startText" placeholder="Mulai Pengalaman Anda">
                 </div>
             </div>
 
-            <!-- <div class="grid-3">
+            <div class="grid-3">
                 <div class="card">
-                    <label>Ready State</label>
+                    <label>Halaman Bersiap</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Instruksi sebelum tamu menekan tombol rekam.</small>
                     <textarea id="readyText" rows="3"></textarea>
                 </div>
                 <div class="card">
-                    <label>Review State</label>
+                    <label>Halaman Review</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Instruksi setelah video selesai direkam.</small>
                     <textarea id="reviewText" rows="3"></textarea>
                 </div>
                 <div class="card">
-                    <label>Success State</label>
+                    <label>Halaman Sukses</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Pesan penutup saat video sedang diproses.</small>
                     <textarea id="successText" rows="3"></textarea>
                 </div>
-            </div> -->
+            </div>
 
             <div class="card">
-                <label>Action & Countdown Status Texts</label>
+                <label>Teks Hitung Mundur & Status</label>
                 <div class="grid-3">
                     <div class="input-group">
-                        <label>Prepare Video Countdown</label>
+                        <label>Persiapan Sebelum Video</label>
                         <input type="text" id="readyCdText" placeholder="Bersiap dalam...">
                     </div>
                     <div class="input-group">
-                        <label>Recording Ongoing Status</label>
+                        <label>Status Saat Merekam Video</label>
                         <input type="text" id="recordingCdText" placeholder="Recording...">
                     </div>
                     <div class="input-group">
-                        <label>Prepare Photo Countdown</label>
+                        <label>Persiapan Sebelum Foto</label>
                         <input type="text" id="photoCdText" placeholder="Lanjut Foto dalam...">
                     </div>
                 </div>
@@ -752,10 +762,10 @@
 
         <!-- SECTION: MEDIA -->
         <div id="section-media" class="view-section">
-            <h2>Visual Media</h2>
+            <h2>Aset Logo & Video</h2>
             <div class="grid-2">
                 <div class="card">
-                    <label>Branding Logo</label>
+                    <label>Logo Utama (Opsional)</label>
                     <div class="upload-box">
                         <img id="logoPreview" class="preview-img" src="">
                         <input type="file" id="logoFile" accept="image/*">
@@ -764,7 +774,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <label>Tutorial Video</label>
+                    <label>Video Tutorial (Layar Kanan)</label>
                     <div class="upload-box">
                         <span id="tutorialPath" style="font-size: 11px; word-break: break-all;">No video</span><br><br>
                         <input type="file" id="tutorialFile" accept="video/*">
@@ -773,7 +783,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <label>Sample Result Video</label>
+                    <label>Video Contoh Hasil (Layar Kiri)</label>
                     <div class="upload-box">
                         <span id="resultPath" style="font-size: 11px; word-break: break-all;">No video</span><br><br>
                         <input type="file" id="resultFile" accept="video/*">
@@ -786,18 +796,17 @@
 
         <!-- SECTION: DELIVERY -->
         <div id="section-delivery" class="view-section">
-            <h2>Communication Gates</h2>
+            <h2>Template Pesan Otomatis</h2>
 
             <div class="card">
-                <h3 style="margin:0 0 20px 0; font-size:16px;">📝 Message Template</h3>
+                <h3 style="margin:0 0 20px 0; font-size:16px;">📝 Template WhatsApp & Email</h3>
                 <div class="input-group">
-                    <label>Email Subject</label>
+                    <label>Subjek Email</label>
                     <input type="text" id="emailSubject" placeholder="Kenangan ScribbleBooth Anda sudah siap! ✨">
                 </div>
                 <div class="input-group">
-                    <label>WhatsApp / Email Message Body</label>
-                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Use <b>{name}</b> for
-                        customer name and <b>{link}</b> for Google Drive link.</small>
+                    <label>Isi Pesan Utama</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Gunakan <b>{name}</b> untuk memanggil nama tamu, dan <b>{link}</b> untuk menempelkan tautan video otomatis.</small>
                     <textarea id="messageTemplate" rows="6"
                         placeholder="Halo {name}! ✨&#10;&#10;Kenangan Anda di ScribbleBooth sudah siap..."></textarea>
                 </div>
@@ -806,27 +815,58 @@
 
         <!-- SECTION: SYSTEM -->
         <div id="section-system" class="view-section">
-            <h2>System Core</h2>
+            <h2>Pengaturan Inti Sistem</h2>
             <div class="card">
                 <div class="input-group">
-                    <label>G-Drive Folder ID</label>
+                    <label>ID Folder Google Drive</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Kosongkan jika Anda sudah menggunakan layanan GCP (Google Cloud Storage) di file .env</small>
                     <input type="text" id="driveFolderId">
                 </div>
                 <div class="grid-2">
                     <div class="input-group">
-                        <label>Recording Max Seconds</label>
+                        <label>Durasi Maksimal Video (Detik)</label>
                         <input type="number" id="recordingDuration">
                     </div>
                     <div class="input-group">
                         <div class="form-row-between" style="padding-top: 15px;">
                             <div>
-                                <label style="margin:0;">Hand Gesture Control</label>
-                                <small style="color:var(--text-muted);">Enable pinch-to-draw interaction</small>
+                                <label style="margin:0;">Fitur Menggambar di Udara</label>
+                                <small style="color:var(--text-muted);">Aktifkan deteksi jari tangan untuk efek coretan pada video</small>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="enableGesture">
                                 <span class="slider"></span>
                             </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px;">
+                    <label style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:15px; display:block;">Tampilan Panel Idle Screen</label>
+                    <div class="grid-2">
+                        <div class="input-group" style="margin-bottom:0;">
+                            <div class="form-row-between">
+                                <div>
+                                    <label style="margin:0;">Panel Kiri (Preview Hasil)</label>
+                                    <small style="color:var(--text-muted);">Tampilkan panel kiri saat layar idle</small>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="showLeftPanel" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="input-group" style="margin-bottom:0;">
+                            <div class="form-row-between">
+                                <div>
+                                    <label style="margin:0;">Panel Kanan (Tutorial)</label>
+                                    <small style="color:var(--text-muted);">Tampilkan panel kanan saat layar idle</small>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="showRightPanel" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -838,17 +878,17 @@
     <!-- SAVE BAR -->
     <div class="save-bar">
         <button class="btn-primary" onclick="saveConfig()">
-            <span>💾</span> SAVE ALL CHANGES
+            <span>💾</span> SIMPAN SEMUA PENGATURAN
         </button>
     </div>
 
-    <div class="success-toast" id="successMsg">✨ System configuration synchronized successfully!</div>
+    <div class="success-toast" id="successMsg">✨ Konfigurasi sistem berhasil disimpan dan diperbarui!</div>
 
     <!-- ASSET LIBRARY MODAL -->
     <div class="modal-overlay" id="libraryModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Asset Gallery</h3>
+                <h3>Galeri Aset Server</h3>
                 <button class="btn-close" onclick="closeLibrary()">&times;</button>
             </div>
             <div class="asset-grid" id="assetGrid">
@@ -865,10 +905,13 @@
             event.target.classList.add('active');
         }
 
+        let dataBackup = {};
+
         // LOAD DATA
         fetch('/api/config')
             .then(res => res.json())
             .then(data => {
+                dataBackup = data;
                 document.getElementById('title').value = data.title || '';
                 document.getElementById('subtitle').value = data.subtitle || '';
                 document.getElementById('descPremium').value = data.descPremium || '';
@@ -879,6 +922,7 @@
                 document.getElementById('accentColor').value = data.accentColor || '#D3BB7C';
                 document.getElementById('frameColor').value = data.frameColor || '#333333';
                 document.getElementById('titleColor').value = data.titleColor || '#D3BB7C';
+                document.getElementById('descColor').value = data.descColor || '#CDCDCD';
                 document.getElementById('fontUrl').value = data.fontUrl || '';
                 document.getElementById('fontFamily').value = data.fontFamily || '';
                 document.getElementById('titleFontFamily').value = data.titleFontFamily || '';
@@ -894,6 +938,8 @@
                 document.getElementById('recordingCdText').value = data.recordingCdText || '';
                 document.getElementById('photoCdText').value = data.photoCdText || '';
                 document.getElementById('recordingDuration').value = data.recordingDuration || 15;
+                document.getElementById('showLeftPanel').checked = data.showLeftPanel !== false;
+                document.getElementById('showRightPanel').checked = data.showRightPanel !== false;
 
                 if (data.idleHeadMode === 'logo') {
                     document.getElementById('mode-logo').checked = true;
@@ -931,16 +977,17 @@
             document.getElementById('preset-' + t).classList.add('active');
 
             const themes = {
-                gold: { bg1: '#1a100a', accent: '#D3BB7C', title: '#D3BB7C', frame: '#333333', font: 'luxury', bg: '/bg1.png', f: '/frame_gold.png', o: '/overlay.png' },
-                romantic: { bg1: '#fdf2f8', accent: '#ec4899', title: '#831843', frame: '#fbcfe8', font: 'romantic', bg: '', f: '', o: '' },
-                monochrome: { bg1: '#0a0a0a', accent: '#a3a3a3', title: '#ffffff', frame: '#262626', font: 'modern', bg: '', f: '', o: '' },
-                rustic: { bg1: '#292524', accent: '#d97706', title: '#fcd34d', frame: '#44403c', font: 'classic', bg: '', f: '', o: '' }
+                gold: { bg1: '#1a100a', accent: '#D3BB7C', title: '#D3BB7C', frame: '#333333', desc: '#CDCDCD', font: 'luxury', bg: '/bg1.png', f: '/frame_gold.png', o: '/overlay.png' },
+                romantic: { bg1: '#fdf2f8', accent: '#ec4899', title: '#831843', frame: '#fbcfe8', desc: '#4a4a4a', font: 'romantic', bg: '', f: '', o: '' },
+                monochrome: { bg1: '#0a0a0a', accent: '#a3a3a3', title: '#ffffff', frame: '#262626', desc: '#a3a3a3', font: 'modern', bg: '', f: '', o: '' },
+                rustic: { bg1: '#292524', accent: '#d97706', title: '#fcd34d', frame: '#44403c', desc: '#d6d3d1', font: 'classic', bg: '', f: '', o: '' }
             };
             const p = themes[t];
             if (!p) return;
             document.getElementById('bgColor1').value = p.bg1;
             document.getElementById('accentColor').value = p.accent;
             document.getElementById('titleColor').value = p.title;
+            document.getElementById('descColor').value = p.desc;
             document.getElementById('frameColor').value = p.frame;
             document.getElementById('fontSelector').value = p.font;
             updateFontHidden();
@@ -1002,6 +1049,7 @@
                 accentColor: document.getElementById('accentColor').value,
                 frameColor: document.getElementById('frameColor').value,
                 titleColor: document.getElementById('titleColor').value,
+                descColor: document.getElementById('descColor').value,
                 fontSelector: document.getElementById('fontSelector').value,
                 fontUrl: document.getElementById('fontUrl').value,
                 fontFamily: document.getElementById('fontFamily').value,
@@ -1014,6 +1062,8 @@
                 recordingCdText: document.getElementById('recordingCdText').value,
                 photoCdText: document.getElementById('photoCdText').value,
                 recordingDuration: parseInt(document.getElementById('recordingDuration').value),
+                showLeftPanel: document.getElementById('showLeftPanel').checked,
+                showRightPanel: document.getElementById('showRightPanel').checked,
                 idleHeadMode: document.querySelector('input[name="idleHeadMode"]:checked').value,
                 bgImageUrl: bgUrl || document.getElementById('bgStatus').innerText,
                 frameImageUrl: frameUrl || document.getElementById('frameStatus').innerText,
@@ -1033,10 +1083,23 @@
                 body: JSON.stringify(payload)
             }).then(() => {
                 btn.disabled = false;
-                btn.innerHTML = "<span>💾</span> SAVE ALL CHANGES";
+                btn.innerHTML = "<span>💾</span> SIMPAN SEMUA PENGATURAN";
                 const msg = document.getElementById('successMsg');
                 msg.style.display = 'block';
                 setTimeout(() => msg.style.display = 'none', 3000);
+
+                if (bgUrl) document.getElementById('bgStatus').innerText = bgUrl;
+                if (frameUrl) document.getElementById('frameStatus').innerText = frameUrl;
+                if (overlayUrl) document.getElementById('overlayStatus').innerText = overlayUrl;
+                if (tutUrl) document.getElementById('tutorialPath').innerText = tutUrl;
+                if (resUrl) document.getElementById('resultPath').innerText = resUrl;
+
+                document.getElementById('bgFile').value = '';
+                document.getElementById('frameFile').value = '';
+                document.getElementById('overlayFile').value = '';
+                document.getElementById('logoFile').value = '';
+                document.getElementById('tutorialFile').value = '';
+                document.getElementById('resultFile').value = '';
             });
         }
 
