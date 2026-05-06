@@ -178,7 +178,22 @@ const sendVideoEmail = async (toEmail, userName, videoLink) => {
         console.error(`[EMAIL] ❌ Gagal mengirim, cek setelan password Anda:`, err.message);
     }
 };
-// ------------------------------
+// Helper function to read media dimensions dynamically using ffprobe
+const getMediaDimensions = (filePath) => {
+    return new Promise((resolve) => {
+        ffmpeg.ffprobe(filePath, (err, metadata) => {
+            if (err) {
+                console.warn(`[FFPROBE WARNING] Gagal mendeteksi resolusi untuk ${filePath}, menggunakan default 1080x1920:`, err.message);
+                return resolve({ width: 1080, height: 1920 });
+            }
+            const stream = metadata.streams.find(s => s.codec_type === 'video');
+            if (!stream) {
+                return resolve({ width: 1080, height: 1920 });
+            }
+            resolve({ width: stream.width, height: stream.height });
+        });
+    });
+};
 
 // Background Queue Worker Engine
 const worker = async (task) => {
@@ -210,6 +225,31 @@ const worker = async (task) => {
                 console.log(`[GCP] ☁️ Using Google Cloud Storage (Bucket: ${process.env.GCP_BUCKET_NAME})`);
             }
 
+            // Get dynamic dimensions for video & photo to ensure 100% perfect scaling across all FFmpeg versions
+            let videoWidth = 1080;
+            let videoHeight = 1920;
+            try {
+                const dims = await getMediaDimensions(inputPath);
+                videoWidth = dims.width;
+                videoHeight = dims.height;
+                console.log(`[RENDER] 🎬 Resolusi Video Terdeteksi: ${videoWidth}x${videoHeight}`);
+            } catch (e) {
+                console.log(`[RENDER] ⚠️ Gagal mendeteksi resolusi video, menggunakan fallback 1080x1920.`);
+            }
+
+            let photoWidth = 1080;
+            let photoHeight = 1920;
+            if (photoInputPath && fs.existsSync(photoInputPath)) {
+                try {
+                    const dims = await getMediaDimensions(photoInputPath);
+                    photoWidth = dims.width;
+                    photoHeight = dims.height;
+                    console.log(`[RENDER] 📸 Resolusi Foto Terdeteksi: ${photoWidth}x${photoHeight}`);
+                } catch (e) {
+                    console.log(`[RENDER] ⚠️ Gagal mendeteksi resolusi foto, menggunakan fallback 1080x1920.`);
+                }
+            }
+
             // 2. Process Video
             console.log(`[RENDER] 🎬 Step 2/6: Processing Video with Overlay...`);
             let videoProcessed = false;
@@ -218,7 +258,7 @@ const worker = async (task) => {
                 if (fs.existsSync(overlayPath)) {
                     console.log(`[FFMPEG] Mendeteksi overlay.png, sedang merender bingkai...`);
                     cmd = cmd.input(overlayPath)
-                        .complexFilter(['[1:v][0:v]scale2ref=w=main_w:h=main_h[over][main];[main][over]overlay=0:0'])
+                        .complexFilter([`[1:v]scale=${videoWidth}:${videoHeight}[over];[0:v][over]overlay=0:0`])
                         .addOptions(['-preset ultrafast', '-crf 18']);
                 } else {
                     cmd = cmd.addOptions(['-preset ultrafast', '-crf 18']);
@@ -249,7 +289,7 @@ const worker = async (task) => {
                     let cmd = ffmpeg(photoInputPath);
                     if (fs.existsSync(overlayPath)) {
                         cmd = cmd.input(overlayPath)
-                            .complexFilter(['[1:v][0:v]scale2ref=w=main_w:h=main_h[over][main];[main][over]overlay=0:0'])
+                            .complexFilter([`[1:v]scale=${photoWidth}:${photoHeight}[over];[0:v][over]overlay=0:0`])
                             .addOptions(['-preset ultrafast', '-q:v 2']);
                     } else {
                         cmd = cmd.addOptions(['-q:v 2']);
