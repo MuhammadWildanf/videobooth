@@ -218,10 +218,10 @@ const worker = async (task) => {
                 if (fs.existsSync(overlayPath)) {
                     console.log(`[FFMPEG] Mendeteksi overlay.png, sedang merender bingkai...`);
                     cmd = cmd.input(overlayPath)
-                        .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
-                        .addOptions(['-preset ultrafast', '-crf 28']);
+                        .complexFilter(['[1:v][0:v]scale=rw:rh[over];[0:v][over]overlay=0:0'])
+                        .addOptions(['-preset ultrafast', '-crf 18']);
                 } else {
-                    cmd = cmd.addOptions(['-preset ultrafast']);
+                    cmd = cmd.addOptions(['-preset ultrafast', '-crf 18']);
                 }
 
                 cmd.output(outputVideoPath)
@@ -249,8 +249,10 @@ const worker = async (task) => {
                     let cmd = ffmpeg(photoInputPath);
                     if (fs.existsSync(overlayPath)) {
                         cmd = cmd.input(overlayPath)
-                            .complexFilter(['[1:v]scale=1080:1920[over];[0:v][over]overlay=0:0'])
-                            .addOptions(['-preset ultrafast']);
+                            .complexFilter(['[1:v][0:v]scale=rw:rh[over];[0:v][over]overlay=0:0'])
+                            .addOptions(['-preset ultrafast', '-q:v 2']);
+                    } else {
+                        cmd = cmd.addOptions(['-q:v 2']);
                     }
                     cmd.output(outputPhotoPath)
                         .on('end', () => {

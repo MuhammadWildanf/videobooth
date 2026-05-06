@@ -203,7 +203,8 @@
 
     <div id="content" class="container" style="display: none;">
         <h1 class="title">Thank You, <span id="userName"></span>!</h1>
-        <p class="subtitle">Momen istimewa Anda di ScribbleBooth telah berhasil diabadikan. Silakan lihat dan unduh hasilnya di bawah ini.</p>
+        <p class="subtitle">Momen istimewa Anda di ScribbleBooth telah berhasil diabadikan. Silakan lihat dan unduh
+            hasilnya di bawah ini.</p>
 
         <div class="media-grid">
             <div class="media-card" id="videoContainer" style="display: none;">
@@ -272,19 +273,19 @@
                 loadingEl.style.display = 'none';
                 errorEl.style.display = 'block';
             }
-            
+
             // Dynamic theme loader (optional, to sync fonts/colors if needed)
             try {
                 const configRes = await fetch('/api/config');
                 const configData = await configRes.json();
-                
+
                 if (configData.bgImageUrl) {
                     document.body.style.backgroundImage = `url('${configData.bgImageUrl}')`;
                 }
                 if (configData.accentColor) {
                     document.documentElement.style.setProperty('--accent', configData.accentColor);
                 }
-            } catch(e) {}
+            } catch (e) { }
         });
     </script>
 </body>
