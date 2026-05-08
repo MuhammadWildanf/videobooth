@@ -13,14 +13,14 @@
         }
 
         @font-face {
-            font-family: 'Kaisei Opti';
-            src: url('/fonts/KaiseiOpti-Regular.ttf') format('truetype');
+            font-family: 'Aref Ruqaa';
+            src: url('/fonts/ArefRuqaa-Regular.ttf') format('truetype');
             font-weight: 400;
         }
 
         @font-face {
-            font-family: 'Kaisei Opti';
-            src: url('/fonts/KaiseiOpti-Bold.ttf') format('truetype');
+            font-family: 'Aref Ruqaa';
+            src: url('/fonts/ArefRuqaa-Bold.ttf') format('truetype');
             font-weight: 700;
         }
 
@@ -38,7 +38,7 @@
         }
 
         body {
-            font-family: 'Kaisei Opti', serif;
+            font-family: 'Aref Ruqaa', serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             background-image: url('/bg1.png');
@@ -68,19 +68,20 @@
         .title {
             font-family: 'Luxurious Script', cursive;
             font-size: 60px;
-            color: var(--accent);
+            color: #F0E5C7;
             margin-bottom: 10px;
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         .subtitle {
             font-size: 18px;
-            color: #ccc;
+            color: #F0E5C7;
             margin-bottom: 40px;
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
             line-height: 1.5;
+            opacity: 0.9;
         }
 
         .media-grid {
@@ -117,11 +118,12 @@
             justify-content: center;
             gap: 10px;
             padding: 14px 30px;
-            background: var(--gold-gradient);
+            background: linear-gradient(135deg, #721c24 0%, #3a060b 100%);
             color: white;
-            border: none;
+            border: 1px solid rgba(197, 160, 89, 0.4);
+            /* Elegant subtle gold border */
             border-radius: 50px;
-            font-family: 'Kaisei Opti', serif;
+            font-family: 'Aref Ruqaa', serif;
             font-weight: 700;
             font-size: 16px;
             text-decoration: none;
@@ -129,12 +131,13 @@
             transition: all 0.3s;
             margin-top: 15px;
             margin-bottom: 15px;
-            box-shadow: 0 10px 20px rgba(197, 160, 89, 0.3);
+            box-shadow: 0 10px 20px rgba(114, 28, 36, 0.3);
         }
 
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(197, 160, 89, 0.5);
+            background: linear-gradient(135deg, #8a252f 0%, #4a090e 100%);
+            box-shadow: 0 15px 30px rgba(114, 28, 36, 0.5);
         }
 
         .loading {
@@ -203,20 +206,21 @@
 
     <div id="content" class="container" style="display: none;">
         <h1 class="title">Thank You, <span id="userName"></span>!</h1>
-        <p class="subtitle">Momen istimewa Anda di ScribbleBooth telah berhasil diabadikan. Silakan lihat dan unduh
-            hasilnya di bawah ini.</p>
+        <p class="subtitle">Moments captured, memories preserved. </br>
+            View and download your photos below.
+        </p>
 
         <div class="media-grid">
             <div class="media-card" id="videoContainer" style="display: none;">
                 <video id="videoElement" autoplay loop muted playsinline controls></video>
-                <div style="padding: 15px; background: rgba(20, 15, 10, 0.9);">
+                <div style="padding: 15px; background: rgba(20, 15, 10, 0.95);">
                     <a id="videoDownload" href="#" target="_blank" class="btn" style="width: 100%;">🎬 Unduh Video</a>
                 </div>
             </div>
 
             <div class="media-card" id="photoContainer" style="display: none;">
                 <img id="photoElement" src="" alt="ScribbleBooth Photo">
-                <div style="padding: 15px; background: rgba(20, 15, 10, 0.9);">
+                <div style="padding: 15px; background: rgba(20, 15, 10, 0.95);">
                     <a id="photoDownload" href="#" target="_blank" class="btn" style="width: 100%;">📸 Unduh Foto</a>
                 </div>
             </div>

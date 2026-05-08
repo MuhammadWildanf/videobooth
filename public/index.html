@@ -5,6 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ScribbleBooth</title>
+    <!-- INSTANT THEME RESTORER (Pencegah Style Flash / FOUC saat Refresh) -->
+    <script>
+        try {
+            const cached = localStorage.getItem('vb_config');
+            if (cached) {
+                const data = JSON.parse(cached);
+                const root = document.documentElement;
+                if (data.bgImageUrl) {
+                    document.write('<style>body { background-image: url("' + data.bgImageUrl + '") !important; background-size: cover !important; }</style>');
+                }
+                if (data.frameImageUrl) {
+                    root.style.setProperty('--frame-image', 'url("' + data.frameImageUrl + '")');
+                }
+                if (data.accentColor) root.style.setProperty('--accent', data.accentColor);
+                if (data.titleColor) root.style.setProperty('--title-color', data.titleColor);
+                if (data.descColor) root.style.setProperty('--desc-color', data.descColor);
+                if (data.frameColor) root.style.setProperty('--frame', data.frameColor);
+                if (data.bgColor1) root.style.setProperty('--bg-1', data.bgColor1);
+                if (data.bgColor2) root.style.setProperty('--bg-2', data.bgColor2);
+                if (data.fontFamily) root.style.setProperty('--body-font-dyn', data.fontFamily);
+                
+                if (data.fontUrl && data.fontFamily) {
+                    document.write('<style>@import url("' + data.fontUrl + '"); :root { --body-font-dyn: ' + data.fontFamily + '; } body, input, button, textarea, .subtitle-premium, .desc-premium, .panel-footer, .ui-state h2, .delivery-tab { font-family: ' + data.fontFamily + ' !important; }</style>');
+                }
+                if (data.titleFontFamily) {
+                    root.style.setProperty('--title-font-dyn', data.titleFontFamily);
+                }
+            }
+        } catch (e) { console.error("FOUC restore error:", e); }
+    </script>
     <!-- MediaPipe Script -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
@@ -86,7 +116,7 @@
         .btn-outline:hover::after,
         .btn-record-circle:hover::after {
             transform: scale(1.02);
-            border-color: #D3BB7C;
+            border-color: #F0E5C7;
         }
 
         .btn-primary:hover,
@@ -169,9 +199,13 @@
             visibility: visible !important;
         }
 
-        /* Shift layout up when keyboard is active */
-        .center-panel.keyboard-active {
-            transform: translateY(-10vh);
+        /* Shift ONLY the state-form up when keyboard is active to keep the header logo 100% stationary */
+        .center-panel.keyboard-active #state-form {
+            transform: translateY(-13vh);
+        }
+
+        #state-form {
+            transition: transform 0.5s ease;
         }
 
         * {
@@ -179,7 +213,7 @@
         }
 
         body {
-            --title-color: #D3BB7C;
+            --title-color: #F0E5C7;
             font-family: 'Aref Ruqaa', serif;
             background-color: #1a0f0a;
             /* Dark base matching the wedding theme */
@@ -306,6 +340,7 @@
             align-items: center;
             justify-content: center;
             width: 100%;
+            transition: transform 0.5s ease;
         }
 
         .scribble-title {
@@ -329,7 +364,7 @@
             max-height: 300px;
             object-fit: contain;
             margin-bottom: 3vh;
-            margin-top: 1vh;
+            margin-top: 4vh;
             display: none;
             filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.6));
         }
@@ -376,9 +411,9 @@
 
         .subtitle-premium {
             font-family: 'Aref Ruqaa', serif;
-            color: #d4af37;
+            color: #F0E5C7;
             font-size: min(3vh, 32px);
-            color: var(--title-color, #D3BB7C);
+            color: var(--title-color, #F0E5C7);
             max-width: 600px;
             margin-bottom: 0.5vh;
             font-weight: 500;
@@ -819,7 +854,7 @@
             }
 
             .desc-premium {
-                font-size: 12px;
+                font-size: 40px;
             }
 
             .key {
@@ -880,18 +915,37 @@
         }
 
         .state-form-active #idle-header {
-            margin-top: 15vh;
+            margin-top: 4vh;
         }
 
         body.logo-top-left #idle-header .logo,
         body.logo-top-left #idle-header .idle-branding-logo {
             position: fixed;
-            top: 30px;
+            top: 45px;
             left: 30px;
             transform: scale(0.6);
             transform-origin: top left;
             margin: 0 !important;
             z-index: 100;
+        }
+
+        /* PERSISTENT BRANDING LOGO (Logo Lumea)
+           Disembunyikan secara default (pada layar idle) */
+        #bottom-left-logo {
+            display: none;
+        }
+
+        /* Ditampilkan di pojok kiri bawah di halaman selain idle */
+        body.logo-top-left #bottom-left-logo {
+            display: block;
+            position: fixed;
+            bottom: 45px;
+            left: 45px;
+            width: min(15vh, 180px);
+            z-index: 100;
+            object-fit: contain;
+            pointer-events: none;
+            /* Menghindari menghalangi klik */
         }
     </style>
 </head>
@@ -946,9 +1000,9 @@
                     style="width: 100%; max-width: 800px; padding: 20px; display: flex; flex-direction: column; align-items: center;">
 
                     <div class="subtitle-premium" id="idle-sub" style="margin-bottom: 10px;">A special moment awaits
-                        you.</div>
+                        you!</div>
                     <div class="desc-premium" id="desc-premium" style="text-align: center; margin-bottom: 15px;">Enter
-                        your details to unveil a personalized </br> wedding experience.</div>
+                        your details to unveil a personalized wedding experience.</div>
                     <div class="input-group" style="width: 100%;">
                         <label>Name</label>
                         <div class="input-wrapper">
@@ -992,15 +1046,15 @@
             <div id="state-ready" class="ui-state">
                 <div style="margin-bottom: 40px; text-align: center;">
                     <h1
-                        style="font-size: min(5vh, 48px); color: #D3BB7C; font-weight: 700; margin-bottom: 10px; font-family: var(--body-font-dyn) !important;">
+                        style="font-size: min(5vh, 48px); color: #F0E5C7; font-weight: 700; margin-bottom: 10px; font-family: var(--body-font-dyn) !important;">
                         Ready To Play Words?</h1>
                     <p
-                        style="font-size: min(3vh, 28px); color: #D3BB7C; font-family: var(--body-font-dyn) !important; font-style: italic;">
+                        style="font-size: min(3vh, 28px); color: #F0E5C7; font-family: var(--body-font-dyn) !important; font-style: italic;">
                         Write a simple letter to the Bride and Groom</p>
                 </div>
                 <h2 id="ready-text"
-                    style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
-                    your pen and look at mirror. <br> <span style="color:#D3BB7C; font-size:24px; font-weight:400;">Hit
+                    style="font-size:34px; color:#F0E5C7; line-height:1.4; font-weight:700; margin-bottom:50px;">Get
+                    your pen and look at mirror. <br> <span style="color:#F0E5C7; font-size:24px; font-weight:400;">Hit
                         the record button when you are ready.</span></h2>
                 <button class="btn-record-circle" id="btn-record" onclick="startRecording()"></button>
                 <div class="countdown-text"
@@ -1012,26 +1066,48 @@
                     KEMBALI
                 </button>
 
-                <!-- Tempat Logo Lumea (Kiri Bawah) -->
-                <img id="bottom-left-logo" src="/logo-lumea.png" alt="Bottom Logo"
-                    style="position: fixed; bottom: 40px; left: 40px; width: min(15vh, 180px); z-index: 100; object-fit: contain;">
             </div>
 
             <!-- STATE REVIEW VIDEO (NEW) -->
             <div id="state-review-video" class="ui-state">
                 <h2 id="review-video-text"
-                    style="font-size:34px; color:#D3BB7C; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
+                    style="font-size:34px; color:#F0E5C7; line-height:1.4; font-weight:700; margin-bottom:10px;">Please
                     review your video, <br> <span style="color:#CDCDCD; font-size:24px; font-weight:400;">you can RETAKE
                         or NEXT.</span></h2>
                 <div class="btn-row" style="gap: 20px;">
                     <button class="btn-outline" onclick="retakeVideo()">RETAKE</button>
-                    <button class="btn-primary" onclick="startPhotoSession()">NEXT: TAKE PHOTO</button>
+                    <button class="btn-primary" onclick="preparePhotoSession()">NEXT: TAKE PHOTO</button>
                 </div>
+            </div>
+
+            <!-- STATE READY PHOTO (NEW) -->
+            <div id="state-ready-photo" class="ui-state">
+                <div style="margin-bottom: 40px; text-align: center;">
+                    <h1
+                        style="font-size: min(5vh, 48px); color: #F0E5C7; font-weight: 700; margin-bottom: 10px; font-family: var(--body-font-dyn) !important;">
+                        Ready for Photo Session?</h1>
+                    <p
+                        style="font-size: min(3vh, 28px); color: #F0E5C7; font-family: var(--body-font-dyn) !important; font-style: italic;">
+                        Strike a beautiful pose for the camera</p>
+                </div>
+                <h2 id="ready-photo-text"
+                    style="font-size:34px; color:#F0E5C7; line-height:1.4; font-weight:700; margin-bottom:50px;">Look at
+                    the camera and smile. <br> <span style="color:#F0E5C7; font-size:24px; font-weight:400;">Hit the
+                        shutter button when you are ready.</span></h2>
+                <button class="btn-record-circle" id="btn-photo-shutter" onclick="startPhotoCountdown()"></button>
+                <div class="countdown-text"
+                    style="margin-top: 15px; font-weight: 700; color: #CDCDCD; font-size: 24px;">
+                    <span id="countdown-area-photo">Take Photo</span>
+                </div>
+                <br>
+                <button class="btn-outline" onclick="changeState('review-video')" style="margin-top: 20px;">
+                    KEMBALI
+                </button>
             </div>
 
             <!-- STATE REVIEW FINAL (NEW) -->
             <div id="state-review-final" class="ui-state">
-                <h2 style="font-size:28px; color:#D3BB7C; font-weight:700; margin-bottom:20px;">Review your session.
+                <h2 style="font-size:28px; color:#F0E5C7; font-weight:700; margin-bottom:20px;">Review your session.
                 </h2>
                 <div style="display:flex; gap:15px; width:100%; max-width:600px; margin-bottom:20px;">
                     <div
@@ -1057,7 +1133,7 @@
 
             <!-- STATE SUCCESS (FRAME 6) -->
             <div id="state-processing" class="ui-state">
-                <h2 id="success-text" style="font-size:30px; color:#D3BB7C; line-height:1.5; font-weight:600;">Your
+                <h2 id="success-text" style="font-size:30px; color:#F0E5C7; line-height:1.5; font-weight:600;">Your
                     video is currently being processed, <br> <span
                         style="color:#CDCDCD; font-size:20px; font-weight:400;">we
                         We’ll notify you via WhatsApp <br>once it’s ready.</span> <br><br>
@@ -1073,6 +1149,9 @@
                 <video id="webcam" autoplay muted playsinline class="hidden" style="z-index: 20;"></video>
                 <canvas id="output_canvas" class="hidden"></canvas>
                 <canvas id="drawing_canvas"></canvas>
+                <img id="photo-preview-large" class="hidden"
+                    style="width:100%; height:100%; object-fit:cover; z-index: 15; position: absolute; top:0; left:0;"
+                    alt="Photo Preview Large">
                 <video id="preview" autoplay muted playsinline loop
                     style="width:100%; height:100%; object-fit:cover; z-index: 10; position: relative; opacity: 0; transition: opacity 0.5s;"
                     onplaying="this.style.opacity=1; document.getElementById('label-right-overlay').classList.add('hidden')"
@@ -1087,6 +1166,8 @@
             </div>
         </div>
 
+        <!-- Tempat Logo Lumea (Kiri Bawah) - Ditempatkan secara persisten di luar state-state agar tidak blink/kedip -->
+        <img id="bottom-left-logo" src="/logo-lumea.png" alt="Bottom Logo">
     </div>
 
     <!-- KEYBOARD (MOVED TO BEFORE SCRIPT TO AVOID NULL REFERENCES) -->
@@ -1190,6 +1271,15 @@
             document.querySelectorAll('.ui-state').forEach(el => el.classList.remove('active'));
             document.getElementById('state-' + state).classList.add('active');
 
+            const largeImg = document.getElementById('photo-preview-large');
+            if (largeImg) {
+                if (state === 'review-final') {
+                    largeImg.classList.remove('hidden');
+                } else {
+                    largeImg.classList.add('hidden');
+                }
+            }
+
             const leftPanel = document.getElementById('panel-left');
             const rightPanel = document.getElementById('panel-right');
             const rightLabel = document.getElementById('label-right-overlay');
@@ -1221,7 +1311,7 @@
                     } else {
                         leftPanel.classList.add('hidden-panel');
                     }
-                    
+
                     if (window.showRightPanel !== false) {
                         rightPanel.classList.remove('hidden-panel');
                     } else {
@@ -1253,14 +1343,25 @@
                 leftPanel.classList.add('hidden-panel');
                 rightPanel.classList.remove('hidden-panel');
                 rightLabel.classList.add('hidden');
-                if (state === 'ready') {
+                if (state === 'ready' || state === 'ready-photo') {
                     if (webcamEl) webcamEl.classList.remove('hidden');
                     document.getElementById('preview').classList.add('hidden');
-                    // Reset Button UI
-                    const btn = document.getElementById('btn-record');
-                    btn.classList.remove('recording');
-                    btn.style.pointerEvents = 'auto';
-                    document.getElementById('countdown-area').innerText = 'Start Recording';
+                    if (state === 'ready') {
+                        // Reset Button UI
+                        const btn = document.getElementById('btn-record');
+                        if (btn) {
+                            btn.classList.remove('recording');
+                            btn.style.pointerEvents = 'auto';
+                        }
+                        document.getElementById('countdown-area').innerText = 'Start Recording';
+                    } else {
+                        // Reset Shutter Button UI
+                        const btn = document.getElementById('btn-photo-shutter');
+                        if (btn) {
+                            btn.style.pointerEvents = 'auto';
+                        }
+                        document.getElementById('countdown-area-photo').innerText = 'Take Photo';
+                    }
                 } else {
                     if (webcamEl) webcamEl.classList.add('hidden');
                     if (state === 'review-video') {
@@ -1275,23 +1376,47 @@
         }
 
         // --- LOAD CONFIG ---
+        function preloadImage(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(url);
+                img.onerror = () => resolve(url); // Don't block loading if one fails
+                img.src = url;
+            });
+        }
+
         async function applyTheme() {
             try {
                 const res = await fetch('/api/config');
                 const data = await res.json();
+                localStorage.setItem('vb_config', JSON.stringify(data));
 
-                // Update Logo & Title
+                // 1. Preload Critical Images in Parallel
+                const criticalAssets = [];
+                if (data.bgImageUrl) criticalAssets.push(preloadImage(data.bgImageUrl));
+                if (data.frameImageUrl) criticalAssets.push(preloadImage(data.frameImageUrl));
+                if (data.logoUrl) criticalAssets.push(preloadImage(data.logoUrl));
+                try {
+                    await Promise.all(criticalAssets);
+                } catch (e) { console.warn("Asset preload failed:", e); }
+
+                // 2. Update Logo & Title (Only if different)
                 const logoEl = document.getElementById('main-logo');
-                if (logoEl && data.logoUrl) logoEl.src = data.logoUrl;
+                if (logoEl && data.logoUrl) {
+                    const targetLogo = new URL(data.logoUrl, window.location.origin).href;
+                    if (logoEl.src !== targetLogo) logoEl.src = data.logoUrl;
+                }
 
                 const titleRow = document.querySelector('.names-row');
                 if (titleRow && data.title) {
+                    let formattedTitle = '';
                     if (data.title.includes('&')) {
                         const parts = data.title.split('&');
-                        titleRow.innerHTML = `<span>${parts[0].trim()}</span> <span class="title-amp">&amp;</span> <span>${parts.slice(1).join('&').trim()}</span>`;
+                        formattedTitle = `<span>${parts[0].trim()}</span> <span class="title-amp">&amp;</span> <span>${parts.slice(1).join('&').trim()}</span>`;
                     } else {
-                        titleRow.innerHTML = `<span>${data.title}</span>`;
+                        formattedTitle = `<span>${data.title}</span>`;
                     }
+                    if (titleRow.innerHTML !== formattedTitle) titleRow.innerHTML = formattedTitle;
                 }
 
                 // Toggle Header Mode (Title vs Logo)
@@ -1299,28 +1424,27 @@
                 const brandingLogoEl = document.getElementById('branding-logo');
 
                 if (data.idleHeadMode === 'logo' && data.logoUrl) {
-                    if (mainTitleEl) mainTitleEl.classList.add('hidden');
+                    if (mainTitleEl && !mainTitleEl.classList.contains('hidden')) mainTitleEl.classList.add('hidden');
                     if (brandingLogoEl) {
-                        brandingLogoEl.src = data.logoUrl;
-                        brandingLogoEl.style.display = 'block';
+                        const targetSrc = new URL(data.logoUrl, window.location.origin).href;
+                        if (brandingLogoEl.src !== targetSrc) brandingLogoEl.src = data.logoUrl;
+                        if (brandingLogoEl.style.display !== 'block') brandingLogoEl.style.display = 'block';
                     }
                 } else {
-                    if (mainTitleEl) mainTitleEl.classList.remove('hidden');
-                    if (brandingLogoEl) {
-                        brandingLogoEl.style.display = 'none';
-                    }
+                    if (mainTitleEl && mainTitleEl.classList.contains('hidden')) mainTitleEl.classList.remove('hidden');
+                    if (brandingLogoEl && brandingLogoEl.style.display !== 'none') brandingLogoEl.style.display = 'none';
                 }
 
                 const subEl = document.getElementById('idle-sub');
-                if (subEl && data.subtitle) subEl.innerText = data.subtitle;
+                if (subEl && data.subtitle && subEl.innerText !== data.subtitle) subEl.innerText = data.subtitle;
 
                 const descEl = document.getElementById('desc-premium');
-                if (descEl && data.descPremium) descEl.innerText = data.descPremium;
+                if (descEl && data.descPremium && descEl.innerText !== data.descPremium) descEl.innerText = data.descPremium;
 
                 const startBtn = document.getElementById('start-btn-text');
-                if (startBtn && data.startText) startBtn.innerText = data.startText;
+                if (startBtn && data.startText && startBtn.innerText !== data.startText) startBtn.innerText = data.startText;
 
-                // Update Teks Instruksi dengan Fallback (Default)
+                // Update Instruction Texts (Only if different)
                 const defaults = {
                     ready: "Get your pen and look at mirror. <br> Hit the record button when you are ready.",
                     review: "Please review your video, <br> you can RETAKE or UPLOAD.",
@@ -1328,62 +1452,81 @@
                 };
 
                 const readyEl = document.getElementById('ready-text');
-                if (readyEl) readyEl.innerHTML = data.readyText || defaults.ready;
+                const targetReady = data.readyText || defaults.ready;
+                if (readyEl && readyEl.innerHTML !== targetReady) readyEl.innerHTML = targetReady;
 
                 const reviewEl = document.getElementById('review-video-text');
-                if (reviewEl) reviewEl.innerHTML = data.reviewText || defaults.review;
+                const targetReview = data.reviewText || defaults.review;
+                if (reviewEl && reviewEl.innerHTML !== targetReview) reviewEl.innerHTML = targetReview;
 
                 const successEl = document.getElementById('success-text');
-                if (successEl) successEl.innerHTML = data.successText || defaults.success;
+                const targetSuccess = data.successText || defaults.success;
+                if (successEl && successEl.innerHTML !== targetSuccess) successEl.innerHTML = targetSuccess;
 
-                // Update Video Assets
+                // 3. Smart Video Asset Updates (Prevent infinite reload cycle)
                 const tutorialVid = document.getElementById('preview');
                 const resultVid = document.getElementById('loop-preview');
-                const ts = new Date().getTime();
 
                 if (data.tutorialVideoUrl) {
-                    const newUrl = data.tutorialVideoUrl + "?v=" + ts;
-                    if (tutorialVid.src !== new URL(newUrl, window.location.origin).href) {
-                        console.log("[THEME] Loading Tutorial:", newUrl);
-                        tutorialVid.src = newUrl;
+                    const cleanSrc = tutorialVid.src ? tutorialVid.src.split('?')[0] : '';
+                    const targetUrl = new URL(data.tutorialVideoUrl, window.location.origin).href;
+                    if (cleanSrc !== targetUrl) {
+                        console.log("[THEME] Loading Tutorial:", targetUrl);
+                        tutorialVid.src = targetUrl;
                         tutorialVid.muted = true;
                         tutorialVid.load();
                         tutorialVid.play().catch(e => console.error("Play error:", e));
                     }
                 }
                 if (data.resultVideoUrl && resultVid) {
-                    const newUrl = data.resultVideoUrl + "?v=" + ts;
-                    if (resultVid.src !== new URL(newUrl, window.location.origin).href) {
-                        console.log("[THEME] Loading Result:", newUrl);
-                        resultVid.src = newUrl;
+                    const cleanSrc = resultVid.src ? resultVid.src.split('?')[0] : '';
+                    const targetUrl = new URL(data.resultVideoUrl, window.location.origin).href;
+                    if (cleanSrc !== targetUrl) {
+                        console.log("[THEME] Loading Result:", targetUrl);
+                        resultVid.src = targetUrl;
                         resultVid.muted = true;
                         resultVid.load();
                         resultVid.play().catch(e => console.error("Play error:", e));
                     }
                 }
 
-                // Update dynamic assets
+                // 4. Optimized CSS Variable Updates (Prevent style flashing)
+                const rootStyle = document.documentElement.style;
                 if (data.bgImageUrl) {
-                    document.body.style.backgroundImage = `url('${data.bgImageUrl}')`;
-                }
-                if (data.frameImageUrl) {
-                    document.documentElement.style.setProperty('--frame-image', `url('${data.frameImageUrl}')`);
-                }
-
-                if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
-                if (data.titleColor) document.documentElement.style.setProperty('--title-color', data.titleColor);
-                if (data.descColor) document.documentElement.style.setProperty('--desc-color', data.descColor);
-                document.documentElement.style.setProperty('--frame', data.frameColor || 'rgba(30, 41, 59, 0.95)');
-                document.documentElement.style.setProperty('--bg-1', data.bgColor1 || '#fdfbfb');
-                document.documentElement.style.setProperty('--bg-2', data.bgColor2 || '#ebedee');
-                document.documentElement.style.setProperty('--body-font-dyn', data.fontFamily || "'Aref Ruqaa', serif");
-
-                if (data.bgImageUrl) {
-                    document.body.style.backgroundImage = `url('${data.bgImageUrl}')`;
-                    document.body.style.backgroundSize = 'cover';
+                    const targetBg = `url("${data.bgImageUrl}")`;
+                    if (document.body.style.backgroundImage !== targetBg) {
+                        document.body.style.backgroundImage = targetBg;
+                        document.body.style.backgroundSize = 'cover';
+                    }
                 } else {
-                    document.body.style.backgroundImage = `radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 100%)`;
+                    const targetGrad = `radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 100%)`;
+                    if (document.body.style.backgroundImage !== targetGrad) {
+                        document.body.style.backgroundImage = targetGrad;
+                    }
                 }
+
+                if (data.frameImageUrl) {
+                    const targetFrame = `url("${data.frameImageUrl}")`;
+                    if (rootStyle.getPropertyValue('--frame-image') !== targetFrame) {
+                        rootStyle.setProperty('--frame-image', targetFrame);
+                    }
+                }
+
+                if (data.accentColor && rootStyle.getPropertyValue('--accent') !== data.accentColor) rootStyle.setProperty('--accent', data.accentColor);
+                if (data.titleColor && rootStyle.getPropertyValue('--title-color') !== data.titleColor) rootStyle.setProperty('--title-color', data.titleColor);
+                if (data.descColor && rootStyle.getPropertyValue('--desc-color') !== data.descColor) rootStyle.setProperty('--desc-color', data.descColor);
+                
+                const targetFrameColor = data.frameColor || 'rgba(30, 41, 59, 0.95)';
+                if (rootStyle.getPropertyValue('--frame') !== targetFrameColor) rootStyle.setProperty('--frame', targetFrameColor);
+                
+                const bg1 = data.bgColor1 || '#fdfbfb';
+                if (rootStyle.getPropertyValue('--bg-1') !== bg1) rootStyle.setProperty('--bg-1', bg1);
+                
+                const bg2 = data.bgColor2 || '#ebedee';
+                if (rootStyle.getPropertyValue('--bg-2') !== bg2) rootStyle.setProperty('--bg-2', bg2);
+
+                const fontFamily = data.fontFamily || "'Aref Ruqaa', serif";
+                if (rootStyle.getPropertyValue('--body-font-dyn') !== fontFamily) rootStyle.setProperty('--body-font-dyn', fontFamily);
 
                 window.enableGesture = data.enableGesture !== false;
                 window.recordingDuration = data.recordingDuration || 15;
@@ -1609,7 +1752,7 @@
 
             const cs = rc.captureStream(30);
             const at = stream.getAudioTracks()[0]; if (at) cs.addTrack(at);
-            mediaRecorder = new MediaRecorder(cs, { 
+            mediaRecorder = new MediaRecorder(cs, {
                 mimeType: 'video/webm;codecs=h264',
                 videoBitsPerSecond: 8000000 // 8 Mbps untuk kualitas jernih kristal
             });
@@ -1646,21 +1789,30 @@
 
         function retakePhotoOnly() {
             photoBlob = null;
-            startPhotoSession();
+            preparePhotoSession();
         }
 
-        function startPhotoSession() {
-            changeState('ready');
+        function preparePhotoSession() {
+            changeState('ready-photo');
             document.getElementById('webcam').classList.remove('hidden');
             document.getElementById('preview').classList.add('hidden');
+            const btn = document.getElementById('btn-photo-shutter');
+            if (btn) btn.style.pointerEvents = 'auto';
+            const area = document.getElementById('countdown-area-photo');
+            if (area) area.innerText = 'Take Photo';
+        }
 
+        function startPhotoCountdown() {
             let t = 3;
-            document.getElementById('countdown-area').innerHTML = `${window.photoCdText} <span id="countdown-val">${t}</span>`;
-            document.getElementById('btn-record').style.pointerEvents = 'none';
+            const area = document.getElementById('countdown-area-photo');
+            if (area) area.innerHTML = `${window.photoCdText} <span id="countdown-val-photo">${t}</span>`;
+            const btn = document.getElementById('btn-photo-shutter');
+            if (btn) btn.style.pointerEvents = 'none';
 
             const timer = setInterval(() => {
                 t--;
-                document.getElementById('countdown-val').innerText = t;
+                const valEl = document.getElementById('countdown-val-photo');
+                if (valEl) valEl.innerText = t;
                 if (t <= 0) {
                     clearInterval(timer);
                     takePhoto();
@@ -1684,10 +1836,66 @@
 
             rc.toBlob((blob) => {
                 photoBlob = blob;
-                document.getElementById('final-photo-preview').src = URL.createObjectURL(blob);
+                const url = URL.createObjectURL(blob);
+                document.getElementById('final-photo-preview').src = url;
+                document.getElementById('photo-preview-large').src = url;
                 changeState('review-final');
                 document.getElementById('btn-record').style.pointerEvents = 'auto';
             }, 'image/jpeg', 0.95);
+        }
+
+        function resetApp() {
+            // Reset input values
+            const nameEl = document.getElementById('name');
+            if (nameEl) nameEl.value = '';
+            
+            const phoneEl = document.getElementById('phone');
+            if (phoneEl) phoneEl.value = '';
+            
+            const emailEl = document.getElementById('email-input');
+            if (emailEl) emailEl.value = '';
+
+            // Clear drawing canvas
+            if (typeof dCtx !== 'undefined' && dCtx) {
+                dCtx.clearRect(0, 0, 10000, 10000);
+            }
+
+            // Clear recorded blobs and preview source
+            videoBlob = null;
+            photoBlob = null;
+            recordedChunks = [];
+
+            const previewVid = document.getElementById('preview');
+            if (previewVid) {
+                previewVid.src = '';
+                previewVid.load();
+            }
+
+            const finalVid = document.getElementById('final-video-preview');
+            if (finalVid) {
+                finalVid.src = '';
+                finalVid.load();
+            }
+
+            const finalPhoto = document.getElementById('final-photo-preview');
+            if (finalPhoto) {
+                finalPhoto.src = '';
+            }
+
+            const largePhoto = document.getElementById('photo-preview-large');
+            if (largePhoto) {
+                largePhoto.src = '';
+            }
+
+            // Hide virtual keyboard
+            const kbd = document.getElementById('kbd-container');
+            if (kbd) kbd.classList.remove('show');
+            const centerPanel = document.querySelector('.center-panel');
+            if (centerPanel) centerPanel.classList.remove('keyboard-active');
+            activeInput = null;
+
+            // Return to idle state smoothly!
+            changeState('idle');
         }
 
         async function submitVideo() {
@@ -1717,7 +1925,7 @@
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });
                 if (r.ok) {
                     setTimeout(() => {
-                        window.location.reload();
+                        resetApp();
                     }, 5000);
                 }
                 else changeState('review-final');

@@ -2,3 +2,4 @@
 .env
 token.json
 /uploads
+gcp-key.json

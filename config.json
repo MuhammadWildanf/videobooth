@@ -1,6 +1,6 @@
 {
     "title": "Audric & Catherine",
-    "subtitle": "A special moment awaits you. Enter your details to unveil a personalized wedding experience.",
+    "subtitle": "A special moment awaits you!",
     "readyText": "",
     "reviewText": "",
     "successText": "",
@@ -24,10 +24,10 @@
         "pass": "YOUR_APP_PASSWORD",
         "fromName": "ScribbleBooth Wedding"
     },
-    "titleColor": "#d3bb7c",
+    "titleColor": "#f0e5c7",
     "frameImageUrl": "/uploads_assets/asset-1777994601156.png",
     "overlayImageUrl": "/uploads_assets/asset-1777994601165.png",
-    "descPremium": "",
+    "descPremium": "Enter your details to unveil a personalized wedding experience.",
     "startText": "",
     "emailSubject": "",
     "messageTemplate": "Hi {name}! ✨\n\nYour special moment is here! 🎬 Video dan foto ScribbleBooth Anda sudah siap untuk di-download dan dibagikan.\n\nAmbil file Anda di sini: 🔗 {link}\n\nSave it, love it, share it! Jangan lupa tag kami di sosial media ya! 📸✨",
