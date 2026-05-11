@@ -205,28 +205,34 @@
     </div>
 
     <div id="content" class="container" style="display: none;">
-        <h1 class="title">Thank You, <span id="userName"></span>!</h1>
-        <p class="subtitle">Moments captured, memories preserved. </br>
-            View and download your photos below.
-        </p>
+        <!-- Centered Lumea Logo (Premium Branding like index.html) -->
+        <div style="text-align: center; margin-bottom: 25px;">
+            <img src="/logo-lumea.png" alt="Lumea Logo"
+                style="height: 50px; width: auto; object-fit: contain; pointer-events: none;">
+        </div>
+
 
         <div class="media-grid">
             <div class="media-card" id="videoContainer" style="display: none;">
                 <video id="videoElement" autoplay loop muted playsinline controls></video>
                 <div style="padding: 15px; background: rgba(20, 15, 10, 0.95);">
-                    <a id="videoDownload" href="#" target="_blank" class="btn" style="width: 100%;">🎬 Unduh Video</a>
+                    <a id="videoDownload" href="#" target="_blank" class="btn" style="width: 100%;">🎬 Save Your
+                        Video</a>
                 </div>
             </div>
 
             <div class="media-card" id="photoContainer" style="display: none;">
                 <img id="photoElement" src="" alt="ScribbleBooth Photo">
                 <div style="padding: 15px; background: rgba(20, 15, 10, 0.95);">
-                    <a id="photoDownload" href="#" target="_blank" class="btn" style="width: 100%;">📸 Unduh Foto</a>
+                    <a id="photoDownload" href="#" target="_blank" class="btn" style="width: 100%;">📸 Save Your
+                        Photo</a>
                 </div>
             </div>
         </div>
 
-        <p class="footer-text">Jangan lupa bagikan momen ini dan tag kami di media sosial! ✨</p>
+        <p class="footer-text">
+            <strong>Here’s to the moments you’ll always look back on - @momentsbylumea</strong>
+        </p>
     </div>
 
     <script>
@@ -252,7 +258,10 @@
 
                 if (result.status === 'success' && result.data) {
                     contentEl.style.display = 'block';
-                    document.getElementById('userName').innerText = result.data.name;
+                    const userNameEl = document.getElementById('userName');
+                    if (userNameEl) {
+                        userNameEl.innerText = result.data.name;
+                    }
 
                     if (result.data.videoLink) {
                         const vContainer = document.getElementById('videoContainer');

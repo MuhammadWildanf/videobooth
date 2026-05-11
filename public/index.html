@@ -25,12 +25,23 @@
                 if (data.bgColor1) root.style.setProperty('--bg-1', data.bgColor1);
                 if (data.bgColor2) root.style.setProperty('--bg-2', data.bgColor2);
                 if (data.fontFamily) root.style.setProperty('--body-font-dyn', data.fontFamily);
-                
+
                 if (data.fontUrl && data.fontFamily) {
                     document.write('<style>@import url("' + data.fontUrl + '"); :root { --body-font-dyn: ' + data.fontFamily + '; } body, input, button, textarea, .subtitle-premium, .desc-premium, .panel-footer, .ui-state h2, .delivery-tab { font-family: ' + data.fontFamily + ' !important; }</style>');
                 }
                 if (data.titleFontFamily) {
                     root.style.setProperty('--title-font-dyn', data.titleFontFamily);
+                }
+                if (data.showLeftPanel === false) {
+                    document.write('<style>body.state-idle #panel-left, body.state-form #panel-left { display: none !important; }</style>');
+                }
+                if (data.showRightPanel === false) {
+                    document.write('<style>body.state-idle #panel-right, body.state-form #panel-right { display: none !important; }</style>');
+                }
+                if (data.idleHeadMode === 'logo' && data.logoUrl) {
+                    document.write('<style>#main-title { display: none !important; } #branding-logo { display: block !important; }</style>');
+                } else if (data.title) {
+                    document.write('<style>#main-title { visibility: hidden; }</style>');
                 }
             }
         } catch (e) { console.error("FOUC restore error:", e); }
@@ -482,10 +493,9 @@
             pointer-events: none;
         }
 
-        /* WhatsApp Input with Flag */
         .phone-prefix {
-            display: none;
-            /* Removed as we use a cleaner single field mockup */
+            display: inline-block;
+            color: #CDCDCD;
         }
 
         .phone-input {
@@ -930,13 +940,8 @@
         }
 
         /* PERSISTENT BRANDING LOGO (Logo Lumea)
-           Disembunyikan secara default (pada layar idle) */
+           Ditampilkan secara persisten di pojok kiri bawah di semua halaman */
         #bottom-left-logo {
-            display: none;
-        }
-
-        /* Ditampilkan di pojok kiri bawah di halaman selain idle */
-        body.logo-top-left #bottom-left-logo {
             display: block;
             position: fixed;
             bottom: 45px;
@@ -950,7 +955,7 @@
     </style>
 </head>
 
-<body>
+<body class="state-idle">
     <div id="flash-overlay"></div>
 
     <div class="main-wrapper">
@@ -982,6 +987,35 @@
                     </div>
                     <img src="/after.png" alt="" class="title-ornament">
                 </div>
+                <script>
+                    (function() {
+                        try {
+                            const cached = localStorage.getItem('vb_config');
+                            if (cached) {
+                                const data = JSON.parse(cached);
+                                if (data.title) {
+                                    const titleRow = document.querySelector('.names-row');
+                                    if (titleRow) {
+                                        let formattedTitle = '';
+                                        if (data.title.includes('&')) {
+                                            const parts = data.title.split('&');
+                                            formattedTitle = '<span>' + parts[0].trim() + '</span> <span class="title-amp">&amp;</span> <span>' + parts.slice(1).join('&').trim() + '</span>';
+                                        } else {
+                                            formattedTitle = '<span>' + data.title + '</span>';
+                                        }
+                                        titleRow.innerHTML = formattedTitle;
+                                    }
+                                }
+                                if (data.idleHeadMode === 'logo' && data.logoUrl) {
+                                    document.write('<style>#main-title { display: none !important; } #branding-logo { display: block !important; }</style>');
+                                } else {
+                                    const mainTitleEl = document.getElementById('main-title');
+                                    if (mainTitleEl) mainTitleEl.style.visibility = 'visible';
+                                }
+                            }
+                        } catch(e) {}
+                    })();
+                </script>
                 <img id="branding-logo" src="" alt="Logo" class="idle-branding-logo">
             </div>
 
@@ -1076,7 +1110,7 @@
                         or NEXT.</span></h2>
                 <div class="btn-row" style="gap: 20px;">
                     <button class="btn-outline" onclick="retakeVideo()">RETAKE</button>
-                    <button class="btn-primary" onclick="preparePhotoSession()">NEXT: TAKE PHOTO</button>
+                    <button class="btn-primary" onclick="preparePhotoSession()">TAKE A PHOTO</button>
                 </div>
             </div>
 
@@ -1097,7 +1131,7 @@
                 <button class="btn-record-circle" id="btn-photo-shutter" onclick="startPhotoCountdown()"></button>
                 <div class="countdown-text"
                     style="margin-top: 15px; font-weight: 700; color: #CDCDCD; font-size: 24px;">
-                    <span id="countdown-area-photo">Take Photo</span>
+                    <span id="countdown-area-photo">Take a Photo</span>
                 </div>
                 <br>
                 <button class="btn-outline" onclick="changeState('review-video')" style="margin-top: 20px;">
@@ -1268,6 +1302,11 @@
         // --- STATE & UI TRANSITION ---
         function changeState(state) {
             window.currentState = state;
+            
+            // Update state classes on body
+            document.body.classList.remove('state-idle', 'state-form', 'state-ready', 'state-ready-photo', 'state-recording', 'state-review-video', 'state-review-final', 'state-processing');
+            document.body.classList.add('state-' + state);
+
             document.querySelectorAll('.ui-state').forEach(el => el.classList.remove('active'));
             document.getElementById('state-' + state).classList.add('active');
 
@@ -1383,6 +1422,70 @@
                 img.onerror = () => resolve(url); // Don't block loading if one fails
                 img.src = url;
             });
+        }
+
+        function applyCachedTheme() {
+            try {
+                const cached = localStorage.getItem('vb_config');
+                if (!cached) return;
+                const data = JSON.parse(cached);
+
+                // Set global state variables
+                window.showLeftPanel = data.showLeftPanel !== false;
+                window.showRightPanel = data.showRightPanel !== false;
+                window.enableGesture = data.enableGesture !== false;
+                window.recordingDuration = data.recordingDuration || 15;
+                window.readyCdText = data.readyCdText || 'Recording Begins in...';
+                window.recordingCdText = data.recordingCdText || 'Recording...';
+                window.photoCdText = data.photoCdText || 'Taking Photo in...';
+
+                // Immediately show/hide Left/Right panels based on cache
+                const leftPanel = document.getElementById('panel-left');
+                const rightPanel = document.getElementById('panel-right');
+
+                if (leftPanel) {
+                    if (window.showLeftPanel) leftPanel.classList.remove('hidden-panel');
+                    else leftPanel.classList.add('hidden-panel');
+                }
+                if (rightPanel) {
+                    if (window.showRightPanel) rightPanel.classList.remove('hidden-panel');
+                    else rightPanel.classList.add('hidden-panel');
+                }
+
+                // Immediately update titles & subtitles
+                const titleRow = document.querySelector('.names-row');
+                if (titleRow && data.title) {
+                    let formattedTitle = '';
+                    if (data.title.includes('&')) {
+                        const parts = data.title.split('&');
+                        formattedTitle = `<span>${parts[0].trim()}</span> <span class="title-amp">&amp;</span> <span>${parts.slice(1).join('&').trim()}</span>`;
+                    } else {
+                        formattedTitle = `<span>${data.title}</span>`;
+                    }
+                    titleRow.innerHTML = formattedTitle;
+                }
+
+                const subEl = document.getElementById('idle-sub');
+                if (subEl && data.subtitle) subEl.innerText = data.subtitle;
+
+                const descEl = document.getElementById('desc-premium');
+                if (descEl && data.descPremium) descEl.innerText = data.descPremium;
+
+                const startBtn = document.getElementById('start-btn-text');
+                if (startBtn && data.startText) startBtn.innerText = data.startText;
+
+                const logoEl = document.getElementById('main-logo');
+                if (logoEl && data.logoUrl) {
+                    logoEl.src = data.logoUrl;
+                }
+
+                const brandingLogoEl = document.getElementById('branding-logo');
+                if (brandingLogoEl && data.logoUrl) {
+                    brandingLogoEl.src = data.logoUrl;
+                }
+            } catch (e) {
+                console.warn("Cached theme apply failed:", e);
+            }
         }
 
         async function applyTheme() {
@@ -1515,13 +1618,13 @@
                 if (data.accentColor && rootStyle.getPropertyValue('--accent') !== data.accentColor) rootStyle.setProperty('--accent', data.accentColor);
                 if (data.titleColor && rootStyle.getPropertyValue('--title-color') !== data.titleColor) rootStyle.setProperty('--title-color', data.titleColor);
                 if (data.descColor && rootStyle.getPropertyValue('--desc-color') !== data.descColor) rootStyle.setProperty('--desc-color', data.descColor);
-                
+
                 const targetFrameColor = data.frameColor || 'rgba(30, 41, 59, 0.95)';
                 if (rootStyle.getPropertyValue('--frame') !== targetFrameColor) rootStyle.setProperty('--frame', targetFrameColor);
-                
+
                 const bg1 = data.bgColor1 || '#fdfbfb';
                 if (rootStyle.getPropertyValue('--bg-1') !== bg1) rootStyle.setProperty('--bg-1', bg1);
-                
+
                 const bg2 = data.bgColor2 || '#ebedee';
                 if (rootStyle.getPropertyValue('--bg-2') !== bg2) rootStyle.setProperty('--bg-2', bg2);
 
@@ -1530,9 +1633,9 @@
 
                 window.enableGesture = data.enableGesture !== false;
                 window.recordingDuration = data.recordingDuration || 15;
-                window.readyCdText = data.readyCdText || 'Bersiap dalam...';
+                window.readyCdText = data.readyCdText || 'Recording Begins in...';
                 window.recordingCdText = data.recordingCdText || 'Recording...';
-                window.photoCdText = data.photoCdText || 'Lanjut Foto dalam...';
+                window.photoCdText = data.photoCdText || 'Taking Photo in...';
                 window.showLeftPanel = data.showLeftPanel !== false;
                 window.showRightPanel = data.showRightPanel !== false;
 
@@ -1571,7 +1674,11 @@
                         .scribble-title, .scribble-title span, .names-row, .names-row span {
                             font-family: var(--title-font-dyn) !important;
                         }
-                        #countdown-area, #countdown-val, .countdown-text {
+                        #countdown-area, .countdown-text {
+                            font-family: var(--body-font-dyn) !important;
+                            font-style: italic;
+                        }
+                        #countdown-val {
                             font-family: 'Roboto', sans-serif !important;
                         }
                     `;
@@ -1580,8 +1687,11 @@
                 // Set initial state
                 changeState('idle');
 
-            } catch (e) { console.error("Theme apply error:", e); }
+            } catch (e) { 
+                console.error("Theme apply error:", e); 
+            }
         }
+        applyCachedTheme();
         applyTheme();
 
         // --- BOOTH LOGIC ---
@@ -1848,10 +1958,10 @@
             // Reset input values
             const nameEl = document.getElementById('name');
             if (nameEl) nameEl.value = '';
-            
+
             const phoneEl = document.getElementById('phone');
             if (phoneEl) phoneEl.value = '';
-            
+
             const emailEl = document.getElementById('email-input');
             if (emailEl) emailEl.value = '';
 
