@@ -988,7 +988,7 @@
                     <img src="/after.png" alt="" class="title-ornament">
                 </div>
                 <script>
-                    (function() {
+                    (function () {
                         try {
                             const cached = localStorage.getItem('vb_config');
                             if (cached) {
@@ -1013,7 +1013,7 @@
                                     if (mainTitleEl) mainTitleEl.style.visibility = 'visible';
                                 }
                             }
-                        } catch(e) {}
+                        } catch (e) { }
                     })();
                 </script>
                 <img id="branding-logo" src="" alt="Logo" class="idle-branding-logo">
@@ -1097,7 +1097,7 @@
                 </div>
                 <br>
                 <button class="btn-outline" onclick="changeState('idle')" style="margin-top: 20px;">
-                    KEMBALI
+                    BACK
                 </button>
 
             </div>
@@ -1135,7 +1135,7 @@
                 </div>
                 <br>
                 <button class="btn-outline" onclick="changeState('review-video')" style="margin-top: 20px;">
-                    KEMBALI
+                    BACK
                 </button>
             </div>
 
@@ -1302,7 +1302,7 @@
         // --- STATE & UI TRANSITION ---
         function changeState(state) {
             window.currentState = state;
-            
+
             // Update state classes on body
             document.body.classList.remove('state-idle', 'state-form', 'state-ready', 'state-ready-photo', 'state-recording', 'state-review-video', 'state-review-final', 'state-processing');
             document.body.classList.add('state-' + state);
@@ -1399,7 +1399,7 @@
                         if (btn) {
                             btn.style.pointerEvents = 'auto';
                         }
-                        document.getElementById('countdown-area-photo').innerText = 'Take Photo';
+                        document.getElementById('countdown-area-photo').innerText = 'Take a Photo';
                     }
                 } else {
                     if (webcamEl) webcamEl.classList.add('hidden');
@@ -1687,8 +1687,8 @@
                 // Set initial state
                 changeState('idle');
 
-            } catch (e) { 
-                console.error("Theme apply error:", e); 
+            } catch (e) {
+                console.error("Theme apply error:", e);
             }
         }
         applyCachedTheme();
@@ -1909,7 +1909,7 @@
             const btn = document.getElementById('btn-photo-shutter');
             if (btn) btn.style.pointerEvents = 'auto';
             const area = document.getElementById('countdown-area-photo');
-            if (area) area.innerText = 'Take Photo';
+            if (area) area.innerText = 'Take a Photo';
         }
 
         function startPhotoCountdown() {
