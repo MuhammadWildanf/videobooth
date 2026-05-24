@@ -564,6 +564,7 @@
         <div class="nav-item" onclick="showSection('media')">🎬 Aset Media</div>
         <div class="nav-item" onclick="showSection('delivery')">📨 Sistem Pengiriman</div>
         <div class="nav-item" onclick="showSection('system')">⚙️ Pengaturan Inti</div>
+        <div class="nav-item" onclick="showSection('sessions')">📊 Data Sesi & Galeri</div>
     </div>
 
     <div class="main-view">
@@ -873,6 +874,28 @@
             </div>
         </div>
 
+        <!-- SECTION: SESSIONS -->
+        <div id="section-sessions" class="view-section">
+            <h2>Data Sesi & Galeri Hasil</h2>
+            <div class="card">
+                <!-- Search & Filters -->
+                <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center;">
+                    <div style="position: relative; flex: 1;">
+                        <input type="text" id="session-search" placeholder="🔍 Cari berdasarkan nama tamu, nomor WhatsApp, atau ID sesi..." oninput="filterSessions()" style="padding-left: 15px;">
+                    </div>
+                    <button class="btn-primary" onclick="loadSessions()" style="padding: 12px 25px; font-size: 14px; box-shadow: none; margin: 0; width: auto; height: auto; border-radius: 8px;">🔄 Refresh</button>
+                </div>
+                
+                <!-- Session Grid -->
+                <div id="sessions-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
+                    <!-- Session cards will be dynamically loaded here -->
+                </div>
+                <div id="sessions-empty" style="text-align: center; color: var(--text-muted); padding: 50px 0; font-size: 15px; display: none;">
+                    📭 Tidak ada data sesi ditemukan.
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- SAVE BAR -->
@@ -897,12 +920,44 @@
         </div>
     </div>
 
+    <!-- SESSION PREVIEW MODAL -->
+    <div class="modal-overlay" id="previewModal" style="display: none; align-items: center; justify-content: center; z-index: 1100;">
+        <div class="modal-content" style="max-width: 500px; width: 95%; max-height: 90vh;">
+            <div class="modal-header">
+                <h3 id="previewModalTitle">Preview Sesi</h3>
+                <button class="btn-close" onclick="closePreviewModal()">&times;</button>
+            </div>
+            <div style="padding: 0; display: flex; flex-direction: column; align-items: center; background: #000; min-height: 350px; justify-content: center; position: relative;">
+                <video id="previewModalVideo" controls style="width: 100%; max-height: 70vh; display: none; object-fit: contain;"></video>
+                <img id="previewModalImage" style="width: 100%; max-height: 70vh; display: none; object-fit: contain;" />
+            </div>
+        </div>
+    </div>
+
     <script>
+        let sessionsData = [];
+
         function showSection(id) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('section-' + id).classList.add('active');
-            event.target.classList.add('active');
+            
+            if (window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.add('active');
+            } else if (window.event && window.event.target) {
+                window.event.target.classList.add('active');
+            } else {
+                // Fallback: search for nav-item with matching click handler
+                document.querySelectorAll('.nav-item').forEach(n => {
+                    if (n.getAttribute('onclick')?.includes(`'${id}'`)) {
+                        n.classList.add('active');
+                    }
+                });
+            }
+
+            if (id === 'sessions') {
+                loadSessions();
+            }
         }
 
         let dataBackup = {};
@@ -1190,6 +1245,207 @@
             } catch (err) {
                 alert('Connection error.');
             }
+        }
+
+        // --- SESSIONS & GALLERY ENGINE ---
+        async function loadSessions() {
+            const listEl = document.getElementById('sessions-list');
+            const emptyEl = document.getElementById('sessions-empty');
+            
+            listEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 0;">⌛ Memuat data sesi...</div>';
+            emptyEl.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/sessions');
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    sessionsData = data.sessions || [];
+                    renderSessions(sessionsData);
+                } else {
+                    listEl.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ff4444; padding: 40px 0;">❌ Gagal memuat data: ${data.message}</div>`;
+                }
+            } catch (err) {
+                listEl.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ff4444; padding: 40px 0;">❌ Koneksi gagal ke server.</div>';
+            }
+        }
+
+        function renderSessions(sessions) {
+            const listEl = document.getElementById('sessions-list');
+            const emptyEl = document.getElementById('sessions-empty');
+            
+            listEl.innerHTML = '';
+            
+            if (sessions.length === 0) {
+                emptyEl.style.display = 'block';
+                return;
+            }
+            
+            emptyEl.style.display = 'none';
+            
+            sessions.forEach(s => {
+                const formattedDate = new Date(s.createdAt).toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Parse phone number dynamically from links if not present in the JSON file directly (for existing old sessions)
+                let displayPhone = s.phone;
+                if (!displayPhone && s.videoLink) {
+                    try {
+                        const folderMatch = s.videoLink.match(/\/scriblebooth\/([^/]+)\//);
+                        if (folderMatch) {
+                            const folderName = decodeURIComponent(folderMatch[1]);
+                            const parts = folderName.split('_');
+                            if (parts.length > 1) {
+                                displayPhone = parts[parts.length - 1].trim();
+                            } else {
+                                const dashParts = folderName.split('-');
+                                if (dashParts.length > 1) {
+                                    displayPhone = dashParts[dashParts.length - 1].trim();
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing phone from URL:', e);
+                    }
+                }
+                if (!displayPhone) {
+                    displayPhone = 'Tanpa WA';
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.margin = '0';
+                card.style.padding = '20px';
+                card.style.display = 'flex';
+                card.style.flexDirection = 'column';
+                card.style.background = 'rgba(255, 255, 255, 0.02)';
+                card.style.border = '1px solid var(--border)';
+                card.style.borderRadius = '16px';
+                card.style.transition = '0.3s';
+                
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <h4 style="margin: 0; font-size: 16px; font-family: 'Outfit', sans-serif; color: var(--accent); font-weight: 600;">${escapeHtml(s.name)}</h4>
+                        <span style="font-size: 11px; color: var(--text-muted);">${formattedDate}</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; font-family: monospace;">
+                        📞 ${escapeHtml(displayPhone)}
+                    </div>
+                    
+                    <!-- Miniature Portrait 9:16 Frames -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 20px 0; flex: 1;">
+                        <!-- Video Thumbnail -->
+                        <div style="position: relative; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="openPreview('video', '${s.videoLink}', '${escapeJs(s.name)}')">
+                            <video src="${s.videoLink}" style="width: 100%; height: 100%; object-fit: cover;" preload="metadata" muted></video>
+                            <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; transition: 0.3s;" onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.35)'">▶</div>
+                            <span style="position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600; letter-spacing: 0.5px;">VIDEO</span>
+                        </div>
+                        
+                        <!-- Photo Thumbnail -->
+                        <div style="position: relative; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="openPreview('image', '${s.photoLink}', '${escapeJs(s.name)}')">
+                            <img src="${s.photoLink}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" />
+                            <span style="position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600; letter-spacing: 0.5px;">FOTO</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Row -->
+                    <div style="display: flex; gap: 8px;">
+                        <a href="/api/download?url=${encodeURIComponent(s.videoLink)}&name=Video-${encodeURIComponent(s.name)}.mp4" class="btn-browse" style="flex: 1; text-align: center; margin: 0; padding: 8px 5px; font-size: 11px; border-radius: 6px; text-decoration: none;">📥 Video</a>
+                        <a href="/api/download?url=${encodeURIComponent(s.photoLink)}&name=Photo-${encodeURIComponent(s.name)}.jpg" class="btn-browse" style="flex: 1; text-align: center; margin: 0; padding: 8px 5px; font-size: 11px; border-radius: 6px; text-decoration: none;">📥 Foto</a>
+                        <button onclick="deleteSession(event, '${s.id}', '${escapeJs(s.name)}')" style="background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); color: #ff4444; border-radius: 6px; width: 34px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;" title="Hapus Sesi" onmouseover="this.style.background='rgba(255, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(255, 68, 68, 0.1)'">🗑️</button>
+                    </div>
+                `;
+                
+                listEl.appendChild(card);
+            });
+        }
+
+        function filterSessions() {
+            const query = document.getElementById('session-search').value.toLowerCase().trim();
+            if (!query) {
+                renderSessions(sessionsData);
+                return;
+            }
+            
+            const filtered = sessionsData.filter(s => {
+                const name = (s.name || '').toLowerCase();
+                const phone = (s.phone || '').toLowerCase();
+                const id = (s.id || '').toLowerCase();
+                return name.includes(query) || phone.includes(query) || id.includes(query);
+            });
+            
+            renderSessions(filtered);
+        }
+
+        function openPreview(type, url, name) {
+            const modal = document.getElementById('previewModal');
+            const video = document.getElementById('previewModalVideo');
+            const image = document.getElementById('previewModalImage');
+            const title = document.getElementById('previewModalTitle');
+            
+            title.innerText = `Preview ${type === 'video' ? 'Video' : 'Foto'} - ${name}`;
+            modal.style.display = 'flex';
+            
+            if (type === 'video') {
+                video.src = url;
+                video.style.display = 'block';
+                image.style.display = 'none';
+                video.play().catch(e => {});
+            } else {
+                image.src = url;
+                image.style.display = 'block';
+                video.style.display = 'none';
+                video.pause();
+            }
+        }
+        
+        function closePreviewModal() {
+            const modal = document.getElementById('previewModal');
+            const video = document.getElementById('previewModalVideo');
+            video.pause();
+            video.src = '';
+            modal.style.display = 'none';
+        }
+
+        async function deleteSession(event, id, name) {
+            event.stopPropagation();
+            if (!confirm(`Apakah Anda yakin ingin menghapus sesi dari "${name}"?\nSemua data lokal sesi ini akan dihapus permanen.`)) return;
+
+            try {
+                const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Update local data and render
+                    sessionsData = sessionsData.filter(s => s.id !== id);
+                    filterSessions();
+                    
+                    // Show success toast
+                    const toast = document.getElementById('successMsg');
+                    toast.innerText = `Sesi "${name}" berhasil dihapus.`;
+                    toast.style.display = 'block';
+                    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('Gagal menyambung ke server.');
+            }
+        }
+
+        // Helpers to prevent XSS and JS Injection
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        
+        function escapeJs(str) {
+            if (!str) return '';
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
         }
     </script>
 </body>
