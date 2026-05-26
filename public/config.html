@@ -829,6 +829,12 @@
                         <input type="number" id="recordingDuration">
                     </div>
                     <div class="input-group">
+                        <label>Tanggal Event Galeri Tamu (YYYY-MM-DD)</label>
+                        <input type="date" id="eventDate" style="color-scheme: dark;">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group" style="grid-column: span 2;">
                         <div class="form-row-between" style="padding-top: 15px;">
                             <div>
                                 <label style="margin:0;">Fitur Menggambar di Udara</label>
@@ -993,6 +999,7 @@
                 document.getElementById('recordingCdText').value = data.recordingCdText || '';
                 document.getElementById('photoCdText').value = data.photoCdText || '';
                 document.getElementById('recordingDuration').value = data.recordingDuration || 15;
+                document.getElementById('eventDate').value = data.eventDate || '2026-05-23';
                 document.getElementById('showLeftPanel').checked = data.showLeftPanel !== false;
                 document.getElementById('showRightPanel').checked = data.showRightPanel !== false;
 
@@ -1117,6 +1124,7 @@
                 recordingCdText: document.getElementById('recordingCdText').value,
                 photoCdText: document.getElementById('photoCdText').value,
                 recordingDuration: parseInt(document.getElementById('recordingDuration').value),
+                eventDate: document.getElementById('eventDate').value,
                 showLeftPanel: document.getElementById('showLeftPanel').checked,
                 showRightPanel: document.getElementById('showRightPanel').checked,
                 idleHeadMode: document.querySelector('input[name="idleHeadMode"]:checked').value,

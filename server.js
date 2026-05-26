@@ -599,7 +599,8 @@ const DEFAULT_CONFIG = {
     tutorialVideoUrl: "",
     resultVideoUrl: "",
     frameColor: "#3d3d3d",
-    recordingDuration: 15
+    recordingDuration: 15,
+    eventDate: "2026-05-23"
 };
 
 // Buat config.json jika baru pertama kali di-run

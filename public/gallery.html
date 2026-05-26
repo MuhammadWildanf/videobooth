@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenangan Spesial Anda - Lumea Gallery</title>
+
+    <!-- Google Fonts for modern serif/sans-serif backup -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'Luxurious Script';
+            src: url('/fonts/LuxuriousScript-Regular.ttf') format('truetype');
+            font-weight: normal;
+        }
+
+        @font-face {
+            font-family: 'Aref Ruqaa';
+            src: url('/fonts/ArefRuqaa-Regular.ttf') format('truetype');
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: 'Aref Ruqaa';
+            src: url('/fonts/ArefRuqaa-Bold.ttf') format('truetype');
+            font-weight: 700;
+        }
+
+        :root {
+            --accent: #c5a059;
+            --accent-glow: rgba(197, 160, 89, 0.3);
+            --gold-gradient: linear-gradient(135deg, #c5a059 0%, #d4af37 50%, #b38b4d 100%);
+            --bg-dark: #1a0f0a;
+            --text-main: #f8fafc;
+            --text-muted: #a0a0a0;
+            --border: rgba(197, 160, 89, 0.2);
+            --card-bg: rgba(20, 15, 10, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        body {
+            font-family: 'Aref Ruqaa', 'Playfair Display', serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            background-image: url('/bg1.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        /* Nav Header bar */
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 20px;
+            z-index: 10;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            color: var(--text-main);
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-back:hover {
+            background: var(--gold-gradient);
+            color: #1a0f0a;
+            border-color: transparent;
+            transform: translateX(-3px);
+            box-shadow: 0 5px 15px var(--accent-glow);
+        }
+
+        /* Branding */
+        .branding-container {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        .brand-logo {
+            height: 65px;
+            width: auto;
+            object-fit: contain;
+            pointer-events: none;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+        }
+
+        .title {
+            font-family: 'Luxurious Script', 'Playfair Display', cursive;
+            font-size: clamp(38px, 6vw, 65px);
+            color: #F0E5C7;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-family: 'Aref Ruqaa', 'Playfair Display', serif;
+            font-size: 16px;
+            color: #F0E5C7;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filter Controls */
+        .filter-panel {
+            width: 90%;
+            max-width: 700px;
+            background: rgba(20, 15, 10, 0.75);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 25px 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-wrapper,
+        .date-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            color: var(--accent);
+            pointer-events: none;
+        }
+
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 15px 14px 42px;
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="date"] {
+            padding-left: 15px;
+            cursor: pointer;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(74%) sepia(21%) saturate(996%) hue-rotate(7deg) brightness(91%) contrast(85%);
+            /* gold color match */
+            cursor: pointer;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn-reset {
+            padding: 14px 25px;
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-family: 'Aref Ruqaa', serif;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 17px;
+        }
+
+        .btn-reset:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(197, 160, 89, 0.05);
+        }
+
+        /* Gallery Grid */
+        .gallery-container {
+            width: 90%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* Guest Cards */
+        .guest-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .guest-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(197, 160, 89, 0.5);
+            box-shadow: 0 20px 40px rgba(197, 160, 89, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+            padding-bottom: 10px;
+        }
+
+        .guest-name {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 17px;
+            color: var(--accent);
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .guest-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Media grid */
+        .media-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 18px;
+            flex: 1;
+        }
+
+        .media-thumb {
+            position: relative;
+            aspect-ratio: 9/16;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+
+        .media-thumb video,
+        .media-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.5s;
+        }
+
+        .media-thumb:hover video,
+        .media-thumb:hover img {
+            transform: scale(1.06);
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 22px;
+            transition: all 0.3s;
+        }
+
+        .media-thumb:hover .play-overlay {
+            background: rgba(0, 0, 0, 0.15);
+            font-size: 26px;
+        }
+
+        .media-tag {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(20, 15, 10, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            color: #fff;
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Action Buttons */
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-download {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 5px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--accent);
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-download:hover {
+            background: var(--gold-gradient);
+            color: #1a0f0a;
+            border-color: transparent;
+            box-shadow: 0 4px 10px var(--accent-glow);
+        }
+
+        /* States */
+        .status-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 0;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(197, 160, 89, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Lightbox Modal */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 5, 3, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .lightbox-content {
+            background: #140f0a;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .btn-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .btn-close:hover {
+            background: #ff4444;
+            border-color: transparent;
+            transform: rotate(90deg);
+        }
+
+        .lightbox-media {
+            width: 100%;
+            aspect-ratio: 9/16;
+            background: #000;
+            position: relative;
+        }
+
+        .lightbox-media video,
+        .lightbox-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .lightbox-footer {
+            padding: 20px;
+            background: rgba(20, 15, 10, 0.98);
+            border-top: 1px solid rgba(197, 160, 89, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .lightbox-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lightbox-name {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 18px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .lightbox-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            background: var(--gold-gradient);
+            color: #1a0f0a;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .lightbox-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px var(--accent-glow);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding: 30px 20px 10px 20px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 900px) {
+            .filter-panel {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                gap: 12px;
+            }
+
+            .btn-reset {
+                margin-top: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 15px;
+            }
+
+            .branding-container {
+                margin-bottom: 25px;
+            }
+
+            .title {
+                font-size: 36px;
+            }
+
+            .gallery-container {
+                gap: 20px;
+                width: 95%;
+            }
+
+            .guest-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar with Back button -->
+    <header class="navbar">
+    </header>
+
+    <!-- Branding Title Area -->
+    <div class="branding-container">
+        <img id="logoElement" src="/logo-lumea.png" alt="Logo" class="brand-logo">
+        <h1 id="galleryTitle" class="title" style="display: none;">Your Special Memories</h1>
+        <p id="gallerySubtitle" class="subtitle">Gallery of happiness from ScribbleBooth guests</p>
+    </div>
+
+    <!-- Filter Control Panel -->
+    <section class="filter-panel">
+        <div class="input-group">
+            <label for="search-input">Search Guest Name</label>
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Type your name here..." oninput="filterGallery()">
+            </div>
+        </div>
+
+        <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+    </section>
+
+    <!-- Gallery Grid -->
+    <main class="gallery-container" id="gallery-grid">
+        <!-- Spinner Loading State -->
+        <div class="status-message" id="loading-state">
+            <div class="spinner"></div>
+            <p>Preparing all the beautiful memories... ✨</p>
+        </div>
+
+        <!-- Empty / No Results State -->
+        <div class="status-message" id="empty-state" style="display: none;">
+            <p>Sorry, no memories found for this search.</p>
+        </div>
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="mediaLightbox" onclick="closeLightbox(event)">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="btn-close" onclick="closeLightbox(event)">&times;</button>
+
+            <div class="lightbox-media">
+                <video id="lightboxVideo" style="display: none;" loop controls autoplay></video>
+                <img id="lightboxImage" style="display: none;" src="" alt="Memory">
+            </div>
+
+            <div class="lightbox-footer">
+                <div class="lightbox-info">
+                    <span class="lightbox-name" id="lightboxName">Audric</span>
+                    <span style="font-size: 12px; color: var(--text-muted);" id="lightboxDate">23 May 2026</span>
+                </div>
+                <a href="#" id="lightboxDownloadBtn" target="_blank" class="lightbox-btn">
+                    <span>📥 Download Original Quality</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer branding -->
+    <footer class="footer">
+        <p><strong>Here’s to the moments you’ll always look back on - @momentsbylumea</strong></p>
+    </footer>
+
+    <!-- Frontend logic -->
+    <script>
+        let allSessions = [];
+        let activeEventDate = '2026-05-23';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Apply Dynamic Configuration immediately if active
+            await loadThemeConfig();
+
+            // Load session data
+            await fetchSessions();
+        });
+
+        async function loadThemeConfig() {
+            try {
+                // Try from local storage first to prevent flash
+                const cached = localStorage.getItem('vb_config');
+                let config = cached ? JSON.parse(cached) : null;
+
+                if (!config) {
+                    const res = await fetch('/api/config');
+                    config = await res.json();
+                }
+
+                if (config) {
+                    // Update active event date if present
+                    if (config.eventDate) {
+                        activeEventDate = config.eventDate;
+                    }
+
+                    // Title and subtitle syncing
+                    if (config.title) {
+                        document.getElementById('galleryTitle').innerText = config.title;
+                    }
+
+                    if (config.subtitle) {
+                        try {
+                            const dateObj = new Date(activeEventDate);
+                            const formattedEventDate = dateObj.toLocaleDateString('en-US', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            });
+                            document.getElementById('gallerySubtitle').innerHTML = `${config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
+                        } catch (e) {
+                            document.getElementById('gallerySubtitle').innerText = config.subtitle;
+                        }
+                    } else {
+                        try {
+                            const dateObj = new Date(activeEventDate);
+                            const formattedEventDate = dateObj.toLocaleDateString('en-US', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            });
+                            document.getElementById('gallerySubtitle').innerHTML = `Gallery of happiness from ScribbleBooth guests &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
+                        } catch (e) { }
+                    }
+
+                    // Logo syncing
+                    if (config.logoUrl) {
+                        const logo = document.getElementById('logoElement');
+                        logo.src = config.logoUrl;
+                        logo.style.display = 'inline-block';
+                    }
+                    // Background & colors syncing
+                    if (config.bgImageUrl) {
+                        document.body.style.backgroundImage = `url('${config.bgImageUrl}')`;
+                    }
+                    if (config.accentColor) {
+                        document.documentElement.style.setProperty('--accent', config.accentColor);
+                    }
+                }
+            } catch (e) {
+                console.error("Config fetch error:", e);
+            }
+        }
+
+        async function fetchSessions() {
+            const grid = document.getElementById('gallery-grid');
+            const loading = document.getElementById('loading-state');
+
+            try {
+                const res = await fetch('/api/sessions');
+                const result = await res.json();
+
+                loading.style.display = 'none';
+
+                if (result.status === 'success' && result.sessions) {
+                    allSessions = result.sessions;
+                    filterGallery();
+                } else {
+                    grid.innerHTML += `<div class="status-message">❌ Failed to load data: ${result.message}</div>`;
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                grid.innerHTML += `<div class="status-message">❌ Network error occurred while loading sessions.</div>`;
+                console.error("Fetch sessions error:", err);
+            }
+        }
+
+        function renderGallery(sessions) {
+            // Remove existing cards
+            const grid = document.getElementById('gallery-grid');
+            const existingCards = grid.querySelectorAll('.guest-card');
+            existingCards.forEach(c => c.remove());
+
+            const emptyState = document.getElementById('empty-state');
+
+            if (sessions.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            sessions.forEach(s => {
+                const dateObj = new Date(s.createdAt);
+                const formattedDate = dateObj.toLocaleString('en-US', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const card = document.createElement('div');
+                card.className = 'guest-card';
+
+                let mediaPanelsHtml = '';
+
+                if (s.videoLink && s.photoLink) {
+                    mediaPanelsHtml = `
+                        <div class="media-panels">
+                            <div class="media-thumb" onclick="openLightbox('video', '${s.videoLink}', '${escapeJs(s.name)}', '${formattedDate}')">
+                                <video src="${s.videoLink}" preload="metadata" muted></video>
+                                <div class="play-overlay">▶</div>
+                                <span class="media-tag">Video</span>
+                            </div>
+                            <div class="media-thumb" onclick="openLightbox('image', '${s.photoLink}', '${escapeJs(s.name)}', '${formattedDate}')">
+                                <img src="${s.photoLink}" loading="lazy" alt="ScribbleBooth Photo">
+                                <span class="media-tag">Photo</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (s.videoLink) {
+                    mediaPanelsHtml = `
+                        <div class="media-panels" style="grid-template-columns: 1fr;">
+                            <div class="media-thumb" onclick="openLightbox('video', '${s.videoLink}', '${escapeJs(s.name)}', '${formattedDate}')">
+                                <video src="${s.videoLink}" preload="metadata" muted></video>
+                                <div class="play-overlay">▶</div>
+                                <span class="media-tag">Video</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (s.photoLink) {
+                    mediaPanelsHtml = `
+                        <div class="media-panels" style="grid-template-columns: 1fr;">
+                            <div class="media-thumb" onclick="openLightbox('image', '${s.photoLink}', '${escapeJs(s.name)}', '${formattedDate}')">
+                                <img src="${s.photoLink}" loading="lazy" alt="ScribbleBooth Photo">
+                                <span class="media-tag">Photo</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Action download row
+                let actionRowHtml = '<div class="card-actions">';
+                if (s.videoLink) {
+                    actionRowHtml += `<a href="/api/download?url=${encodeURIComponent(s.videoLink)}&name=Video-${s.name.replace(/\s+/g, '-')}.mp4" class="btn-download">🎬 Video</a>`;
+                }
+                if (s.photoLink) {
+                    actionRowHtml += `<a href="/api/download?url=${encodeURIComponent(s.photoLink)}&name=Photo-${s.name.replace(/\s+/g, '-')}.jpg" class="btn-download">📸 Photo</a>`;
+                }
+                actionRowHtml += '</div>';
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="guest-name">${escapeHtml(s.name)}</span>
+                        <span class="guest-date">${formattedDate}</span>
+                    </div>
+                    ${mediaPanelsHtml}
+                    ${actionRowHtml}
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function filterGallery() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            const dateQuery = activeEventDate; // YYYY-MM-DD format from admin config config.json
+
+            const filtered = allSessions.filter(s => {
+                // Name & phone filter
+                const nameMatches = (s.name || '').toLowerCase().includes(searchQuery) || (s.phone || '').toLowerCase().includes(searchQuery);
+
+                // Date filter
+                let dateMatches = true;
+                if (dateQuery) {
+                    const sessionDateStr = new Date(s.createdAt).toISOString().split('T')[0]; // Format: YYYY-MM-DD in UTC
+
+                    // Also support local timezone checking
+                    const sessionLocalDate = new Date(s.createdAt);
+                    const localYear = sessionLocalDate.getFullYear();
+                    const localMonth = String(sessionLocalDate.getMonth() + 1).padStart(2, '0');
+                    const localDay = String(sessionLocalDate.getDate()).padStart(2, '0');
+                    const sessionLocalDateStr = `${localYear}-${localMonth}-${localDay}`;
+
+                    dateMatches = (sessionDateStr === dateQuery) || (sessionLocalDateStr === dateQuery);
+                }
+
+                return nameMatches && dateMatches;
+            });
+
+            renderGallery(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            filterGallery();
+        }
+
+        /* Lightbox controls */
+        function openLightbox(type, url, name, dateString) {
+            const lightbox = document.getElementById('mediaLightbox');
+            const videoEl = document.getElementById('lightboxVideo');
+            const imgEl = document.getElementById('lightboxImage');
+            const downloadBtn = document.getElementById('lightboxDownloadBtn');
+
+            document.getElementById('lightboxName').innerText = name;
+            document.getElementById('lightboxDate').innerText = dateString;
+
+            lightbox.style.display = 'flex';
+
+            if (type === 'video') {
+                videoEl.src = url;
+                videoEl.style.display = 'block';
+                imgEl.style.display = 'none';
+                videoEl.play().catch(e => console.log("Video auto play prevented"));
+
+                downloadBtn.href = `/api/download?url=${encodeURIComponent(url)}&name=Video-${name.replace(/\s+/g, '-')}.mp4`;
+            } else {
+                imgEl.src = url;
+                imgEl.style.display = 'block';
+                videoEl.style.display = 'none';
+                videoEl.pause();
+
+                downloadBtn.href = `/api/download?url=${encodeURIComponent(url)}&name=Photo-${name.replace(/\s+/g, '-')}.jpg`;
+            }
+        }
+
+        function closeLightbox(event) {
+            const lightbox = document.getElementById('mediaLightbox');
+            const videoEl = document.getElementById('lightboxVideo');
+            videoEl.pause();
+            videoEl.src = '';
+            lightbox.style.display = 'none';
+        }
+
+        /* Escaping helpers */
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function escapeJs(str) {
+            if (!str) return '';
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+    </script>
+</body>
+
+</html>
