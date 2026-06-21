@@ -140,6 +140,25 @@ const uploadToGCP = async (filePath, fileName, folderName = 'videobooth') => {
 };
 // ------------------------------
 
+// --- SETUP FIRESTORE SDK ---
+const admin = require('firebase-admin');
+let db = null;
+try {
+    const firebaseKeyFile = process.env.FIREBASE_KEY_FILE || process.env.GCP_KEY_FILE || 'gcp-key.json';
+    const firebaseKeyPath = path.join(__dirname, firebaseKeyFile);
+    if (fs.existsSync(firebaseKeyPath)) {
+        admin.initializeApp({
+            credential: admin.credential.cert(firebaseKeyPath)
+        });
+        db = admin.firestore();
+        console.log('[FIRESTORE] ✅ Inisialisasi Firestore Storage berhasil.');
+    } else {
+        console.log('[FIRESTORE] ⚠️ File kunci GCP/Firestore tidak ditemukan. Menggunakan penyimpanan lokal JSON tersegregasi.');
+    }
+} catch (err) {
+    console.error('[FIRESTORE] ❌ Gagal inisialisasi Firestore:', err.message);
+}
+
 // --- SETUP NODEMAILER (EMAIL) ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -201,10 +220,43 @@ const worker = async (task) => {
 
     return new Promise(async (resolve, reject) => {
         try {
+            const eventId = task.eventId || 'default-event';
             const inputPath = task.videoPath;
-            const photoInputPath = task.photoPath; // ✅ TAMBAHKAN INI
-            const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
-            const overlayPath = path.join(__dirname, 'public', config.overlayImageUrl || 'overlay.png');
+            const photoInputPath = task.photoPath;
+            let config = DEFAULT_CONFIG;
+            if (db) {
+                try {
+                    const doc = await db.collection('events').doc(eventId).get();
+                    if (doc.exists) {
+                        config = doc.data();
+                    } else {
+                        // Use default and write to Firestore so it exists
+                        await db.collection('events').doc(eventId).set(DEFAULT_CONFIG);
+                        config = DEFAULT_CONFIG;
+                    }
+                } catch (e) {
+                    console.error('[WORKER] Error loading event config from Firestore:', e.message);
+                }
+            } else {
+                const eventDir = path.join(__dirname, 'data', 'events', eventId);
+                const eventConfigFile = path.join(eventDir, 'config.json');
+                if (fs.existsSync(eventConfigFile)) {
+                    config = JSON.parse(fs.readFileSync(eventConfigFile, 'utf8'));
+                } else {
+                    if (fs.existsSync(CONFIG_FILE)) {
+                        config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+                    } else {
+                        config = DEFAULT_CONFIG;
+                    }
+                }
+            }
+            let overlayFile = 'overlay.png';
+            if (config.overlayImageUrl === 'none') {
+                overlayFile = 'none-nonexistent-file';
+            } else if (config.overlayImageUrl && config.overlayImageUrl !== 'Default') {
+                overlayFile = config.overlayImageUrl;
+            }
+            const overlayPath = path.join(__dirname, 'public', overlayFile);
 
             const timestamp = Date.now();
             const outputVideoPath = path.join('uploads', `FINAL-${timestamp}-video.mp4`);
@@ -332,7 +384,7 @@ const worker = async (task) => {
                 console.log(`[UPLOAD] ✅ Sukses! Link Photo: ${photoLink}`);
             }
             
-            // 4.5 Save Session Data locally for Result Preview Page
+            // 4.5 Save Session Data (Firestore or Local JSON)
             const sessionData = {
                 id: sessionId,
                 name: task.name,
@@ -340,14 +392,26 @@ const worker = async (task) => {
                 email: task.email || null,
                 videoLink: videoLink,
                 photoLink: photoLink,
+                eventId: eventId,
                 createdAt: new Date().toISOString()
             };
-            const sessionsDir = path.join(__dirname, 'data', 'sessions');
-            if (!fs.existsSync(sessionsDir)) {
-                fs.mkdirSync(sessionsDir, { recursive: true });
+
+            if (db) {
+                try {
+                    await db.collection('sessions').doc(sessionId).set(sessionData);
+                    console.log(`[FIRESTORE] ✅ Sukses menyimpan data sesi: ${sessionId}`);
+                } catch (e) {
+                    console.error(`[FIRESTORE] ❌ Gagal menyimpan data sesi:`, e.message);
+                }
+            } else {
+                const eventDir = path.join(__dirname, 'data', 'events', eventId);
+                const sessionsDir = path.join(eventDir, 'sessions');
+                if (!fs.existsSync(sessionsDir)) {
+                    fs.mkdirSync(sessionsDir, { recursive: true });
+                }
+                const sessionFilePath = path.join(sessionsDir, `${sessionId}.json`);
+                fs.writeFileSync(sessionFilePath, JSON.stringify(sessionData, null, 2));
             }
-            const sessionFilePath = path.join(sessionsDir, `${sessionId}.json`);
-            fs.writeFileSync(sessionFilePath, JSON.stringify(sessionData, null, 2));
             
             // This is the link we actually send to the user
             let domainStr = process.env.PUBLIC_DOMAIN || 'localhost:3000';
@@ -412,39 +476,110 @@ const worker = async (task) => {
 const queue = fastq.promise(worker, 2);
 
 // API Endpoint: Get Session Result
-app.get('/api/result/:id', (req, res) => {
+app.get('/api/result/:id', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     const sessionId = req.params.id;
-    const sessionFilePath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
     
-    if (fs.existsSync(sessionFilePath)) {
-        const data = JSON.parse(fs.readFileSync(sessionFilePath, 'utf8'));
-        res.json({ status: 'success', data });
+    if (db) {
+        try {
+            const doc = await db.collection('sessions').doc(sessionId).get();
+            if (doc.exists) {
+                return res.json({ status: 'success', data: doc.data() });
+            }
+        } catch (e) {
+            console.error('[API RESULT] Firestore error:', e.message);
+        }
+    }
+    
+    // Local File Fallback (Checking all events if event is unknown)
+    const eventsDir = path.join(__dirname, 'data', 'events');
+    let sessionData = null;
+    
+    if (fs.existsSync(eventsDir)) {
+        const events = fs.readdirSync(eventsDir);
+        for (const ev of events) {
+            const sessionFilePath = path.join(eventsDir, ev, 'sessions', `${sessionId}.json`);
+            if (fs.existsSync(sessionFilePath)) {
+                sessionData = JSON.parse(fs.readFileSync(sessionFilePath, 'utf8'));
+                break;
+            }
+        }
+    }
+    
+    // Deprecated legacy global directory check
+    if (!sessionData) {
+        const legacyPath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
+        if (fs.existsSync(legacyPath)) {
+            sessionData = JSON.parse(fs.readFileSync(legacyPath, 'utf8'));
+        }
+    }
+
+    if (sessionData) {
+        res.json({ status: 'success', data: sessionData });
     } else {
         res.status(404).json({ status: 'error', message: 'Session not found' });
     }
 });
 
 // API Endpoint: Get All Sessions
-app.get('/api/sessions', (req, res) => {
-    try {
-        const sessionsDir = path.join(__dirname, 'data', 'sessions');
-        if (!fs.existsSync(sessionsDir)) {
-            return res.json({ status: 'success', sessions: [] });
+app.get('/api/sessions', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    const eventId = req.query.event || 'default-event';
+    
+    if (db) {
+        try {
+            const snapshot = await db.collection('sessions').where('eventId', '==', eventId).orderBy('createdAt', 'desc').get();
+            const sessions = [];
+            snapshot.forEach(doc => {
+                sessions.push(doc.data());
+            });
+            return res.json({ status: 'success', sessions });
+        } catch (e) {
+            console.error('[API SESSIONS] Firestore error:', e.message);
         }
-        const files = fs.readdirSync(sessionsDir);
+    }
+    
+    // Local File Fallback
+    try {
+        const eventDir = path.join(__dirname, 'data', 'events', eventId);
+        const sessionsDir = path.join(eventDir, 'sessions');
         const sessions = [];
-        files.forEach(file => {
-            if (file.endsWith('.json')) {
-                try {
-                    const filePath = path.join(sessionsDir, file);
-                    const fileContent = fs.readFileSync(filePath, 'utf8');
-                    const sessionData = JSON.parse(fileContent);
-                    sessions.push(sessionData);
-                } catch (e) {
-                    console.error(`Error reading session file ${file}:`, e.message);
+        
+        if (fs.existsSync(sessionsDir)) {
+            const files = fs.readdirSync(sessionsDir);
+            files.forEach(file => {
+                if (file.endsWith('.json')) {
+                    try {
+                        const filePath = path.join(sessionsDir, file);
+                        const fileContent = fs.readFileSync(filePath, 'utf8');
+                        const sessionData = JSON.parse(fileContent);
+                        sessions.push(sessionData);
+                    } catch (e) {
+                        console.error(`Error reading session file ${file}:`, e.message);
+                    }
                 }
+            });
+        }
+        
+        // Also merge legacy global sessions if request is for 'default-event'
+        if (eventId === 'default-event') {
+            const legacyDir = path.join(__dirname, 'data', 'sessions');
+            if (fs.existsSync(legacyDir)) {
+                const files = fs.readdirSync(legacyDir);
+                files.forEach(file => {
+                    if (file.endsWith('.json')) {
+                        try {
+                            const filePath = path.join(legacyDir, file);
+                            const fileContent = fs.readFileSync(filePath, 'utf8');
+                            const sessionData = JSON.parse(fileContent);
+                            if (!sessions.some(s => s.id === sessionData.id)) {
+                                sessions.push(sessionData);
+                            }
+                        } catch (e) {}
+                    }
+                });
             }
-        });
+        }
         
         // Sort by createdAt descending (newest first)
         sessions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -457,15 +592,45 @@ app.get('/api/sessions', (req, res) => {
 });
 
 // API Endpoint: Delete Session
-app.delete('/api/sessions/:id', (req, res) => {
+app.delete('/api/sessions/:id', async (req, res) => {
     try {
         const sessionId = req.params.id;
         if (!/^[a-zA-Z0-9\-_]+$/.test(sessionId)) {
             return res.status(400).json({ status: 'error', message: 'ID Sesi tidak valid' });
         }
-        const sessionFilePath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
-        if (fs.existsSync(sessionFilePath)) {
-            fs.unlinkSync(sessionFilePath);
+        
+        if (db) {
+            try {
+                await db.collection('sessions').doc(sessionId).delete();
+                console.log(`[FIRESTORE] Sesi dihapus dari cloud: ${sessionId}`);
+            } catch (e) {
+                console.error('[API DELETE SESSION] Firestore error:', e.message);
+            }
+        }
+        
+        // Local File Fallback (Checking all events)
+        const eventsDir = path.join(__dirname, 'data', 'events');
+        let deleted = false;
+        
+        if (fs.existsSync(eventsDir)) {
+            const events = fs.readdirSync(eventsDir);
+            for (const ev of events) {
+                const sessionFilePath = path.join(eventsDir, ev, 'sessions', `${sessionId}.json`);
+                if (fs.existsSync(sessionFilePath)) {
+                    fs.unlinkSync(sessionFilePath);
+                    deleted = true;
+                }
+            }
+        }
+        
+        // Legacy file fallback check
+        const legacyPath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
+        if (fs.existsSync(legacyPath)) {
+            fs.unlinkSync(legacyPath);
+            deleted = true;
+        }
+
+        if (deleted || db) {
             res.json({ status: 'success', message: 'Sesi berhasil dihapus' });
         } else {
             res.status(404).json({ status: 'error', message: 'Sesi tidak ditemukan' });
@@ -502,7 +667,8 @@ app.post('/api/videobooth/submit', (req, res, next) => {
             email: req.body.email || null,
             deliveryMethod: req.body.deliveryMethod || 'both',
             videoPath: videoFile.path,
-            photoPath: photoFile ? photoFile.path : null
+            photoPath: photoFile ? photoFile.path : null,
+            eventId: req.body.eventId || 'default-event'
         });
 
         // KEMBALIKAN response secepat mungkin
@@ -608,24 +774,169 @@ if (!fs.existsSync(CONFIG_FILE)) {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(DEFAULT_CONFIG, null, 4));
 }
 
-app.get('/api/config', (req, res) => {
+app.get('/api/config', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    const eventId = req.query.event || 'default-event';
+    
+    if (db) {
+        try {
+            const doc = await db.collection('events').doc(eventId).get();
+            if (doc.exists) {
+                return res.json(doc.data());
+            } else {
+                // Initialize default config in Firestore for this event
+                await db.collection('events').doc(eventId).set(DEFAULT_CONFIG);
+                return res.json(DEFAULT_CONFIG);
+            }
+        } catch (err) {
+            console.error('[API GET CONFIG] Firestore error:', err.message);
+        }
+    }
+    
+    // Local File Fallback
     try {
-        const configData = fs.readFileSync(CONFIG_FILE);
-        res.json(JSON.parse(configData));
+        const eventDir = path.join(__dirname, 'data', 'events', eventId);
+        const eventConfigFile = path.join(eventDir, 'config.json');
+        
+        if (fs.existsSync(eventConfigFile)) {
+            const configData = fs.readFileSync(eventConfigFile);
+            res.json(JSON.parse(configData));
+        } else {
+            // Fallback to legacy global config
+            if (fs.existsSync(CONFIG_FILE)) {
+                const configData = fs.readFileSync(CONFIG_FILE);
+                res.json(JSON.parse(configData));
+            } else {
+                res.json(DEFAULT_CONFIG);
+            }
+        }
     } catch (err) {
         res.json(DEFAULT_CONFIG);
     }
 });
 
-app.post('/api/config', (req, res) => {
+app.post('/api/config', async (req, res) => {
+    const eventId = req.query.event || 'default-event';
+    
+    let isSavedInCloud = false;
+    if (db) {
+        try {
+            const doc = await db.collection('events').doc(eventId).get();
+            const currentData = doc.exists ? doc.data() : DEFAULT_CONFIG;
+            const newConfig = { ...currentData, ...req.body };
+            await db.collection('events').doc(eventId).set(newConfig);
+            isSavedInCloud = true;
+        } catch (err) {
+            console.error('[API POST CONFIG] Firestore error:', err.message);
+        }
+    }
+    
+    if (isSavedInCloud) {
+        return res.json({ status: 'success', message: 'Setelan UI berhasil disimpan!' });
+    }
+    
+    // Local File Fallback
     try {
-        const currentData = fs.existsSync(CONFIG_FILE) ? JSON.parse(fs.readFileSync(CONFIG_FILE)) : DEFAULT_CONFIG;
+        const eventDir = path.join(__dirname, 'data', 'events', eventId);
+        if (!fs.existsSync(eventDir)) {
+            fs.mkdirSync(eventDir, { recursive: true });
+        }
+        const eventConfigFile = path.join(eventDir, 'config.json');
+        
+        const currentData = fs.existsSync(eventConfigFile) 
+            ? JSON.parse(fs.readFileSync(eventConfigFile)) 
+            : (fs.existsSync(CONFIG_FILE) ? JSON.parse(fs.readFileSync(CONFIG_FILE)) : DEFAULT_CONFIG);
+            
         const newConfig = { ...currentData, ...req.body };
-        fs.writeFileSync(CONFIG_FILE, JSON.stringify(newConfig, null, 4));
+        fs.writeFileSync(eventConfigFile, JSON.stringify(newConfig, null, 4));
         res.json({ status: 'success', message: 'Setelan UI berhasil disimpan!' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ status: 'error', message: 'Gagal menyimpan konfigurasi UI.' });
+    }
+});
+
+// API Endpoint: Get All Event Slugs
+app.get('/api/events', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    if (db) {
+        try {
+            const snapshot = await db.collection('events').get();
+            const events = [];
+            snapshot.forEach(doc => {
+                events.push(doc.id);
+            });
+            // Ensure default-event is at least returned if empty
+            if (events.length === 0) {
+                events.push('default-event');
+            }
+            return res.json({ status: 'success', events });
+        } catch (e) {
+            console.error('[API GET EVENTS] Firestore error:', e.message);
+        }
+    }
+
+    // Local File Fallback
+    try {
+        const eventsDir = path.join(__dirname, 'data', 'events');
+        let events = [];
+        if (fs.existsSync(eventsDir)) {
+            events = fs.readdirSync(eventsDir).filter(f => fs.statSync(path.join(eventsDir, f)).isDirectory());
+        }
+        if (!events.includes('default-event')) {
+            events.push('default-event');
+        }
+        res.json({ status: 'success', events });
+    } catch (err) {
+        console.error('[API GET EVENTS] Fallback error:', err.message);
+        res.json({ status: 'success', events: ['default-event'] });
+    }
+});
+
+// API Endpoint: Create Event
+app.post('/api/events', async (req, res) => {
+    const rawEventId = req.body.eventId || '';
+    // Slugify: lowercase, alphanumeric + hyphens
+    const eventId = rawEventId.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+    if (!eventId) {
+        return res.status(400).json({ status: 'error', message: 'ID Event tidak valid.' });
+    }
+
+    let isCreatedInCloud = false;
+    if (db) {
+        try {
+            const docRef = db.collection('events').doc(eventId);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                return res.status(400).json({ status: 'error', message: 'Event dengan nama tersebut sudah ada.' });
+            }
+            await docRef.set(DEFAULT_CONFIG);
+            isCreatedInCloud = true;
+        } catch (err) {
+            console.error('[API POST EVENTS] Firestore error:', err.message);
+        }
+    }
+
+    if (isCreatedInCloud) {
+        return res.json({ status: 'success', eventId, message: `Event "${eventId}" berhasil dibuat!` });
+    }
+
+    // Local File Fallback
+    try {
+        const eventDir = path.join(__dirname, 'data', 'events', eventId);
+        if (fs.existsSync(eventDir)) {
+            return res.status(400).json({ status: 'error', message: 'Event dengan nama tersebut sudah ada.' });
+        }
+        fs.mkdirSync(eventDir, { recursive: true });
+        fs.mkdirSync(path.join(eventDir, 'sessions'), { recursive: true });
+        
+        const eventConfigFile = path.join(eventDir, 'config.json');
+        fs.writeFileSync(eventConfigFile, JSON.stringify(DEFAULT_CONFIG, null, 4));
+        res.json({ status: 'success', eventId, message: `Event "${eventId}" berhasil dibuat!` });
+    } catch (err) {
+        console.error('[API POST EVENTS] Fallback error:', err.message);
+        res.status(500).json({ status: 'error', message: 'Gagal membuat event lokal.' });
     }
 });
 

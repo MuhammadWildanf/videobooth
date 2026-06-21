@@ -3,3 +3,7 @@
 token.json
 /uploads
 gcp-key.json
+/data/sessions/
+/data/events/
+/public/uploads_assets/
+/public/uploads_logo/

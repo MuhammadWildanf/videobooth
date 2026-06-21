@@ -1326,6 +1326,10 @@
     </div>
 
     <script>
+        // --- MULTI-EVENT CONFIGURATION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeEvent = urlParams.get('event') || 'default-event';
+
         // --- KEYBOARD SYSTEM ---
         let activeInput = null;
         let caps = true;
@@ -1535,7 +1539,7 @@
 
         function applyCachedTheme() {
             try {
-                const cached = localStorage.getItem('vb_config');
+                const cached = localStorage.getItem('vb_config_' + activeEvent);
                 if (!cached) return;
                 const data = JSON.parse(cached);
 
@@ -1599,9 +1603,9 @@
 
         async function applyTheme() {
             try {
-                const res = await fetch('/api/config');
+                const res = await fetch(`/api/config?event=${activeEvent}`, { cache: 'no-store' });
                 const data = await res.json();
-                localStorage.setItem('vb_config', JSON.stringify(data));
+                localStorage.setItem('vb_config_' + activeEvent, JSON.stringify(data));
 
                 // 1. Preload Critical Images in Parallel
                 const criticalAssets = [];
@@ -1704,7 +1708,7 @@
 
                 // 4. Optimized CSS Variable Updates (Prevent style flashing)
                 const rootStyle = document.documentElement.style;
-                if (data.bgImageUrl) {
+                if (data.bgImageUrl && data.bgImageUrl !== 'Default' && data.bgImageUrl !== 'none') {
                     const targetBg = `url("${data.bgImageUrl}")`;
                     if (document.body.style.backgroundImage !== targetBg) {
                         document.body.style.backgroundImage = targetBg;
@@ -1717,11 +1721,13 @@
                     }
                 }
 
-                if (data.frameImageUrl) {
+                if (data.frameImageUrl && data.frameImageUrl !== 'Default' && data.frameImageUrl !== 'none') {
                     const targetFrame = `url("${data.frameImageUrl}")`;
                     if (rootStyle.getPropertyValue('--frame-image') !== targetFrame) {
                         rootStyle.setProperty('--frame-image', targetFrame);
                     }
+                } else {
+                    rootStyle.setProperty('--frame-image', 'none');
                 }
 
                 if (data.accentColor && rootStyle.getPropertyValue('--accent') !== data.accentColor) rootStyle.setProperty('--accent', data.accentColor);
@@ -2139,6 +2145,7 @@
             }
 
             fd.append('deliveryMethod', 'both');
+            fd.append('eventId', activeEvent);
 
             try {
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });

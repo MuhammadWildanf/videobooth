@@ -595,6 +595,9 @@
 
     <!-- Navbar with Back button -->
     <header class="navbar">
+        <a class="btn-back" id="back-to-booth" href="/" style="text-decoration: none; align-items: center; justify-content: center; gap: 8px;">
+            <span>⬅️</span> BACK TO BOOTH
+        </a>
     </header>
 
     <!-- Branding Title Area -->
@@ -660,10 +663,18 @@
 
     <!-- Frontend logic -->
     <script>
+        // --- MULTI-EVENT CONFIGURATION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeEvent = urlParams.get('event') || 'default-event';
+
         let allSessions = [];
         let activeEventDate = '2026-05-23';
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // Set Back Button Link
+            const backBtn = document.getElementById('back-to-booth');
+            if (backBtn) backBtn.href = `/?event=${activeEvent}`;
+
             // Apply Dynamic Configuration immediately if active
             await loadThemeConfig();
 
@@ -671,66 +682,72 @@
             await fetchSessions();
         });
 
+        function applyConfig(config) {
+            if (!config) return;
+            // Update active event date if present
+            if (config.eventDate) {
+                activeEventDate = config.eventDate;
+            }
+
+            // Title and subtitle syncing
+            if (config.title) {
+                document.getElementById('galleryTitle').innerText = config.title;
+            }
+
+            if (config.subtitle) {
+                try {
+                    const dateObj = new Date(activeEventDate);
+                    const formattedEventDate = dateObj.toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    document.getElementById('gallerySubtitle').innerHTML = `${config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
+                } catch (e) {
+                    document.getElementById('gallerySubtitle').innerText = config.subtitle;
+                }
+            } else {
+                try {
+                    const dateObj = new Date(activeEventDate);
+                    const formattedEventDate = dateObj.toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    document.getElementById('gallerySubtitle').innerHTML = `Gallery of happiness from ScribbleBooth guests &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
+                } catch (e) { }
+            }
+
+            // Logo syncing
+            if (config.logoUrl) {
+                const logo = document.getElementById('logoElement');
+                logo.src = config.logoUrl;
+                logo.style.display = 'inline-block';
+            }
+            // Background & colors syncing
+            if (config.bgImageUrl && config.bgImageUrl !== 'Default' && config.bgImageUrl !== 'none') {
+                document.body.style.backgroundImage = `url('${config.bgImageUrl}')`;
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+            if (config.accentColor) {
+                document.documentElement.style.setProperty('--accent', config.accentColor);
+            }
+        }
+
         async function loadThemeConfig() {
             try {
                 // Try from local storage first to prevent flash
-                const cached = localStorage.getItem('vb_config');
-                let config = cached ? JSON.parse(cached) : null;
-
-                if (!config) {
-                    const res = await fetch('/api/config');
-                    config = await res.json();
+                const cached = localStorage.getItem(`vb_config_${activeEvent}`);
+                if (cached) {
+                    applyConfig(JSON.parse(cached));
                 }
 
-                if (config) {
-                    // Update active event date if present
-                    if (config.eventDate) {
-                        activeEventDate = config.eventDate;
-                    }
-
-                    // Title and subtitle syncing
-                    if (config.title) {
-                        document.getElementById('galleryTitle').innerText = config.title;
-                    }
-
-                    if (config.subtitle) {
-                        try {
-                            const dateObj = new Date(activeEventDate);
-                            const formattedEventDate = dateObj.toLocaleDateString('en-US', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            });
-                            document.getElementById('gallerySubtitle').innerHTML = `${config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
-                        } catch (e) {
-                            document.getElementById('gallerySubtitle').innerText = config.subtitle;
-                        }
-                    } else {
-                        try {
-                            const dateObj = new Date(activeEventDate);
-                            const formattedEventDate = dateObj.toLocaleDateString('en-US', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            });
-                            document.getElementById('gallerySubtitle').innerHTML = `Gallery of happiness from ScribbleBooth guests &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
-                        } catch (e) { }
-                    }
-
-                    // Logo syncing
-                    if (config.logoUrl) {
-                        const logo = document.getElementById('logoElement');
-                        logo.src = config.logoUrl;
-                        logo.style.display = 'inline-block';
-                    }
-                    // Background & colors syncing
-                    if (config.bgImageUrl) {
-                        document.body.style.backgroundImage = `url('${config.bgImageUrl}')`;
-                    }
-                    if (config.accentColor) {
-                        document.documentElement.style.setProperty('--accent', config.accentColor);
-                    }
-                }
+                // Always fetch fresh configuration in the background to update cache
+                const res = await fetch(`/api/config?event=${activeEvent}`, { cache: 'no-store' });
+                const config = await res.json();
+                localStorage.setItem(`vb_config_${activeEvent}`, JSON.stringify(config));
+                applyConfig(config);
             } catch (e) {
                 console.error("Config fetch error:", e);
             }
@@ -741,7 +758,7 @@
             const loading = document.getElementById('loading-state');
 
             try {
-                const res = await fetch('/api/sessions');
+                const res = await fetch(`/api/sessions?event=${activeEvent}`, { cache: 'no-store' });
                 const result = await res.json();
 
                 loading.style.display = 'none';

@@ -565,9 +565,14 @@
         <div class="nav-item" onclick="showSection('delivery')">📨 Sistem Pengiriman</div>
         <div class="nav-item" onclick="showSection('system')">⚙️ Pengaturan Inti</div>
         <div class="nav-item" onclick="showSection('sessions')">📊 Data Sesi & Galeri</div>
+        <div id="nav-events-item" class="nav-item" onclick="showSection('events')">🗂️ Kelola Event</div>
     </div>
 
     <div class="main-view">
+        <div id="event-badge" style="background: rgba(211, 187, 124, 0.1); border: 1px solid var(--border); padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; color: var(--accent); display: flex; align-items: center; justify-content: space-between;">
+            <span>Editing Event: <strong id="active-event-name">default-event</strong></span>
+            <span style="font-size: 11px; opacity: 0.8;">Pass <code>?event=slug</code> in the URL to edit a different event</span>
+        </div>
 
         <!-- SECTION: VISUALS -->
         <div id="section-visuals" class="view-section active">
@@ -902,6 +907,35 @@
             </div>
         </div>
 
+        <!-- SECTION: EVENTS -->
+        <div id="section-events" class="view-section">
+            <h2>Manajemen Multi-Event</h2>
+            
+            <!-- Form: Create New Event -->
+            <div class="card">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; margin-top: 0; margin-bottom: 15px; color: var(--accent);">Buat Event Baru</h3>
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px; margin: 0;" class="input-group">
+                        <label for="new-event-name">Nama / Slug Event</label>
+                        <input type="text" id="new-event-name" placeholder="Contoh: wedding-wildan (huruf kecil, tanpa spasi)" style="width: 100%;">
+                    </div>
+                    <button class="btn-primary" onclick="createNewEvent()" style="padding: 10px 25px; height: 42px; border-radius: 8px; position: static; box-shadow: none; margin: 0;">
+                        <span>➕</span> Buat Event
+                    </button>
+                </div>
+                <small style="color: var(--text-muted); display: block; margin-top: 10px;">Gunakan hanya huruf kecil, angka, dan tanda hubung (-) (misalnya: <code>ulang-tahun-lumea</code>).</small>
+            </div>
+
+            <!-- List: Existing Events -->
+            <div class="card">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; margin-top: 0; margin-bottom: 15px; color: var(--accent);">Daftar Event Aktif</h3>
+                <div id="events-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Dynamically loaded list of events -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">Memuat daftar event...</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- SAVE BAR -->
@@ -941,6 +975,118 @@
     </div>
 
     <script>
+        // --- MULTI-EVENT CONFIGURATION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeEvent = urlParams.get('event') || 'default-event';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const badgeEl = document.getElementById('active-event-name');
+            if (badgeEl) badgeEl.innerText = activeEvent;
+            
+            // Hide Manage Events menu item if it is not default-event
+            const navEventsEl = document.getElementById('nav-events-item');
+            if (navEventsEl) {
+                if (activeEvent === 'default-event') {
+                    navEventsEl.style.display = 'flex';
+                } else {
+                    navEventsEl.style.display = 'none';
+                }
+            }
+            
+            loadConfigData();
+        });
+
+        async function loadEventsList() {
+            const container = document.getElementById('events-list-container');
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">⌛ Memuat daftar event...</div>';
+            
+            try {
+                const res = await fetch('/api/events', { cache: 'no-store' });
+                const data = await res.json();
+                
+                if (data.status === 'success' && data.events) {
+                    container.innerHTML = '';
+                    if (data.events.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Belum ada event terdaftar.</div>';
+                        return;
+                    }
+                    data.events.forEach(evt => {
+                        const row = document.createElement('div');
+                        row.style.display = 'flex';
+                        row.style.justifyContent = 'space-between';
+                        row.style.alignItems = 'center';
+                        row.style.padding = '15px 20px';
+                        row.style.background = 'rgba(255,255,255,0.02)';
+                        row.style.border = '1px solid var(--border)';
+                        row.style.borderRadius = '12px';
+                        row.style.transition = '0.3s';
+                        
+                        row.onmouseover = () => row.style.background = 'rgba(255,255,255,0.04)';
+                        row.onmouseout = () => row.style.background = 'rgba(255,255,255,0.02)';
+                        
+                        row.innerHTML = `
+                            <div>
+                                <strong style="font-size: 15px; color: #fff; font-family: 'Outfit', sans-serif;">${evt}</strong>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <a href="/config.html?event=${evt}" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none;">⚙️ Configure</a>
+                                <a href="/?event=${evt}" target="_blank" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff;">🎥 Open Booth</a>
+                                <a href="/gallery.html?event=${evt}" target="_blank" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff;">🖼️ Gallery</a>
+                            </div>
+                        `;
+                        container.appendChild(row);
+                    });
+                } else {
+                    container.innerHTML = `<div style="text-align: center; color: #ff4444; padding: 20px;">❌ Gagal memuat event: ${data.message}</div>`;
+                }
+            } catch (err) {
+                container.innerHTML = '<div style="text-align: center; color: #ff4444; padding: 20px;">❌ Koneksi gagal ke server.</div>';
+            }
+        }
+
+        async function createNewEvent() {
+            const input = document.getElementById('new-event-name');
+            const eventNameRaw = input.value.trim();
+            if (!eventNameRaw) {
+                alert('Silakan masukkan nama event terlebih dahulu!');
+                return;
+            }
+
+            // Client side validation
+            const slug = eventNameRaw.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            if (!slug) {
+                alert('Nama event tidak valid! Gunakan huruf, angka, dan tanda hubung (-).');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventId: slug })
+                });
+                
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Reset input
+                    input.value = '';
+                    
+                    // Show success toast
+                    const toast = document.getElementById('successMsg');
+                    toast.innerText = `Event "${data.eventId}" berhasil dibuat!`;
+                    toast.style.display = 'block';
+                    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+                    
+                    // Reload list
+                    loadEventsList();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('Gagal menyambung ke server.');
+            }
+        }
+
         let sessionsData = [];
 
         function showSection(id) {
@@ -963,61 +1109,65 @@
 
             if (id === 'sessions') {
                 loadSessions();
+            } else if (id === 'events') {
+                loadEventsList();
             }
         }
 
         let dataBackup = {};
 
         // LOAD DATA
-        fetch('/api/config')
-            .then(res => res.json())
-            .then(data => {
-                dataBackup = data;
-                document.getElementById('title').value = data.title || '';
-                document.getElementById('subtitle').value = data.subtitle || '';
-                document.getElementById('descPremium').value = data.descPremium || '';
-                document.getElementById('startText').value = data.startText || '';
-                document.getElementById('emailSubject').value = data.emailSubject || '';
-                document.getElementById('messageTemplate').value = data.messageTemplate || '';
-                document.getElementById('bgColor1').value = data.bgColor1 || '#2c3e50';
-                document.getElementById('accentColor').value = data.accentColor || '#D3BB7C';
-                document.getElementById('frameColor').value = data.frameColor || '#333333';
-                document.getElementById('titleColor').value = data.titleColor || '#D3BB7C';
-                document.getElementById('descColor').value = data.descColor || '#CDCDCD';
-                document.getElementById('fontUrl').value = data.fontUrl || '';
-                document.getElementById('fontFamily').value = data.fontFamily || '';
-                document.getElementById('titleFontFamily').value = data.titleFontFamily || '';
+        function loadConfigData() {
+            fetch(`/api/config?event=${activeEvent}`, { cache: 'no-store' })
+                .then(res => res.json())
+                .then(data => {
+                    dataBackup = data;
+                    document.getElementById('title').value = data.title || '';
+                    document.getElementById('subtitle').value = data.subtitle || '';
+                    document.getElementById('descPremium').value = data.descPremium || '';
+                    document.getElementById('startText').value = data.startText || '';
+                    document.getElementById('emailSubject').value = data.emailSubject || '';
+                    document.getElementById('messageTemplate').value = data.messageTemplate || '';
+                    document.getElementById('bgColor1').value = data.bgColor1 || '#2c3e50';
+                    document.getElementById('accentColor').value = data.accentColor || '#D3BB7C';
+                    document.getElementById('frameColor').value = data.frameColor || '#333333';
+                    document.getElementById('titleColor').value = data.titleColor || '#D3BB7C';
+                    document.getElementById('descColor').value = data.descColor || '#CDCDCD';
+                    document.getElementById('fontUrl').value = data.fontUrl || '';
+                    document.getElementById('fontFamily').value = data.fontFamily || '';
+                    document.getElementById('titleFontFamily').value = data.titleFontFamily || '';
 
-                if (data.fontSelector) {
-                    document.getElementById('fontSelector').value = data.fontSelector;
-                }
-                document.getElementById('enableGesture').checked = data.enableGesture !== false;
-                if (document.getElementById('readyText')) document.getElementById('readyText').value = data.readyText || '';
-                if (document.getElementById('reviewText')) document.getElementById('reviewText').value = data.reviewText || '';
-                if (document.getElementById('successText')) document.getElementById('successText').value = data.successText || '';
-                document.getElementById('readyCdText').value = data.readyCdText || '';
-                document.getElementById('recordingCdText').value = data.recordingCdText || '';
-                document.getElementById('photoCdText').value = data.photoCdText || '';
-                document.getElementById('recordingDuration').value = data.recordingDuration || 15;
-                document.getElementById('eventDate').value = data.eventDate || '2026-05-23';
-                document.getElementById('showLeftPanel').checked = data.showLeftPanel !== false;
-                document.getElementById('showRightPanel').checked = data.showRightPanel !== false;
+                    if (data.fontSelector) {
+                        document.getElementById('fontSelector').value = data.fontSelector;
+                    }
+                    document.getElementById('enableGesture').checked = data.enableGesture !== false;
+                    if (document.getElementById('readyText')) document.getElementById('readyText').value = data.readyText || '';
+                    if (document.getElementById('reviewText')) document.getElementById('reviewText').value = data.reviewText || '';
+                    if (document.getElementById('successText')) document.getElementById('successText').value = data.successText || '';
+                    document.getElementById('readyCdText').value = data.readyCdText || '';
+                    document.getElementById('recordingCdText').value = data.recordingCdText || '';
+                    document.getElementById('photoCdText').value = data.photoCdText || '';
+                    document.getElementById('recordingDuration').value = data.recordingDuration || 15;
+                    document.getElementById('eventDate').value = data.eventDate || '2026-05-23';
+                    document.getElementById('showLeftPanel').checked = data.showLeftPanel !== false;
+                    document.getElementById('showRightPanel').checked = data.showRightPanel !== false;
 
-                if (data.idleHeadMode === 'logo') {
-                    document.getElementById('mode-logo').checked = true;
-                } else {
-                    document.getElementById('mode-title').checked = true;
-                }
+                    if (data.idleHeadMode === 'logo') {
+                        document.getElementById('mode-logo').checked = true;
+                    } else {
+                        document.getElementById('mode-title').checked = true;
+                    }
 
-                document.getElementById('bgStatus').innerText = data.bgImageUrl || 'Default';
-                document.getElementById('frameStatus').innerText = data.frameImageUrl || 'Default';
-                document.getElementById('overlayStatus').innerText = data.overlayImageUrl || 'Default';
+                    document.getElementById('bgStatus').innerText = data.bgImageUrl || 'Default';
+                    document.getElementById('frameStatus').innerText = data.frameImageUrl || 'Default';
+                    document.getElementById('overlayStatus').innerText = data.overlayImageUrl || 'Default';
 
-                // Logos & Videos
-                if (data.logoUrl) document.getElementById('logoPreview').src = data.logoUrl;
-                document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'No video';
-                document.getElementById('resultPath').innerText = data.resultVideoUrl || 'No video';
-            });
+                    // Logos & Videos
+                    if (data.logoUrl) document.getElementById('logoPreview').src = data.logoUrl;
+                    document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'No video';
+                    document.getElementById('resultPath').innerText = data.resultVideoUrl || 'No video';
+                });
+        }
 
         const fontsPreset = {
             luxury: { url: "https://fonts.googleapis.com/css2?family=Luxurious+Script&family=Kaisei+Opti&display=swap", family: "'Kaisei Opti', serif", titleFamily: "'Luxurious Script', cursive" },
@@ -1140,7 +1290,7 @@
                 payload.logoUrl = dataBackup.logoUrl;
             }
 
-            fetch('/api/config', {
+            fetch(`/api/config?event=${activeEvent}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -1264,7 +1414,7 @@
             emptyEl.style.display = 'none';
             
             try {
-                const res = await fetch('/api/sessions');
+                const res = await fetch(`/api/sessions?event=${activeEvent}`);
                 const data = await res.json();
                 
                 if (data.status === 'success') {
