@@ -2031,50 +2031,7 @@
         async function startCameraFlow() {
             const n = document.getElementById('name').value, p = document.getElementById('phone').value, e = document.getElementById('email-input').value;
             if (!n || !p) return alert("Please input your name and contact details!");
-
-            try {
-                // 1. Call Payment API
-                const res = await fetch('/api/payment/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ eventId: activeEvent, name: n, phone: p, email: e })
-                });
-                const data = await res.json();
-
-                if (data.status === 'success') {
-                    document.getElementById('payment-price-display').innerText = `Rp ${data.price.toLocaleString('id-ID')}`;
-                    document.getElementById('payment-qr-container').style.display = 'none'; // Sembunyikan QR bawaan
-                    changeState('payment');
-
-                    window.snap.pay(data.token, {
-                        onSuccess: function (result) {
-                            document.getElementById('payment-status-text').innerText = 'Pembayaran Berhasil! 🟢';
-                            document.getElementById('payment-status-text').style.color = '#4ade80';
-                            setTimeout(() => { initCameraAndGo(); }, 1500);
-                        },
-                        onPending: function (result) {
-                            document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran...';
-                        },
-                        onError: function (result) {
-                            alert("Pembayaran gagal diproses.");
-                            cancelPaymentFlow();
-                        },
-                        onClose: function () {
-                            // User menutup popup midtrans secara manual
-                            cancelPaymentFlow();
-                        }
-                    });
-
-                    return;
-                } else if (data.status === 'bypassed') {
-                    initCameraAndGo();
-                } else {
-                    alert("Terjadi kesalahan saat memuat pembayaran: " + (data.error || 'Unknown Error'));
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Koneksi gagal saat membuat pembayaran.");
-            }
+            initCameraAndGo();
         }
 
         function cancelPaymentFlow() {

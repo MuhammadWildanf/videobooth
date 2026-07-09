@@ -246,6 +246,42 @@ const sendVideoEmail = async (toEmail, userName, videoLink) => {
         console.error(`[EMAIL] ❌ Gagal mengirim, cek setelan password Anda:`, err.message);
     }
 };
+
+async function sendNotificationForSession(sessionData, config) {
+    let domainStr = process.env.PUBLIC_DOMAIN || 'localhost:3000';
+    let claimLink = '';
+    if (domainStr.startsWith('http')) {
+        claimLink = `${domainStr}/claim.html?id=${sessionData.id}`;
+    } else {
+        const protocol = domainStr === 'localhost:3000' ? 'http' : 'https';
+        claimLink = `${protocol}://${domainStr}/claim.html?id=${sessionData.id}`;
+    }
+
+    let msgTemplate = config.messageTemplate || `Halo {name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!`;
+    const customMsg = msgTemplate.replace(/{name}/g, sessionData.name).replace(/{link}/g, claimLink);
+
+    let emailSubj = config.emailSubject || "Kenangan ScribbleBooth Anda sudah siap! ✨";
+    
+    if (sessionData.email) {
+        console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${sessionData.email}`);
+        try {
+            await sendEmailMessage(sessionData.email, emailSubj, customMsg);
+            console.log(`[EMAIL] ✅ Email sukses dikirim ke ${sessionData.email}`);
+        } catch (err) {
+            console.log(`[EMAIL] ❌ Email gagal dikirim ke ${sessionData.email}: ${err.message}`);
+        }
+    }
+    
+    if (sessionData.phone) {
+        try {
+            const result = await sendWhatsAppMessage(sessionData.phone, customMsg);
+            console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${sessionData.phone}`);
+        } catch (err) {
+            console.log(`[WhatsApp] ❌ Pesan gagal dikirim ke ${sessionData.phone}: ${err.message}`);
+        }
+    }
+}
+
 // Helper function to read media dimensions dynamically using ffprobe
 const getMediaDimensions = (filePath) => {
     return new Promise((resolve) => {
@@ -434,6 +470,7 @@ const worker = async (task) => {
             }
             
             // 4.5 Save Session Data (Firestore or Local JSON)
+            const price = parseInt(config.sessionPrice) || 0;
             const sessionData = {
                 id: sessionId,
                 name: task.name,
@@ -442,7 +479,9 @@ const worker = async (task) => {
                 videoLink: videoLink,
                 photoLink: photoLink,
                 eventId: eventId,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                price: price,
+                paid: price === 0
             };
 
             if (db) {
@@ -461,41 +500,12 @@ const worker = async (task) => {
                 const sessionFilePath = path.join(sessionsDir, `${sessionId}.json`);
                 fs.writeFileSync(sessionFilePath, JSON.stringify(sessionData, null, 2));
             }
-            
-            // This is the link we actually send to the user
-            let domainStr = process.env.PUBLIC_DOMAIN || 'localhost:3000';
-            let localResultLink = '';
-            if (domainStr.startsWith('http')) {
-                localResultLink = `${domainStr}/result?id=${sessionId}`;
-            } else {
-                const protocol = domainStr === 'localhost:3000' ? 'http' : 'https';
-                localResultLink = `${protocol}://${domainStr}/result?id=${sessionId}`;
-            }
-
-            // 5. Send Notification
+            // 5. Send Notification (Delayed if unpaid)
             if (videoLink || photoLink) {
-                let msgTemplate = config.messageTemplate || `Halo {name}! ✨\n\nKenangan Anda di *ScribbleBooth* sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!`;
-                const customMsg = msgTemplate.replace(/{name}/g, task.name).replace(/{link}/g, localResultLink);
-
-                let emailSubj = config.emailSubject || "Kenangan ScribbleBooth Anda sudah siap! ✨";
-                
-                if (task.email) {
-                    console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.email}`);
-                    try {
-                        await sendEmailMessage(task.email, emailSubj, customMsg);
-                        console.log(`[EMAIL] ✅ Email sukses dikirim ke ${task.email}`);
-                    } catch (err) {
-                        console.log(`[EMAIL] ❌ Email gagal dikirim ke ${task.email}: ${err.message}`);
-                    }
-                }
-                
-                if (task.phone) {
-                    try {
-                        const result = await sendWhatsAppMessage(task.phone, customMsg);
-                        console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}`);
-                    } catch (err) {
-                        console.log(`[WhatsApp] ❌ Pesan gagal dikirim ke ${task.phone}: ${err.message}`);
-                    }
+                if (price > 0 && !sessionData.paid) {
+                    console.log(`[PAYWALL] 💰 Sesi ${sessionId} belum dibayar (Rp${price}). Menunggu pembayaran untuk mengirim WhatsApp/Email.`);
+                } else {
+                    await sendNotificationForSession(sessionData, config);
                 }
             }
 
@@ -1031,98 +1041,125 @@ app.post('/api/config', async (req, res) => {
 });
 
 // ==========================================
-// API Endpoint: MIDTRANS PAYMENT GATEWAY
+// API Endpoint: SESSION & PAYMENT GATEWAY
 // ==========================================
 
-// 1. Create Transaction (Generate QRIS)
-app.post('/api/payment/create', async (req, res) => {
-    try {
-        const { eventId, name, phone, email } = req.body;
-        if (!eventId) return res.status(400).json({ error: 'Event ID required' });
+// Fetch Session Info for Claim Page (Secure: Hides driveLink if unpaid)
+app.get('/api/session/:id', async (req, res) => {
+    const sessionId = req.params.id;
+    let sessionData = null;
+    let config = DEFAULT_CONFIG;
 
-        // Load config to get sessionPrice securely from backend
-        let config = DEFAULT_CONFIG;
+    try {
         if (db) {
-            const doc = await db.collection('events').doc(eventId).get();
-            if (doc.exists) config = { ...DEFAULT_CONFIG, ...doc.data() };
+            const doc = await db.collection('sessions').doc(sessionId).get();
+            if (doc.exists) sessionData = doc.data();
         } else {
-            const eventConfigFile = path.join(__dirname, 'data', 'events', eventId, 'config.json');
-            if (fs.existsSync(eventConfigFile)) {
-                config = { ...DEFAULT_CONFIG, ...JSON.parse(fs.readFileSync(eventConfigFile)) };
+            // Local JSON search
+            const eventsDir = path.join(__dirname, 'data', 'events');
+            if (fs.existsSync(eventsDir)) {
+                const events = fs.readdirSync(eventsDir);
+                for (const ev of events) {
+                    const sessionFile = path.join(eventsDir, ev, 'sessions', `${sessionId}.json`);
+                    if (fs.existsSync(sessionFile)) {
+                        sessionData = JSON.parse(fs.readFileSync(sessionFile));
+                        break;
+                    }
+                }
             }
         }
 
-        const price = parseInt(config.sessionPrice) || 0;
-        if (price <= 0) {
-            return res.json({ status: 'bypassed', message: 'Event is free' });
+        if (!sessionData) return res.status(404).json({ error: 'Sesi tidak ditemukan' });
+
+        // Load config for this event
+        if (db) {
+            const evDoc = await db.collection('events').doc(sessionData.eventId || 'audric-cathrine').get();
+            if (evDoc.exists) config = { ...DEFAULT_CONFIG, ...evDoc.data() };
+        } else {
+            const cfgFile = path.join(__dirname, 'data', 'events', sessionData.eventId || 'audric-cathrine', 'config.json');
+            if (fs.existsSync(cfgFile)) config = { ...DEFAULT_CONFIG, ...JSON.parse(fs.readFileSync(cfgFile)) };
         }
 
-        const orderId = `ORDER-${eventId}-${Date.now()}`;
+        // Hide drive link if paid event and not paid
+        const price = sessionData.price || 0;
+        const isPaid = sessionData.paid || price === 0;
+
+        res.json({
+            id: sessionData.id,
+            name: sessionData.name,
+            eventId: sessionData.eventId,
+            price: price,
+            paid: isPaid,
+            videoLink: isPaid ? sessionData.videoLink : null,
+            photoLink: isPaid ? sessionData.photoLink : null
+        });
+
+    } catch (err) {
+        console.error('[API SESSION]', err);
+        res.status(500).json({ error: 'Gagal memuat sesi' });
+    }
+});
+
+// 1. Create Transaction (Generate QRIS for Claim)
+app.post('/api/payment/create-claim', async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        if (!sessionId) return res.status(400).json({ error: 'Session ID required' });
+
+        let sessionData = null;
+        if (db) {
+            const doc = await db.collection('sessions').doc(sessionId).get();
+            if (doc.exists) sessionData = doc.data();
+        } else {
+            const eventsDir = path.join(__dirname, 'data', 'events');
+            if (fs.existsSync(eventsDir)) {
+                for (const ev of fs.readdirSync(eventsDir)) {
+                    const sf = path.join(eventsDir, ev, 'sessions', `${sessionId}.json`);
+                    if (fs.existsSync(sf)) { sessionData = JSON.parse(fs.readFileSync(sf)); break; }
+                }
+            }
+        }
+
+        if (!sessionData) return res.status(404).json({ error: 'Session not found' });
+        if (sessionData.paid) return res.json({ status: 'bypassed', message: 'Already paid' });
+
+        const price = sessionData.price || 0;
+        if (price <= 0) return res.json({ status: 'bypassed', message: 'Event is free' });
+
+        const orderId = `ORDER-${sessionId}-${Date.now()}`;
         const parameter = {
             transaction_details: {
                 order_id: orderId,
                 gross_amount: price
             },
             customer_details: {
-                first_name: name || 'Guest',
-                email: email || 'guest@example.com',
-                phone: phone || '0800000000'
+                first_name: sessionData.name || 'Guest',
+                email: sessionData.email || 'guest@example.com',
+                phone: sessionData.phone || '0800000000'
             },
-            // Paksa Snap Popup untuk langsung membuka QRIS/GoPay tanpa menu pilihan
             enabled_payments: ["gopay", "other_qris"]
         };
 
         const transaction = await snapApi.createTransaction(parameter);
-        
-        // Initialize cache status
         paymentCache[orderId] = 'pending';
+        
+        // Save orderId mapping to session for webhook
+        paymentCache[`MAP_${orderId}`] = sessionId;
 
         res.json({
             status: 'success',
             orderId: orderId,
             token: transaction.token,
-            redirect_url: transaction.redirect_url,
             price: price
         });
 
     } catch (err) {
         console.error('[MIDTRANS CREATE ERROR]', err.message);
-        res.status(500).json({ error: 'Gagal membuat transaksi pembayaran via Snap' });
+        res.status(500).json({ error: 'Gagal membuat transaksi' });
     }
 });
 
-// 2. Polling Payment Status
-app.get('/api/payment/status/:orderId', async (req, res) => {
-    const orderId = req.params.orderId;
-    try {
-        // Fast response if webhook already hit
-        if (paymentCache[orderId] === 'settlement' || paymentCache[orderId] === 'capture') {
-            return res.json({ status: 'settlement' });
-        }
-
-        // Otherwise check with Midtrans API directly (fallback if webhook delayed)
-        const statusResponse = await coreApi.transaction.status(orderId);
-        const trStatus = statusResponse.transaction_status;
-        
-        if (trStatus === 'settlement' || trStatus === 'capture') {
-            paymentCache[orderId] = 'settlement';
-            return res.json({ status: 'settlement' });
-        }
-        
-        if (trStatus === 'cancel' || trStatus === 'expire' || trStatus === 'deny') {
-            paymentCache[orderId] = 'failed';
-            return res.json({ status: 'failed', detail: trStatus });
-        }
-
-        res.json({ status: 'pending' });
-
-    } catch (err) {
-        // Usually means transaction not found or Midtrans error
-        res.json({ status: paymentCache[orderId] || 'pending' });
-    }
-});
-
-// 3. Webhook Notification Callback from Midtrans
+// 2. Webhook Notification Callback from Midtrans
 app.post('/api/payment/callback', async (req, res) => {
     try {
         const notification = await coreApi.transaction.notification(req.body);
@@ -1133,23 +1170,84 @@ app.post('/api/payment/callback', async (req, res) => {
         console.log(`[MIDTRANS WEBHOOK] Order: ${orderId} | Status: ${trStatus}`);
 
         if (trStatus === 'capture' || trStatus === 'settlement') {
-            if (fraudStatus === 'challenge') {
-                paymentCache[orderId] = 'challenge';
-            } else {
+            const isSuccess = fraudStatus === 'challenge' ? false : true;
+            if (isSuccess) {
                 paymentCache[orderId] = 'settlement';
+                const sessionId = paymentCache[`MAP_${orderId}`];
+                if (sessionId) {
+                    await markSessionAsPaidAndNotify(sessionId);
+                }
             }
         } else if (trStatus === 'cancel' || trStatus === 'deny' || trStatus === 'expire') {
             paymentCache[orderId] = 'failed';
-        } else if (trStatus === 'pending') {
-            paymentCache[orderId] = 'pending';
         }
 
         res.status(200).json({ status: 'ok' });
     } catch (err) {
         console.error('[MIDTRANS WEBHOOK ERROR]', err.message);
-        res.status(500).json({ error: 'Webhook processing failed' });
+        res.status(500).json({ error: 'Webhook failed' });
     }
 });
+
+async function markSessionAsPaidAndNotify(sessionId) {
+    console.log(`[PAYMENT SUCCESS] 💸 Memproses pembayaran lunas untuk Sesi: ${sessionId}`);
+    try {
+        let sessionData = null;
+        let eventId = null;
+        let sessionFileLocal = null;
+
+        if (db) {
+            const doc = await db.collection('sessions').doc(sessionId).get();
+            if (doc.exists) {
+                sessionData = doc.data();
+                eventId = sessionData.eventId;
+                await db.collection('sessions').doc(sessionId).update({ paid: true });
+            }
+        } else {
+            const eventsDir = path.join(__dirname, 'data', 'events');
+            if (fs.existsSync(eventsDir)) {
+                for (const ev of fs.readdirSync(eventsDir)) {
+                    const sf = path.join(eventsDir, ev, 'sessions', `${sessionId}.json`);
+                    if (fs.existsSync(sf)) {
+                        sessionData = JSON.parse(fs.readFileSync(sf));
+                        eventId = sessionData.eventId;
+                        sessionFileLocal = sf;
+                        break;
+                    }
+                }
+            }
+            if (sessionFileLocal && sessionData) {
+                sessionData.paid = true;
+                fs.writeFileSync(sessionFileLocal, JSON.stringify(sessionData, null, 2));
+            }
+        }
+
+        if (sessionData && !sessionData.notifiedAfterPaid) {
+            sessionData.paid = true;
+            let config = DEFAULT_CONFIG;
+            if (db) {
+                const cfgDoc = await db.collection('events').doc(eventId).get();
+                if (cfgDoc.exists) config = { ...DEFAULT_CONFIG, ...cfgDoc.data() };
+            } else {
+                const cfgPath = path.join(__dirname, 'data', 'events', eventId, 'config.json');
+                if (fs.existsSync(cfgPath)) config = { ...DEFAULT_CONFIG, ...JSON.parse(fs.readFileSync(cfgPath)) };
+            }
+            
+            console.log(`[PAYMENT SUCCESS] Memicu pengiriman otomatis WA/Email...`);
+            await sendNotificationForSession(sessionData, config);
+            
+            // Mark notified to prevent duplicate
+            if (db) {
+                await db.collection('sessions').doc(sessionId).update({ notifiedAfterPaid: true });
+            } else if (sessionFileLocal) {
+                sessionData.notifiedAfterPaid = true;
+                fs.writeFileSync(sessionFileLocal, JSON.stringify(sessionData, null, 2));
+            }
+        }
+    } catch (e) {
+        console.error('[MARK PAID ERROR]', e);
+    }
+}
 
 // API Endpoint: Get All Event Slugs & Statuses
 app.get('/api/events', async (req, res) => {
