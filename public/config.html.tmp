@@ -657,7 +657,6 @@
         <div class="nav-item" onclick="showSection('content-success')">🎉 State Success</div>
         <div class="nav-item" onclick="showSection('content-side-panel')">📐 Side Panel Overlays</div>
         <div class="nav-item" onclick="showSection('content-result')">📱 Guest Result Page</div>
-        <div class="nav-item" onclick="showSection('content-gallery')">🖼️ Guest Gallery Page</div>
 
         <div class="nav-line"></div>
         <div class="nav-item" onclick="showSection('media')">🎬 Media Assets</div>
@@ -678,7 +677,7 @@
 
             <!-- Master Color Picker -->
             <div class="card">
-                <label>🎨 Quick Theme Color (Global Applicator)</label>
+                <label>🎨 Quick Theme Color (Global Color Applicator)</label>
                 <small style="color:var(--text-muted); display:block; margin-bottom:15px;">
                     Choose a color to set all text, buttons, titles, and accent colors simultaneously in one click.
                 </small>
@@ -757,7 +756,7 @@
                             <option value="romantic">Romantic (Great Vibes)</option>
                             <option value="custom">Custom / Upload Font</option>
                         </select>
-                        <small style="color:var(--text-muted); display:block; margin-top:8px;">Font will automatically apply to Title and Text without setting a special URL.</small>
+                        <small style="color:var(--text-muted); display:block; margin-top:8px;">Font will be automatically applied to Title and Text without setting a special URL.</small>
                     </div>
 
                     <div id="custom-font-fields" style="display: none; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
@@ -827,7 +826,7 @@
                             <small id="frameStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/frame_gold.png</small>
                             <input type="file" id="frameFile" accept="image/*" style="font-size:11px;">
-                            <div class="btn-browse" onclick="openLibrary('frameImageUrl', 'frameStatus')">📁 Choose from Gallery</div>
+                            <div class="btn-browse" onclick="openLibrary('frameImageUrl', 'frameStatus')">📁 Pilih dari Galeri</div>
                         </div>
                     </div>
                     <div class="input-group">
@@ -836,7 +835,7 @@
                             <small id="overlayStatus"
                                 style="color:var(--accent); font-size:10px; display:block; margin-bottom:5px;">/overlay.png</small>
                             <input type="file" id="overlayFile" accept="image/*" style="font-size:11px;">
-                            <div class="btn-browse" onclick="openLibrary('overlayImageUrl', 'overlayStatus')">📁 Choose from Gallery</div>
+                            <div class="btn-browse" onclick="openLibrary('overlayImageUrl', 'overlayStatus')">📁 Pilih dari Galeri</div>
                         </div>
                     </div>
                 </div>
@@ -1363,69 +1362,16 @@
             </div>
         </div>
 
-        <!-- SECTION: CONTENT - GUEST GALLERY PAGE -->
-        <div id="section-content-gallery" class="view-section content-section">
-            <h2>Guest Gallery Page</h2>
-            <div class="card">
-                <h3 style="font-size: 15px; color: var(--accent); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
-                    🖼️ Guest Gallery Page
-                </h3>
-                <div class="grid-2">
-                    <div class="input-group">
-                        <label>Gallery Title</label>
-                        <input type="text" id="galleryTitle" placeholder="Event Gallery">
-                    </div>
-                    <div class="input-group">
-                        <label>Gallery Subtitle</label>
-                        <input type="text" id="gallerySubtitle" placeholder="A collection of beautiful moments.">
-                    </div>
-                </div>
-                <div class="grid-2" style="margin-top: 10px;">
-                    <div class="input-group">
-                        <label>Search Placeholder</label>
-                        <input type="text" id="gallerySearchPlaceholder" placeholder="Search by name...">
-                    </div>
-                    <div class="input-group">
-                        <label>Empty Search Text</label>
-                        <input type="text" id="galleryEmptyText" placeholder="No memories found yet.">
-                    </div>
-                </div>
-                <div class="grid-2" style="margin-top: 10px;">
-                    <div class="input-group">
-                        <label>Gallery Text Color</label>
-                        <div class="color-row" style="padding: 6px 10px;">
-                            <input type="color" id="galleryTextColor">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>Gallery Background Color</label>
-                        <div class="color-row" style="padding: 6px 10px;">
-                            <input type="color" id="galleryBgColor">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- SECTION: MEDIA -->
         <div id="section-media" class="view-section">
             <h2>Aset Logo &amp; Video</h2>
             <div class="grid-2">
                 <div class="card">
-                    <label>Main Logo (Optional)</label>
+                    <label>Logo Utama (Opsional)</label>
                     <div class="upload-box">
                         <img id="logoPreview" class="preview-img" src="">
                         <input type="file" id="logoFile" accept="image/*">
-                        <div class="btn-browse" onclick="openLibrary('logoUrl', 'logoPreview')">📁 Choose from Gallery
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <label>Bottom Left Logo (Persistent)</label>
-                    <div class="upload-box">
-                        <img id="bottomLeftLogoPreview" class="preview-img" src="">
-                        <input type="file" id="bottomLeftLogoFile" accept="image/*">
-                        <div class="btn-browse" onclick="openLibrary('bottomLeftLogoUrl', 'bottomLeftLogoPreview')">📁 Choose from Gallery
+                        <div class="btn-browse" onclick="openLibrary('logoUrl', 'logoPreview')">📁 Pilih dari Galeri
                         </div>
                     </div>
                 </div>
@@ -1477,11 +1423,6 @@
                     <label>ID Folder Google Drive</label>
                     <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Kosongkan jika Anda sudah menggunakan layanan GCP (Google Cloud Storage) di file .env</small>
                     <input type="text" id="driveFolderId">
-                </div>
-                <div class="input-group">
-                    <label>Harga Sesi / Payment (IDR)</label>
-                    <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Biarkan 0 untuk event gratis. Isi nominal (misal: 15000) untuk mengaktifkan pembayaran QRIS Midtrans per sesi.</small>
-                    <input type="number" id="sessionPrice" min="0" value="0">
                 </div>
                 <div class="grid-3">
                     <div class="input-group">
@@ -1988,16 +1929,7 @@
                     document.getElementById('resultSavePhotoText').value = data.resultSavePhotoText || '📸 Save Your Photo';
                     document.getElementById('resultFooterText').value = data.resultFooterText || 'Thank you for this beautiful moment';
 
-                    // === GUEST GALLERY PAGE ===
-                    document.getElementById('galleryTitle').value = data.galleryTitle || 'Event Gallery';
-                    document.getElementById('gallerySubtitle').value = data.gallerySubtitle || 'A collection of beautiful moments.';
-                    document.getElementById('gallerySearchPlaceholder').value = data.gallerySearchPlaceholder || 'Search by name...';
-                    document.getElementById('galleryEmptyText').value = data.galleryEmptyText || 'No memories found yet.';
-                    document.getElementById('galleryTextColor').value = data.galleryTextColor || '#ffffff';
-                    document.getElementById('galleryBgColor').value = data.galleryBgColor || '#0a0a0b';
-
                     // === SYSTEM ===
-                    document.getElementById('sessionPrice').value = data.sessionPrice || 0;
                     document.getElementById('recordingDuration').value = data.recordingDuration || 15;
                     document.getElementById('qrResetDuration').value = data.qrResetDuration || 45;
                     document.getElementById('eventDate').value = data.eventDate || '2026-05-23';
@@ -2036,7 +1968,6 @@
                     document.getElementById('overlayStatus').innerText = data.overlayImageUrl || 'Default';
 
                     if (data.logoUrl) document.getElementById('logoPreview').src = data.logoUrl;
-                    if (data.bottomLeftLogoUrl) document.getElementById('bottomLeftLogoPreview').src = data.bottomLeftLogoUrl;
                     document.getElementById('tutorialPath').innerText = data.tutorialVideoUrl || 'No video';
                     document.getElementById('resultPath').innerText = data.resultVideoUrl || 'No video';
                 });
@@ -2140,7 +2071,7 @@
                 'photoHeaderSubtitleColor', 'photoInstructionTextColor', 'photoBackTextColor',
                 'finalHeaderTitleColor', 'finalRetakeAllTextColor', 'finalRetakePhotoTextColor',
                 'finalUploadTextColor', 'successFooterTextColor', 'successDoneTextColor',
-                'formLabelNameColor', 'formSubmitTextColor', 'galleryTextColor'
+                'formLabelNameColor', 'formSubmitTextColor'
             ];
             fields.forEach(fieldId => {
                 const el = document.getElementById(fieldId);
@@ -2183,16 +2114,6 @@
                 const res = await fetch('/api/config/logo', { method: 'POST', body: formData });
                 const d = await res.json();
                 if (d.status === 'success') finalLogoUrl = d.logoUrl;
-            }
-
-            const bottomLeftLogoFile = document.getElementById('bottomLeftLogoFile').files[0];
-            let finalBottomLeftLogoUrl = null;
-            if (bottomLeftLogoFile) {
-                const formData2 = new FormData();
-                formData2.append('logo', bottomLeftLogoFile);
-                const res2 = await fetch('/api/config/logo', { method: 'POST', body: formData2 });
-                const d2 = await res2.json();
-                if (d2.status === 'success') finalBottomLeftLogoUrl = d2.logoUrl;
             }
 
             const tutFile = document.getElementById('tutorialFile').files[0];
@@ -2323,14 +2244,6 @@
                 resultSavePhotoText: document.getElementById('resultSavePhotoText').value,
                 resultFooterText: document.getElementById('resultFooterText').value,
 
-                // Guest Gallery Page
-                galleryTitle: document.getElementById('galleryTitle').value,
-                gallerySubtitle: document.getElementById('gallerySubtitle').value,
-                gallerySearchPlaceholder: document.getElementById('gallerySearchPlaceholder').value,
-                galleryEmptyText: document.getElementById('galleryEmptyText').value,
-                galleryTextColor: document.getElementById('galleryTextColor').value,
-                galleryBgColor: document.getElementById('galleryBgColor').value,
-
                 // Font
                 fontSelector: document.getElementById('fontSelector').value,
                 fontSourceType: fontSourceType,
@@ -2339,7 +2252,6 @@
                 titleFontFamily: document.getElementById('titleFontFamily').value,
 
                 // System
-                sessionPrice: parseInt(document.getElementById('sessionPrice').value) || 0,
                 enableGesture: document.getElementById('enableGesture').checked,
                 recordingDuration: parseInt(document.getElementById('recordingDuration').value),
                 qrResetDuration: parseInt(document.getElementById('qrResetDuration').value),
@@ -2354,15 +2266,11 @@
                 overlayImageUrl: overlayUrl || document.getElementById('overlayStatus').innerText,
                 tutorialVideoUrl: tutUrl || document.getElementById('tutorialPath').innerText,
                 resultVideoUrl: resUrl || document.getElementById('resultPath').innerText,
-                logoUrl: finalLogoUrl || (document.getElementById('logoPreview').src.includes('base64') ? '' : document.getElementById('logoPreview').src),
-                bottomLeftLogoUrl: finalBottomLeftLogoUrl || (document.getElementById('bottomLeftLogoPreview').src.includes('base64') ? '' : document.getElementById('bottomLeftLogoPreview').src)
+                logoUrl: finalLogoUrl || (document.getElementById('logoPreview').src.includes('base64') ? '' : document.getElementById('logoPreview').src)
             };
 
             if (!payload.logoUrl || payload.logoUrl === 'null') {
                 payload.logoUrl = dataBackup.logoUrl;
-            }
-            if (!payload.bottomLeftLogoUrl || payload.bottomLeftLogoUrl === 'null') {
-                payload.bottomLeftLogoUrl = dataBackup.bottomLeftLogoUrl;
             }
 
             fetch(`/api/config?event=${activeEvent}`, {

@@ -11,7 +11,25 @@ const { google } = require('googleapis');
 const { Storage } = require('@google-cloud/storage');
 const { Readable } = require('stream');
 const nodemailer = require('nodemailer');
+const midtransClient = require('midtrans-client');
+const qrcode = require('qrcode');
 
+// Inisialisasi Midtrans Core API (Untuk nanti jika QRIS murni sudah aktif)
+const coreApi = new midtransClient.CoreApi({
+    isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+    serverKey: process.env.MIDTRANS_SERVER_KEY || '',
+    clientKey: process.env.MIDTRANS_CLIENT_KEY || ''
+});
+
+// Inisialisasi Midtrans Snap API (Untuk testing saat ini)
+const snapApi = new midtransClient.Snap({
+    isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+    serverKey: process.env.MIDTRANS_SERVER_KEY || '',
+    clientKey: process.env.MIDTRANS_CLIENT_KEY || ''
+});
+
+// In-memory cache untuk status pembayaran (webhook callback)
+const paymentCache = {};
 // Initialize Express App
 const app = express();
 const port = 3000;
@@ -19,7 +37,38 @@ const port = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Intercept root route to require event parameter
+app.get('/', (req, res, next) => {
+    if (!req.query.event) {
+        return res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+    }
+    next();
+});
+
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] })); // Serve frontend html with clean URLs
+
+// --- ADMIN AUTHENTICATION ---
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_TOKEN = 'lumea-admin-token-xyz789'; // Simple static token for validation
+
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    if (password === ADMIN_PASSWORD) {
+        res.json({ status: 'success', token: ADMIN_TOKEN });
+    } else {
+        res.status(401).json({ status: 'error', message: 'Password salah!' });
+    }
+});
+
+app.post('/api/verify-token', (req, res) => {
+    const { token } = req.body;
+    if (token === ADMIN_TOKEN) {
+        res.json({ status: 'success' });
+    } else {
+        res.status(401).json({ status: 'error' });
+    }
+});
 
 // Setup Multer for Video Uploads
 const storage = multer.diskStorage({
@@ -220,7 +269,7 @@ const worker = async (task) => {
 
     return new Promise(async (resolve, reject) => {
         try {
-            const eventId = task.eventId || 'default-event';
+            const eventId = task.eventId || 'audric-cathrine';
             const inputPath = task.videoPath;
             const photoInputPath = task.photoPath;
             let config = DEFAULT_CONFIG;
@@ -524,7 +573,7 @@ app.get('/api/result/:id', async (req, res) => {
 // API Endpoint: Get All Sessions
 app.get('/api/sessions', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    const eventId = req.query.event || 'default-event';
+    const eventId = req.query.event || 'audric-cathrine';
     
     if (db) {
         try {
@@ -561,8 +610,8 @@ app.get('/api/sessions', async (req, res) => {
             });
         }
         
-        // Also merge legacy global sessions if request is for 'default-event'
-        if (eventId === 'default-event') {
+        // Also merge legacy global sessions if request is for 'audric-cathrine'
+        if (eventId === 'audric-cathrine') {
             const legacyDir = path.join(__dirname, 'data', 'sessions');
             if (fs.existsSync(legacyDir)) {
                 const files = fs.readdirSync(legacyDir);
@@ -645,12 +694,18 @@ app.delete('/api/sessions/:id', async (req, res) => {
 app.post('/api/videobooth/submit', (req, res, next) => {
     console.log(`\n[CONNECTION] ⚡ Terdeteksi upaya pengiriman data...`);
     next();
-}, cpUpload, (req, res) => {
+}, cpUpload, async (req, res) => {
     // 1. LOG IMMEDIATELY
     const { name, phone } = req.body;
     console.log(`[API] 📥 Data diterima dari: ${name} (${phone})`);
 
     try {
+        const eventId = req.body.eventId || 'audric-cathrine';
+        const active = await isEventActive(eventId);
+        if (!active) {
+            return res.status(400).json({ status: 'error', message: 'Event ini sedang tidak aktif.' });
+        }
+
         const videoFile = req.files['video'] ? req.files['video'][0] : null;
         const photoFile = req.files['photo'] ? req.files['photo'][0] : null;
 
@@ -668,7 +723,7 @@ app.post('/api/videobooth/submit', (req, res, next) => {
             deliveryMethod: req.body.deliveryMethod || 'both',
             videoPath: videoFile.path,
             photoPath: photoFile ? photoFile.path : null,
-            eventId: req.body.eventId || 'default-event'
+            eventId: eventId
         });
 
         // KEMBALIKAN response secepat mungkin
@@ -702,16 +757,18 @@ async function sendWhatsAppMessage(phone, text) {
         });
         if (result && (result.status === true || result.message === "Berhasil mengirimkan pesan")) {
             console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${phone}:`, result.message || "Berhasil");
+            return result;
         } else {
             console.log(`[WhatsApp] ⚠️ Server RuangWA merespons, tapi pesan mungkin gagal:`, result);
+            throw new Error(result && result.message ? result.message : "Unknown RuangWA error");
         }
-        return result;
     } catch (error) {
         console.error(`[WhatsApp] ❌ Error: ${error.message}`);
         // Jika error 523 (Origin Unreachable) dari RuangWA
         if (error.statusCode === 523) {
             console.error(`[WhatsApp] 🛑 Server RuangWA Sedang Down (Error 523). Pesan masuk ke antrean tapi gagal kirim otomatis.`);
         }
+        throw error;
     }
 }
 
@@ -754,19 +811,136 @@ async function sendEmailMessage(targetEmail, subject, text) {
 // ===============================
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 const DEFAULT_CONFIG = {
-    title: 'Audric & Catherine',
-    subtitle: 'A special moment awaits you.',
+    // === BASIC ===
+    status: 'active',
+    title: 'New Event',
+    subtitle: '#OnceInALifetime',
     descPremium: 'Enter your details to unveil a personalized wedding experience.',
     startText: 'Begin your experience',
     messageTemplate: 'Halo {name}! ✨\n\nKenangan Anda di ScribbleBooth sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!',
     emailSubject: 'Kenangan ScribbleBooth Anda sudah siap! ✨',
-    bgColor1: '#2c3e50',
-    logoUrl: "/uploads_logo/logo-placeholder.png",
-    tutorialVideoUrl: "",
-    resultVideoUrl: "",
-    frameColor: "#3d3d3d",
+
+    // === COLORS ===
+    bgColor1: '#1a100a',
+    bgColor2: '#3c2a21',
+    accentColor: '#D3BB7C',
+    frameColor: '#333333',
+    titleColor: '#D3BB7C',
+    connectorColor: '#D3BB7C',
+    subtitleColor: '#f0e5c7',
+    descColor: '#CDCDCD',
+    startTextColor: '#1a0f0a',
+    readyTextColor: '#f0e5c7',
+    reviewTextColor: '#f0e5c7',
+    successTextColor: '#f0e5c7',
+
+    // === STATE FORM ===
+    formLabelName: 'Name',
+    formLabelNameColor: '#f0e5c7',
+    formPlaceholderName: 'Please input your name',
+    formSubmitText: 'SUBMIT',
+    formSubmitTextColor: '#1a0f0a',
+
+    // === STATE READY VIDEO ===
+    readyHeaderTitle: 'Ready To Record?',
+    readyHeaderTitleColor: '#f0e5c7',
+    readyHeaderSubtitle: 'Position yourself in front of the camera',
+    readyHeaderSubtitleColor: '#f0e5c7',
+    readyTextMain: 'Look at the camera and get ready.',
+    readyTextSub: 'Hit the record button when you are ready.',
+    readyCountdownText: 'Start Recording',
+    readyCdText: 'Recording Begins in...',
+    readyBackText: 'BACK',
+    readyBackTextColor: '#e7e5d8',
+
+    // === STATE REVIEW VIDEO ===
+    recordingCdText: 'Recording...',
+    reviewTextMain: 'Please review your video,',
+    reviewTextSub: 'you can RETAKE or NEXT.',
+    reviewRetakeText: 'RETAKE',
+    reviewRetakeTextColor: '#e7e5d8',
+    reviewPhotoText: 'TAKE A PHOTO',
+    reviewPhotoTextColor: '#1a0f0a',
+
+    // === STATE READY PHOTO ===
+    photoHeaderTitle: 'Ready for Photo Session?',
+    photoHeaderTitleColor: '#f0e5c7',
+    photoHeaderSubtitle: 'Strike a beautiful pose for the camera',
+    photoHeaderSubtitleColor: '#f0e5c7',
+    photoInstructionMain: 'Look at the camera and smile.',
+    photoInstructionSub: 'Hit the shutter button when you are ready.',
+    photoInstructionTextColor: '#f0e5c7',
+    photoCountdownText: 'Take a Photo',
+    photoCdText: 'Taking Photo in...',
+    photoBackText: 'BACK',
+    photoBackTextColor: '#e7e5d8',
+
+    // === STATE REVIEW FINAL ===
+    finalHeaderTitle: 'Review your session.',
+    finalHeaderTitleColor: '#f0e5c7',
+    finalVideoLabel: 'VIDEO',
+    finalPhotoLabel: 'PHOTO',
+    finalRetakeAllText: 'RETAKE ALL',
+    finalRetakeAllTextColor: '#e7e5d8',
+    finalRetakePhotoText: 'RETAKE PHOTO',
+    finalRetakePhotoTextColor: '#e7e5d8',
+    finalUploadText: 'UPLOAD BOTH',
+    finalUploadTextColor: '#1a0f0a',
+
+    // === STATE SUCCESS ===
+    successTextMain: 'Your memories are ready! ✨',
+    successTextSub: 'Scan this QR code to view and download your video and photo.',
+    successFooterText: 'Thank you for being part of this moment',
+    successFooterTextColor: '#cdcdcd',
+    successDoneText: 'Done',
+    successDoneTextColor: '#1a0f0a',
+    successAutoResetText: 'Auto-reset in',
+
+    // === SIDE PANEL ===
+    previewPanelFooter: 'Preview Your Moment',
+    loadingPreviewText: 'Loading Preview...',
+    loadingTutorialText: 'Loading Tutorial...',
+
+    // === GUEST RESULT PAGE ===
+    resultLoadingText: 'Loading your memories... ✨',
+    resultErrorText: 'Sorry, your session was not found or has expired.',
+    resultProcessingText: 'Processing your video & photo... please wait a moment. ✨',
+    resultSaveVideoText: '🎬 Save Your Video',
+    resultSavePhotoText: '📸 Save Your Photo',
+    resultFooterText: 'Thank you for this beautiful moment',
+
+    // === GUEST GALLERY PAGE ===
+    galleryTitle: 'Event Gallery',
+    gallerySubtitle: 'A collection of beautiful moments.',
+    gallerySearchPlaceholder: 'Search by name...',
+    galleryEmptyText: 'No memories found yet.',
+    galleryTextColor: '#ffffff',
+    galleryBgColor: '#0a0a0b',
+
+    // === FONT ===
+    fontSelector: 'luxury',
+    fontSourceType: 'google',
+    fontUrl: "https://fonts.googleapis.com/css2?family=Luxurious+Script&family=Kaisei+Opti&display=swap",
+    fontFamily: "'Kaisei Opti', serif",
+    titleFontFamily: "'Luxurious Script', cursive",
+
+    // === SYSTEM ===
+    enableGesture: true,
+    showLeftPanel: true,
+    showRightPanel: true,
+    idleHeadMode: 'title',
     recordingDuration: 15,
-    eventDate: "2026-05-23"
+    qrResetDuration: 45,
+    eventDate: '2026-05-23',
+
+    // === MEDIA ===
+    logoUrl: '/uploads_logo/logo-placeholder.png',
+    bottomLeftLogoUrl: '/logo-lumea.png',
+    bgImageUrl: '/bg1.png',
+    frameImageUrl: '/frame_gold.png',
+    overlayImageUrl: '/overlay.png',
+    tutorialVideoUrl: '',
+    resultVideoUrl: ''
 };
 
 // Buat config.json jika baru pertama kali di-run
@@ -776,7 +950,7 @@ if (!fs.existsSync(CONFIG_FILE)) {
 
 app.get('/api/config', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    const eventId = req.query.event || 'default-event';
+    const eventId = req.query.event || 'audric-cathrine';
     
     if (db) {
         try {
@@ -816,7 +990,7 @@ app.get('/api/config', async (req, res) => {
 });
 
 app.post('/api/config', async (req, res) => {
-    const eventId = req.query.event || 'default-event';
+    const eventId = req.query.event || 'audric-cathrine';
     
     let isSavedInCloud = false;
     if (db) {
@@ -856,7 +1030,128 @@ app.post('/api/config', async (req, res) => {
     }
 });
 
-// API Endpoint: Get All Event Slugs
+// ==========================================
+// API Endpoint: MIDTRANS PAYMENT GATEWAY
+// ==========================================
+
+// 1. Create Transaction (Generate QRIS)
+app.post('/api/payment/create', async (req, res) => {
+    try {
+        const { eventId, name, phone, email } = req.body;
+        if (!eventId) return res.status(400).json({ error: 'Event ID required' });
+
+        // Load config to get sessionPrice securely from backend
+        let config = DEFAULT_CONFIG;
+        if (db) {
+            const doc = await db.collection('events').doc(eventId).get();
+            if (doc.exists) config = { ...DEFAULT_CONFIG, ...doc.data() };
+        } else {
+            const eventConfigFile = path.join(__dirname, 'data', 'events', eventId, 'config.json');
+            if (fs.existsSync(eventConfigFile)) {
+                config = { ...DEFAULT_CONFIG, ...JSON.parse(fs.readFileSync(eventConfigFile)) };
+            }
+        }
+
+        const price = parseInt(config.sessionPrice) || 0;
+        if (price <= 0) {
+            return res.json({ status: 'bypassed', message: 'Event is free' });
+        }
+
+        const orderId = `ORDER-${eventId}-${Date.now()}`;
+        const parameter = {
+            transaction_details: {
+                order_id: orderId,
+                gross_amount: price
+            },
+            customer_details: {
+                first_name: name || 'Guest',
+                email: email || 'guest@example.com',
+                phone: phone || '0800000000'
+            },
+            // Paksa Snap Popup untuk langsung membuka QRIS/GoPay tanpa menu pilihan
+            enabled_payments: ["gopay", "other_qris"]
+        };
+
+        const transaction = await snapApi.createTransaction(parameter);
+        
+        // Initialize cache status
+        paymentCache[orderId] = 'pending';
+
+        res.json({
+            status: 'success',
+            orderId: orderId,
+            token: transaction.token,
+            redirect_url: transaction.redirect_url,
+            price: price
+        });
+
+    } catch (err) {
+        console.error('[MIDTRANS CREATE ERROR]', err.message);
+        res.status(500).json({ error: 'Gagal membuat transaksi pembayaran via Snap' });
+    }
+});
+
+// 2. Polling Payment Status
+app.get('/api/payment/status/:orderId', async (req, res) => {
+    const orderId = req.params.orderId;
+    try {
+        // Fast response if webhook already hit
+        if (paymentCache[orderId] === 'settlement' || paymentCache[orderId] === 'capture') {
+            return res.json({ status: 'settlement' });
+        }
+
+        // Otherwise check with Midtrans API directly (fallback if webhook delayed)
+        const statusResponse = await coreApi.transaction.status(orderId);
+        const trStatus = statusResponse.transaction_status;
+        
+        if (trStatus === 'settlement' || trStatus === 'capture') {
+            paymentCache[orderId] = 'settlement';
+            return res.json({ status: 'settlement' });
+        }
+        
+        if (trStatus === 'cancel' || trStatus === 'expire' || trStatus === 'deny') {
+            paymentCache[orderId] = 'failed';
+            return res.json({ status: 'failed', detail: trStatus });
+        }
+
+        res.json({ status: 'pending' });
+
+    } catch (err) {
+        // Usually means transaction not found or Midtrans error
+        res.json({ status: paymentCache[orderId] || 'pending' });
+    }
+});
+
+// 3. Webhook Notification Callback from Midtrans
+app.post('/api/payment/callback', async (req, res) => {
+    try {
+        const notification = await coreApi.transaction.notification(req.body);
+        const orderId = notification.order_id;
+        const trStatus = notification.transaction_status;
+        const fraudStatus = notification.fraud_status;
+
+        console.log(`[MIDTRANS WEBHOOK] Order: ${orderId} | Status: ${trStatus}`);
+
+        if (trStatus === 'capture' || trStatus === 'settlement') {
+            if (fraudStatus === 'challenge') {
+                paymentCache[orderId] = 'challenge';
+            } else {
+                paymentCache[orderId] = 'settlement';
+            }
+        } else if (trStatus === 'cancel' || trStatus === 'deny' || trStatus === 'expire') {
+            paymentCache[orderId] = 'failed';
+        } else if (trStatus === 'pending') {
+            paymentCache[orderId] = 'pending';
+        }
+
+        res.status(200).json({ status: 'ok' });
+    } catch (err) {
+        console.error('[MIDTRANS WEBHOOK ERROR]', err.message);
+        res.status(500).json({ error: 'Webhook processing failed' });
+    }
+});
+
+// API Endpoint: Get All Event Slugs & Statuses
 app.get('/api/events', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     if (db) {
@@ -864,11 +1159,15 @@ app.get('/api/events', async (req, res) => {
             const snapshot = await db.collection('events').get();
             const events = [];
             snapshot.forEach(doc => {
-                events.push(doc.id);
+                const data = doc.data();
+                events.push({
+                    id: doc.id,
+                    status: data.status || 'active'
+                });
             });
-            // Ensure default-event is at least returned if empty
-            if (events.length === 0) {
-                events.push('default-event');
+            // Ensure audric-cathrine is at least returned if empty
+            if (events.length === 0 || !events.some(e => e.id === 'audric-cathrine')) {
+                events.push({ id: 'audric-cathrine', status: 'active' });
             }
             return res.json({ status: 'success', events });
         } catch (e) {
@@ -881,15 +1180,34 @@ app.get('/api/events', async (req, res) => {
         const eventsDir = path.join(__dirname, 'data', 'events');
         let events = [];
         if (fs.existsSync(eventsDir)) {
-            events = fs.readdirSync(eventsDir).filter(f => fs.statSync(path.join(eventsDir, f)).isDirectory());
+            const dirs = fs.readdirSync(eventsDir).filter(f => fs.statSync(path.join(eventsDir, f)).isDirectory());
+            dirs.forEach(d => {
+                const configPath = path.join(eventsDir, d, 'config.json');
+                let status = 'active';
+                if (fs.existsSync(configPath)) {
+                    try {
+                        const cfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                        status = cfg.status || 'active';
+                    } catch (e) {}
+                }
+                events.push({ id: d, status });
+            });
         }
-        if (!events.includes('default-event')) {
-            events.push('default-event');
+        if (!events.some(e => e.id === 'audric-cathrine')) {
+            let status = 'active';
+            const globalConfigPath = path.join(__dirname, 'config.json');
+            if (fs.existsSync(globalConfigPath)) {
+                try {
+                    const cfg = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8'));
+                    status = cfg.status || 'active';
+                } catch (e) {}
+            }
+            events.push({ id: 'audric-cathrine', status });
         }
         res.json({ status: 'success', events });
     } catch (err) {
         console.error('[API GET EVENTS] Fallback error:', err.message);
-        res.json({ status: 'success', events: ['default-event'] });
+        res.json({ status: 'success', events: [{ id: 'audric-cathrine', status: 'active' }] });
     }
 });
 
@@ -937,6 +1255,202 @@ app.post('/api/events', async (req, res) => {
     } catch (err) {
         console.error('[API POST EVENTS] Fallback error:', err.message);
         res.status(500).json({ status: 'error', message: 'Gagal membuat event lokal.' });
+    }
+});
+
+// Helper Function: Check Event Active Status
+const isEventActive = async (eventId) => {
+    if (!eventId) return false;
+    if (eventId === 'audric-cathrine') return true; // Default event always active
+    
+    let config = null;
+    if (db) {
+        try {
+            const doc = await db.collection('events').doc(eventId).get();
+            if (doc.exists) {
+                config = doc.data();
+            }
+        } catch (e) {
+            console.error('[isEventActive] Firestore error:', e.message);
+        }
+    }
+    if (!config) {
+        try {
+            const eventDir = path.join(__dirname, 'data', 'events', eventId);
+            const eventConfigFile = path.join(eventDir, 'config.json');
+            if (fs.existsSync(eventConfigFile)) {
+                config = JSON.parse(fs.readFileSync(eventConfigFile, 'utf8'));
+            }
+        } catch (e) {
+            console.error('[isEventActive] Fallback error:', e.message);
+        }
+    }
+    return config ? config.status !== 'inactive' : false;
+};
+
+// API Endpoint: Toggle Event Active Status
+app.post('/api/events/toggle-status', async (req, res) => {
+    const { eventId, status } = req.body;
+    if (!eventId) {
+        return res.status(400).json({ status: 'error', message: 'ID Event tidak valid.' });
+    }
+    if (status !== 'active' && status !== 'inactive') {
+        return res.status(400).json({ status: 'error', message: 'Status tidak valid.' });
+    }
+
+    let isUpdatedInCloud = false;
+    if (db) {
+        try {
+            await db.collection('events').doc(eventId).update({ status });
+            isUpdatedInCloud = true;
+        } catch (err) {
+            console.error('[API TOGGLE STATUS] Firestore error:', err.message);
+        }
+    }
+
+    if (isUpdatedInCloud) {
+        return res.json({ status: 'success', message: `Status event "${eventId}" berhasil diubah menjadi ${status}!` });
+    }
+
+    // Local Fallback
+    try {
+        // Special case for default event config stored in config.json
+        if (eventId === 'audric-cathrine') {
+            const globalConfigFile = path.join(__dirname, 'config.json');
+            if (fs.existsSync(globalConfigFile)) {
+                const cfg = JSON.parse(fs.readFileSync(globalConfigFile, 'utf8'));
+                cfg.status = status;
+                fs.writeFileSync(globalConfigFile, JSON.stringify(cfg, null, 4));
+                return res.json({ status: 'success', message: `Status event "${eventId}" berhasil diubah menjadi ${status}!` });
+            }
+        }
+        
+        const eventDir = path.join(__dirname, 'data', 'events', eventId);
+        const eventConfigFile = path.join(eventDir, 'config.json');
+        if (!fs.existsSync(eventConfigFile)) {
+            return res.status(404).json({ status: 'error', message: 'Event tidak ditemukan.' });
+        }
+        const cfg = JSON.parse(fs.readFileSync(eventConfigFile, 'utf8'));
+        cfg.status = status;
+        fs.writeFileSync(eventConfigFile, JSON.stringify(cfg, null, 4));
+        res.json({ status: 'success', message: `Status event "${eventId}" berhasil diubah menjadi ${status}!` });
+    } catch (err) {
+        console.error('[API TOGGLE STATUS] Fallback error:', err.message);
+        res.status(500).json({ status: 'error', message: 'Gagal mengubah status event.' });
+    }
+});
+
+// API Endpoint: Delete Event
+app.post('/api/events/delete', async (req, res) => {
+    const { eventId } = req.body;
+    if (!eventId || eventId === 'audric-cathrine') {
+        return res.status(400).json({ status: 'error', message: 'Event default tidak dapat dihapus.' });
+    }
+
+    let isDeletedInCloud = false;
+    if (db) {
+        try {
+            await db.collection('events').doc(eventId).delete();
+            // Delete all sessions for this event in Firestore
+            const sessionsRef = db.collection('sessions').where('eventId', '==', eventId);
+            const snapshot = await sessionsRef.get();
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            isDeletedInCloud = true;
+        } catch (err) {
+            console.error('[API DELETE EVENT] Firestore error:', err.message);
+        }
+    }
+
+    if (isDeletedInCloud) {
+        return res.json({ status: 'success', message: `Event "${eventId}" berhasil dihapus!` });
+    }
+
+    // Local Fallback
+    try {
+        const eventDir = path.join(__dirname, 'data', 'events', eventId);
+        if (!fs.existsSync(eventDir)) {
+            return res.status(404).json({ status: 'error', message: 'Event tidak ditemukan.' });
+        }
+        fs.rmSync(eventDir, { recursive: true, force: true });
+        res.json({ status: 'success', message: `Event "${eventId}" dan seluruh sesinya berhasil dihapus!` });
+    } catch (err) {
+        console.error('[API DELETE EVENT] Fallback error:', err.message);
+        res.status(500).json({ status: 'error', message: 'Gagal menghapus event lokal.' });
+    }
+});
+
+// API Endpoint: Rename Event (Change Slug)
+app.post('/api/events/rename', async (req, res) => {
+    const { eventId, newEventId } = req.body;
+    const cleanNewId = (newEventId || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+    if (!eventId || !cleanNewId) {
+        return res.status(400).json({ status: 'error', message: 'ID Event lama atau baru tidak valid.' });
+    }
+    if (eventId === 'audric-cathrine') {
+        return res.status(400).json({ status: 'error', message: 'Event default tidak dapat diubah namanya.' });
+    }
+    if (eventId === cleanNewId) {
+        return res.json({ status: 'success', newEventId: cleanNewId, message: 'Nama event sama, tidak ada perubahan.' });
+    }
+
+    let isRenamedInCloud = false;
+    if (db) {
+        try {
+            const oldDocRef = db.collection('events').doc(eventId);
+            const oldDoc = await oldDocRef.get();
+            if (!oldDoc.exists) {
+                return res.status(404).json({ status: 'error', message: 'Event lama tidak ditemukan.' });
+            }
+            
+            const newDocRef = db.collection('events').doc(cleanNewId);
+            const newDoc = await newDocRef.get();
+            if (newDoc.exists) {
+                return res.status(400).json({ status: 'error', message: 'Nama event baru sudah digunakan.' });
+            }
+
+            // Copy config to new doc, delete old doc
+            await newDocRef.set(oldDoc.data());
+            await oldDocRef.delete();
+
+            // Update all sessions to point to new eventId in Firestore
+            const sessionsRef = db.collection('sessions').where('eventId', '==', eventId);
+            const snapshot = await sessionsRef.get();
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                batch.update(doc.ref, { eventId: cleanNewId });
+            });
+            await batch.commit();
+            
+            isRenamedInCloud = true;
+        } catch (err) {
+            console.error('[API RENAME EVENT] Firestore error:', err.message);
+        }
+    }
+
+    if (isRenamedInCloud) {
+        return res.json({ status: 'success', newEventId: cleanNewId, message: `Event berhasil diubah nama menjadi "${cleanNewId}"!` });
+    }
+
+    // Local Fallback
+    try {
+        const oldDir = path.join(__dirname, 'data', 'events', eventId);
+        const newDir = path.join(__dirname, 'data', 'events', cleanNewId);
+
+        if (!fs.existsSync(oldDir)) {
+            return res.status(404).json({ status: 'error', message: 'Event tidak ditemukan.' });
+        }
+        if (fs.existsSync(newDir)) {
+            return res.status(400).json({ status: 'error', message: 'Nama event baru sudah digunakan.' });
+        }
+
+        fs.renameSync(oldDir, newDir);
+        res.json({ status: 'success', newEventId: cleanNewId, message: `Event berhasil diubah nama menjadi "${cleanNewId}"!` });
+    } catch (err) {
+        console.error('[API RENAME EVENT] Fallback error:', err.message);
+        res.status(500).json({ status: 'error', message: 'Gagal mengubah nama event.' });
     }
 });
 

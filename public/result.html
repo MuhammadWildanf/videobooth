@@ -334,7 +334,7 @@
                     }
 
                     // Fetch event-specific theme configuration
-                    const eventId = result.data.eventId || 'default-event';
+                    const eventId = result.data.eventId || 'audric-cathrine';
                     try {
                         const configRes = await fetch(`/api/config?event=${eventId}`, { cache: 'no-store' });
                         const configData = await configRes.json();

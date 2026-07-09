@@ -588,6 +588,94 @@
                 padding: 15px;
             }
         }
+
+        /* EVENT INACTIVE OVERLAY */
+        .event-inactive-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 8, 6, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #f8fafc;
+            font-family: 'Outfit', 'Inter', sans-serif;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .event-inactive-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 40px 30px;
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .event-inactive-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(239, 68, 68, 0.2));
+        }
+
+        .event-inactive-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .event-inactive-message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #a1a1aa;
+            margin: 0;
+        }
+
+        .event-inactive-brand {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        body.event-inactive-state > *:not(.event-inactive-overlay) {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -665,7 +753,7 @@
     <script>
         // --- MULTI-EVENT CONFIGURATION ---
         const urlParams = new URLSearchParams(window.location.search);
-        const activeEvent = urlParams.get('event') || 'default-event';
+        const activeEvent = urlParams.get('event') || 'audric-cathrine';
 
         let allSessions = [];
         let activeEventDate = '2026-05-23';
@@ -676,11 +764,39 @@
             if (backBtn) backBtn.href = `/?event=${activeEvent}`;
 
             // Apply Dynamic Configuration immediately if active
-            await loadThemeConfig();
+            const isActive = await loadThemeConfig();
 
             // Load session data
-            await fetchSessions();
+            if (isActive) {
+                await fetchSessions();
+            }
         });
+
+        function checkEventStatus(status) {
+            let overlay = document.getElementById('event-inactive-overlay');
+            if (status === 'inactive') {
+                document.body.classList.add('event-inactive-state');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'event-inactive-overlay';
+                    overlay.className = 'event-inactive-overlay';
+                    overlay.innerHTML = `
+                        <div class="event-inactive-card">
+                            <div class="event-inactive-icon">⚠️</div>
+                            <h1 class="event-inactive-title">Event Inactive</h1>
+                            <p class="event-inactive-message">This event is currently disabled or has ended.<br>Please contact the administrator.</p>
+                            <div class="event-inactive-brand">LUMEA PREMIUM</div>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+                }
+            } else {
+                document.body.classList.remove('event-inactive-state');
+                if (overlay) {
+                    overlay.remove();
+                }
+            }
+        }
 
         function applyConfig(config) {
             if (!config) return;
@@ -690,11 +806,11 @@
             }
 
             // Title and subtitle syncing
-            if (config.title) {
-                document.getElementById('galleryTitle').innerText = config.title;
+            if (config.galleryTitle || config.title) {
+                document.getElementById('galleryTitle').innerText = config.galleryTitle || config.title;
             }
 
-            if (config.subtitle) {
+            if (config.gallerySubtitle || config.subtitle) {
                 try {
                     const dateObj = new Date(activeEventDate);
                     const formattedEventDate = dateObj.toLocaleDateString('en-US', {
@@ -702,9 +818,9 @@
                         month: 'long',
                         year: 'numeric'
                     });
-                    document.getElementById('gallerySubtitle').innerHTML = `${config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
+                    document.getElementById('gallerySubtitle').innerHTML = `${config.gallerySubtitle || config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
                 } catch (e) {
-                    document.getElementById('gallerySubtitle').innerText = config.subtitle;
+                    document.getElementById('gallerySubtitle').innerText = config.gallerySubtitle || config.subtitle;
                 }
             } else {
                 try {
@@ -716,6 +832,20 @@
                     });
                     document.getElementById('gallerySubtitle').innerHTML = `Gallery of happiness from ScribbleBooth guests &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
                 } catch (e) { }
+            }
+            
+            // Other texts
+            if (config.gallerySearchPlaceholder) {
+                document.getElementById('search-input').placeholder = config.gallerySearchPlaceholder;
+            }
+            if (config.galleryEmptyText) {
+                document.getElementById('empty-state').innerHTML = `<p>${config.galleryEmptyText}</p>`;
+            }
+            if (config.galleryTextColor) {
+                document.documentElement.style.setProperty('--text-main', config.galleryTextColor);
+            }
+            if (config.galleryBgColor) {
+                document.documentElement.style.setProperty('--bg-dark', config.galleryBgColor);
             }
 
             // Logo syncing
@@ -736,11 +866,17 @@
         }
 
         async function loadThemeConfig() {
+            let active = true;
             try {
                 // Try from local storage first to prevent flash
                 const cached = localStorage.getItem(`vb_config_${activeEvent}`);
                 if (cached) {
-                    applyConfig(JSON.parse(cached));
+                    const parsed = JSON.parse(cached);
+                    applyConfig(parsed);
+                    if (parsed.status === 'inactive') {
+                        checkEventStatus('inactive');
+                        active = false;
+                    }
                 }
 
                 // Always fetch fresh configuration in the background to update cache
@@ -748,9 +884,17 @@
                 const config = await res.json();
                 localStorage.setItem(`vb_config_${activeEvent}`, JSON.stringify(config));
                 applyConfig(config);
+
+                checkEventStatus(config.status);
+                if (config.status === 'inactive') {
+                    active = false;
+                } else {
+                    active = true;
+                }
             } catch (e) {
                 console.error("Config fetch error:", e);
             }
+            return active;
         }
 
         async function fetchSessions() {
