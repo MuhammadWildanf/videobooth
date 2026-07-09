@@ -1298,16 +1298,16 @@
                     </div>
                 </div>
             </div>
-            <!-- STATE PAYMENT (QRIS) -->
+            <!-- STATE PAYMENT (MIDTRANS BACKGROUND) -->
             <div id="state-payment" class="ui-state">
                 <div style="margin-bottom: 30px; text-align: center;">
                     <h1
                         style="font-size: min(5vh, 48px); color: var(--title-color, #F0E5C7); font-weight: 700; margin-bottom: 10px; font-family: var(--title-font-dyn) !important;">
-                        Selesaikan Pembayaran
+                        Langkah Terakhir! ✨
                     </h1>
                     <p
                         style="font-size: min(2.5vh, 22px); color: var(--desc-color, #CDCDCD); font-family: var(--body-font-dyn) !important;">
-                        Pindai QRIS di bawah ini dengan aplikasi e-Wallet atau M-Banking Anda
+                        Selesaikan pembayaran pada jendela yang muncul untuk memproses hasil karya Anda.
                     </p>
                 </div>
 
@@ -1318,26 +1318,17 @@
                         Rp 0</h2>
 
                     <div id="payment-qr-container"
-                        style="background: white; padding: 20px; border-radius: 16px; margin-bottom: 25px; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);">
-                        <img id="payment-qr-image" src=""
-                            style="width: 100%; height: 100%; object-fit: contain; display: none;">
+                        style="background: transparent; margin-bottom: 25px; display: flex; align-items: center; justify-content: center;">
+                        <img id="payment-qr-image" src="" style="display: none;">
                         <div id="payment-loading-spinner" class="spinner"
-                            style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent-color, #D3BB7C); border-radius: 50%; animation: spin 1s linear infinite;">
+                            style="width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color, #D3BB7C); border-radius: 50%; animation: spin 1s linear infinite;">
                         </div>
                     </div>
 
                     <p id="payment-status-text"
                         style="color: white; font-size: min(2.5vh, 20px); margin-bottom: 10px; font-weight: 500;">
-                        Menunggu Pembayaran...</p>
-                    <p style="color: #a0a0a0; font-size: min(2vh, 16px); margin: 0;">Batas Waktu: <strong
-                            id="payment-timer" style="color: #fff;">05:00</strong></p>
-                </div>
-
-                <div style="display: flex; justify-content: center; margin-top: 5vh;">
-                    <button class="btn-outline" onclick="cancelPaymentFlow()"
-                        style="padding: 15px 50px; font-size: 20px; border-radius: 50px;">
-                        <span>Batalkan</span>
-                    </button>
+                        Membuka Jendela Pembayaran...</p>
+                    <p style="display: none;"><strong id="payment-timer"></strong></p>
                 </div>
             </div>
 
