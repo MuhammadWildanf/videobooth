@@ -2400,6 +2400,13 @@
                 if (data.status === 'success') {
                     document.getElementById('payment-price-display').innerText = `Rp ${data.price.toLocaleString('id-ID')}`;
                     document.getElementById('payment-qr-container').style.display = 'none'; 
+                    
+                    const statusTxt = document.getElementById('payment-status-text');
+                    if (statusTxt) {
+                        statusTxt.innerText = 'Membuka Jendela Pembayaran...';
+                        statusTxt.style.color = 'white';
+                    }
+                    
                     changeState('payment');
 
                     window.snap.pay(data.token, {
