@@ -1566,7 +1566,7 @@
             window.currentState = state;
 
             // Update state classes on body
-            document.body.classList.remove('state-idle', 'state-form', 'state-ready', 'state-ready-photo', 'state-recording', 'state-review-video', 'state-review-final', 'state-processing');
+            document.body.classList.remove('state-idle', 'state-form', 'state-ready', 'state-ready-photo', 'state-recording', 'state-review-video', 'state-review-final', 'state-processing', 'state-payment');
             document.body.classList.add('state-' + state);
 
             document.querySelectorAll('.ui-state').forEach(el => el.classList.remove('active'));
@@ -2030,17 +2030,30 @@
         }
 
         function cancelPaymentFlow() {
-            if (paymentPollingInterval) clearInterval(paymentPollingInterval);
-            stopPaymentTimer();
-            document.getElementById('payment-qr-image').style.display = 'none';
-            document.getElementById('payment-loading-spinner').style.display = 'block';
-            document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran...';
-            document.getElementById('payment-status-text').style.color = 'white';
-            
-            if (videoBlob || photoBlob) {
+            try {
+                if (paymentPollingInterval) clearInterval(paymentPollingInterval);
+                stopPaymentTimer();
+                
+                const img = document.getElementById('payment-qr-image');
+                if (img) img.style.display = 'none';
+                
+                const spinner = document.getElementById('payment-loading-spinner');
+                if (spinner) spinner.style.display = 'block';
+                
+                const txt = document.getElementById('payment-status-text');
+                if (txt) {
+                    txt.innerText = 'Membuka Jendela Pembayaran...';
+                    txt.style.color = 'white';
+                }
+                
+                if (videoBlob || photoBlob) {
+                    changeState('review-final');
+                } else {
+                    changeState('idle');
+                }
+            } catch (e) {
+                console.error("Error in cancelPaymentFlow:", e);
                 changeState('review-final');
-            } else {
-                changeState('idle');
             }
         }
 
