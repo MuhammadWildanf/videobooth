@@ -1034,6 +1034,26 @@ app.post('/api/config', async (req, res) => {
 // API Endpoint: MIDTRANS PAYMENT GATEWAY
 // ==========================================
 
+const transactionsDir = path.join(__dirname, 'data', 'transactions');
+if (!fs.existsSync(transactionsDir)) fs.mkdirSync(transactionsDir, { recursive: true });
+
+const saveTransaction = async (orderId, data) => {
+    try {
+        if (db) {
+            await db.collection('transactions').doc(orderId).set(data, { merge: true });
+        } else {
+            const filePath = path.join(transactionsDir, `${orderId}.json`);
+            let existing = {};
+            if (fs.existsSync(filePath)) {
+                existing = JSON.parse(fs.readFileSync(filePath));
+            }
+            fs.writeFileSync(filePath, JSON.stringify({ ...existing, ...data }, null, 2));
+        }
+    } catch (err) {
+        console.error('[DB ERROR] Gagal menyimpan transaksi:', err.message);
+    }
+};
+
 // 1. Create Transaction (Generate QRIS)
 app.post('/api/payment/create', async (req, res) => {
     try {
@@ -1076,6 +1096,19 @@ app.post('/api/payment/create', async (req, res) => {
         
         // Initialize cache status
         paymentCache[orderId] = 'pending';
+        
+        // Save to Database
+        await saveTransaction(orderId, {
+            orderId: orderId,
+            eventId: eventId,
+            name: name || 'Guest',
+            phone: phone || '-',
+            email: email || '-',
+            price: price,
+            status: 'pending',
+            paymentMethod: 'Midtrans Snap',
+            createdAt: new Date().toISOString()
+        });
 
         res.json({
             status: 'success',
@@ -1143,11 +1176,42 @@ app.post('/api/payment/callback', async (req, res) => {
         } else if (trStatus === 'pending') {
             paymentCache[orderId] = 'pending';
         }
+        
+        // Update Database
+        await saveTransaction(orderId, {
+            status: paymentCache[orderId],
+            updatedAt: new Date().toISOString()
+        });
 
         res.status(200).json({ status: 'ok' });
     } catch (err) {
         console.error('[MIDTRANS WEBHOOK ERROR]', err.message);
         res.status(500).json({ error: 'Webhook processing failed' });
+    }
+});
+
+// 4. Admin Dashboard API
+app.get('/api/admin/transactions', async (req, res) => {
+    try {
+        let results = [];
+        if (db) {
+            const snapshot = await db.collection('transactions').orderBy('createdAt', 'desc').get();
+            snapshot.forEach(doc => results.push(doc.data()));
+        } else {
+            if (fs.existsSync(transactionsDir)) {
+                const files = fs.readdirSync(transactionsDir).filter(f => f.endsWith('.json'));
+                for (let file of files) {
+                    try {
+                        const data = JSON.parse(fs.readFileSync(path.join(transactionsDir, file)));
+                        results.push(data);
+                    } catch (err) {}
+                }
+                results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            }
+        }
+        res.json({ success: true, data: results });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 
