@@ -530,11 +530,6 @@ const worker = async (task) => {
                 });
             }
 
-            // Cleanup temporary processed files (not raw files)
-            [inputPath, photoInputPath, outputVideoPath, outputPhotoPath].forEach(p => {
-                if (p && fs.existsSync(p)) fs.unlinkSync(p);
-            });
-
             reject(err);
         }
     });
