@@ -1417,9 +1417,14 @@
                     <button class="btn-outline" onclick="retakePhotoOnly()">RETAKE PHOTO</button>
                     <button class="btn-primary" onclick="submitVideo()">UPLOAD BOTH</button>
                 </div>
-                <div style="margin-top: 25px; font-size: min(1.8vh, 14px); color: var(--desc-color, #94a3b8); text-align: center;">
+                <div
+                    style="margin-top: 25px; font-size: min(1.8vh, 14px); color: var(--desc-color, #94a3b8); text-align: center;">
                     Dengan mengunggah, Anda menyetujui<br>
-                    <a href="/terms.html" target="_blank" style="color: var(--accent-color, #D3BB7C); text-decoration: none; font-weight: 600;">Syarat & Ketentuan</a> serta <a href="/terms.html#refund" target="_blank" style="color: var(--accent-color, #D3BB7C); text-decoration: none; font-weight: 600;">Kebijakan Refund</a> kami.
+                    <a href="/terms.html" target="_blank"
+                        style="color: var(--accent-color, #D3BB7C); text-decoration: none; font-weight: 600;">Syarat &
+                        Ketentuan</a> serta <a href="/terms.html#refund" target="_blank"
+                        style="color: var(--accent-color, #D3BB7C); text-decoration: none; font-weight: 600;">Kebijakan
+                        Refund</a> kami.
                 </div>
             </div>
 
@@ -2033,19 +2038,19 @@
             try {
                 if (paymentPollingInterval) clearInterval(paymentPollingInterval);
                 stopPaymentTimer();
-                
+
                 const img = document.getElementById('payment-qr-image');
                 if (img) img.style.display = 'none';
-                
+
                 const spinner = document.getElementById('payment-loading-spinner');
                 if (spinner) spinner.style.display = 'block';
-                
+
                 const txt = document.getElementById('payment-status-text');
                 if (txt) {
                     txt.innerText = 'Membuka Jendela Pembayaran...';
                     txt.style.color = 'white';
                 }
-                
+
                 if (videoBlob || photoBlob) {
                     changeState('review-final');
                 } else {
@@ -2399,14 +2404,14 @@
 
                 if (data.status === 'success') {
                     document.getElementById('payment-price-display').innerText = `Rp ${data.price.toLocaleString('id-ID')}`;
-                    document.getElementById('payment-qr-container').style.display = 'none'; 
-                    
+                    document.getElementById('payment-qr-container').style.display = 'none';
+
                     const statusTxt = document.getElementById('payment-status-text');
                     if (statusTxt) {
                         statusTxt.innerText = 'Membuka Jendela Pembayaran...';
                         statusTxt.style.color = 'white';
                     }
-                    
+
                     changeState('payment');
 
                     window.snap.pay(data.token, {

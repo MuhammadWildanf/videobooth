@@ -173,18 +173,18 @@ const uploadToGCP = async (filePath, fileName, folderName = 'videobooth') => {
     const bucketName = process.env.GCP_BUCKET_NAME;
     if (!bucketName) throw new Error("GCP_BUCKET_NAME tidak diatur di .env");
     const bucket = gcpStorage.bucket(bucketName);
-    
+
     // Hapus karakter aneh dari nama folder agar URL lebih aman
     const safeFolderName = folderName.replace(/[^a-zA-Z0-9 ]/g, '_');
     const destination = `${safeFolderName}/${fileName}`;
-    
+
     await bucket.upload(filePath, {
         destination: destination,
         metadata: {
             cacheControl: 'public, max-age=31536000',
         },
     });
-    
+
     return `https://storage.googleapis.com/${bucketName}/${destination}`;
 };
 // ------------------------------
@@ -432,7 +432,7 @@ const worker = async (task) => {
                 }
                 console.log(`[UPLOAD] ✅ Sukses! Link Photo: ${photoLink}`);
             }
-            
+
             // 4.5 Save Session Data (Firestore or Local JSON)
             const sessionData = {
                 id: sessionId,
@@ -461,7 +461,7 @@ const worker = async (task) => {
                 const sessionFilePath = path.join(sessionsDir, `${sessionId}.json`);
                 fs.writeFileSync(sessionFilePath, JSON.stringify(sessionData, null, 2));
             }
-            
+
             // This is the link we actually send to the user
             let domainStr = process.env.PUBLIC_DOMAIN || 'localhost:3000';
             let localResultLink = '';
@@ -478,7 +478,7 @@ const worker = async (task) => {
                 const customMsg = msgTemplate.replace(/{name}/g, task.name).replace(/{link}/g, localResultLink);
 
                 let emailSubj = config.emailSubject || "Kenangan ScribbleBooth Anda sudah siap! ✨";
-                
+
                 if (task.email) {
                     console.log(`[EMAIL] 📤 Menyiapkan pengiriman email ke: ${task.email}`);
                     try {
@@ -488,7 +488,7 @@ const worker = async (task) => {
                         console.log(`[EMAIL] ❌ Email gagal dikirim ke ${task.email}: ${err.message}`);
                     }
                 }
-                
+
                 if (task.phone) {
                     try {
                         const result = await sendWhatsAppMessage(task.phone, customMsg);
@@ -528,7 +528,7 @@ const queue = fastq.promise(worker, 2);
 app.get('/api/result/:id', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     const sessionId = req.params.id;
-    
+
     if (db) {
         try {
             const doc = await db.collection('sessions').doc(sessionId).get();
@@ -539,11 +539,11 @@ app.get('/api/result/:id', async (req, res) => {
             console.error('[API RESULT] Firestore error:', e.message);
         }
     }
-    
+
     // Local File Fallback (Checking all events if event is unknown)
     const eventsDir = path.join(__dirname, 'data', 'events');
     let sessionData = null;
-    
+
     if (fs.existsSync(eventsDir)) {
         const events = fs.readdirSync(eventsDir);
         for (const ev of events) {
@@ -554,7 +554,7 @@ app.get('/api/result/:id', async (req, res) => {
             }
         }
     }
-    
+
     // Deprecated legacy global directory check
     if (!sessionData) {
         const legacyPath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
@@ -574,7 +574,7 @@ app.get('/api/result/:id', async (req, res) => {
 app.get('/api/sessions', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     const eventId = req.query.event || 'audric-cathrine';
-    
+
     if (db) {
         try {
             const snapshot = await db.collection('sessions').where('eventId', '==', eventId).orderBy('createdAt', 'desc').get();
@@ -587,13 +587,13 @@ app.get('/api/sessions', async (req, res) => {
             console.error('[API SESSIONS] Firestore error:', e.message);
         }
     }
-    
+
     // Local File Fallback
     try {
         const eventDir = path.join(__dirname, 'data', 'events', eventId);
         const sessionsDir = path.join(eventDir, 'sessions');
         const sessions = [];
-        
+
         if (fs.existsSync(sessionsDir)) {
             const files = fs.readdirSync(sessionsDir);
             files.forEach(file => {
@@ -609,7 +609,7 @@ app.get('/api/sessions', async (req, res) => {
                 }
             });
         }
-        
+
         // Also merge legacy global sessions if request is for 'audric-cathrine'
         if (eventId === 'audric-cathrine') {
             const legacyDir = path.join(__dirname, 'data', 'sessions');
@@ -624,15 +624,15 @@ app.get('/api/sessions', async (req, res) => {
                             if (!sessions.some(s => s.id === sessionData.id)) {
                                 sessions.push(sessionData);
                             }
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 });
             }
         }
-        
+
         // Sort by createdAt descending (newest first)
         sessions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
+
         res.json({ status: 'success', sessions });
     } catch (err) {
         console.error('[API SESSIONS] Error:', err.message);
@@ -647,7 +647,7 @@ app.delete('/api/sessions/:id', async (req, res) => {
         if (!/^[a-zA-Z0-9\-_]+$/.test(sessionId)) {
             return res.status(400).json({ status: 'error', message: 'ID Sesi tidak valid' });
         }
-        
+
         if (db) {
             try {
                 await db.collection('sessions').doc(sessionId).delete();
@@ -656,11 +656,11 @@ app.delete('/api/sessions/:id', async (req, res) => {
                 console.error('[API DELETE SESSION] Firestore error:', e.message);
             }
         }
-        
+
         // Local File Fallback (Checking all events)
         const eventsDir = path.join(__dirname, 'data', 'events');
         let deleted = false;
-        
+
         if (fs.existsSync(eventsDir)) {
             const events = fs.readdirSync(eventsDir);
             for (const ev of events) {
@@ -671,7 +671,7 @@ app.delete('/api/sessions/:id', async (req, res) => {
                 }
             }
         }
-        
+
         // Legacy file fallback check
         const legacyPath = path.join(__dirname, 'data', 'sessions', `${sessionId}.json`);
         if (fs.existsSync(legacyPath)) {
@@ -951,7 +951,7 @@ if (!fs.existsSync(CONFIG_FILE)) {
 app.get('/api/config', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     const eventId = req.query.event || 'audric-cathrine';
-    
+
     if (db) {
         try {
             const doc = await db.collection('events').doc(eventId).get();
@@ -966,12 +966,12 @@ app.get('/api/config', async (req, res) => {
             console.error('[API GET CONFIG] Firestore error:', err.message);
         }
     }
-    
+
     // Local File Fallback
     try {
         const eventDir = path.join(__dirname, 'data', 'events', eventId);
         const eventConfigFile = path.join(eventDir, 'config.json');
-        
+
         if (fs.existsSync(eventConfigFile)) {
             const configData = fs.readFileSync(eventConfigFile);
             res.json(JSON.parse(configData));
@@ -991,7 +991,7 @@ app.get('/api/config', async (req, res) => {
 
 app.post('/api/config', async (req, res) => {
     const eventId = req.query.event || 'audric-cathrine';
-    
+
     let isSavedInCloud = false;
     if (db) {
         try {
@@ -1004,11 +1004,11 @@ app.post('/api/config', async (req, res) => {
             console.error('[API POST CONFIG] Firestore error:', err.message);
         }
     }
-    
+
     if (isSavedInCloud) {
         return res.json({ status: 'success', message: 'Setelan UI berhasil disimpan!' });
     }
-    
+
     // Local File Fallback
     try {
         const eventDir = path.join(__dirname, 'data', 'events', eventId);
@@ -1016,11 +1016,11 @@ app.post('/api/config', async (req, res) => {
             fs.mkdirSync(eventDir, { recursive: true });
         }
         const eventConfigFile = path.join(eventDir, 'config.json');
-        
-        const currentData = fs.existsSync(eventConfigFile) 
-            ? JSON.parse(fs.readFileSync(eventConfigFile)) 
+
+        const currentData = fs.existsSync(eventConfigFile)
+            ? JSON.parse(fs.readFileSync(eventConfigFile))
             : (fs.existsSync(CONFIG_FILE) ? JSON.parse(fs.readFileSync(CONFIG_FILE)) : DEFAULT_CONFIG);
-            
+
         const newConfig = { ...currentData, ...req.body };
         fs.writeFileSync(eventConfigFile, JSON.stringify(newConfig, null, 4));
         res.json({ status: 'success', message: 'Setelan UI berhasil disimpan!' });
@@ -1093,10 +1093,10 @@ app.post('/api/payment/create', async (req, res) => {
         };
 
         const transaction = await snapApi.createTransaction(parameter);
-        
+
         // Initialize cache status
         paymentCache[orderId] = 'pending';
-        
+
         // Save to Database
         await saveTransaction(orderId, {
             orderId: orderId,
@@ -1136,14 +1136,16 @@ app.get('/api/payment/status/:orderId', async (req, res) => {
         // Otherwise check with Midtrans API directly (fallback if webhook delayed)
         const statusResponse = await coreApi.transaction.status(orderId);
         const trStatus = statusResponse.transaction_status;
-        
+
         if (trStatus === 'settlement' || trStatus === 'capture') {
             paymentCache[orderId] = 'settlement';
+            await saveTransaction(orderId, { status: 'settlement', updatedAt: new Date().toISOString() });
             return res.json({ status: 'settlement' });
         }
-        
+
         if (trStatus === 'cancel' || trStatus === 'expire' || trStatus === 'deny') {
             paymentCache[orderId] = 'failed';
+            await saveTransaction(orderId, { status: 'failed', updatedAt: new Date().toISOString() });
             return res.json({ status: 'failed', detail: trStatus });
         }
 
@@ -1176,7 +1178,7 @@ app.post('/api/payment/callback', async (req, res) => {
         } else if (trStatus === 'pending') {
             paymentCache[orderId] = 'pending';
         }
-        
+
         // Update Database
         await saveTransaction(orderId, {
             status: paymentCache[orderId],
@@ -1204,7 +1206,7 @@ app.get('/api/admin/transactions', async (req, res) => {
                     try {
                         const data = JSON.parse(fs.readFileSync(path.join(transactionsDir, file)));
                         results.push(data);
-                    } catch (err) {}
+                    } catch (err) { }
                 }
                 results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             }
@@ -1252,7 +1254,7 @@ app.get('/api/events', async (req, res) => {
                     try {
                         const cfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
                         status = cfg.status || 'active';
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 events.push({ id: d, status });
             });
@@ -1264,7 +1266,7 @@ app.get('/api/events', async (req, res) => {
                 try {
                     const cfg = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8'));
                     status = cfg.status || 'active';
-                } catch (e) {}
+                } catch (e) { }
             }
             events.push({ id: 'audric-cathrine', status });
         }
@@ -1312,7 +1314,7 @@ app.post('/api/events', async (req, res) => {
         }
         fs.mkdirSync(eventDir, { recursive: true });
         fs.mkdirSync(path.join(eventDir, 'sessions'), { recursive: true });
-        
+
         const eventConfigFile = path.join(eventDir, 'config.json');
         fs.writeFileSync(eventConfigFile, JSON.stringify(DEFAULT_CONFIG, null, 4));
         res.json({ status: 'success', eventId, message: `Event "${eventId}" berhasil dibuat!` });
@@ -1326,7 +1328,7 @@ app.post('/api/events', async (req, res) => {
 const isEventActive = async (eventId) => {
     if (!eventId) return false;
     if (eventId === 'audric-cathrine') return true; // Default event always active
-    
+
     let config = null;
     if (db) {
         try {
@@ -1388,7 +1390,7 @@ app.post('/api/events/toggle-status', async (req, res) => {
                 return res.json({ status: 'success', message: `Status event "${eventId}" berhasil diubah menjadi ${status}!` });
             }
         }
-        
+
         const eventDir = path.join(__dirname, 'data', 'events', eventId);
         const eventConfigFile = path.join(eventDir, 'config.json');
         if (!fs.existsSync(eventConfigFile)) {
@@ -1468,7 +1470,7 @@ app.post('/api/events/rename', async (req, res) => {
             if (!oldDoc.exists) {
                 return res.status(404).json({ status: 'error', message: 'Event lama tidak ditemukan.' });
             }
-            
+
             const newDocRef = db.collection('events').doc(cleanNewId);
             const newDoc = await newDocRef.get();
             if (newDoc.exists) {
@@ -1487,7 +1489,7 @@ app.post('/api/events/rename', async (req, res) => {
                 batch.update(doc.ref, { eventId: cleanNewId });
             });
             await batch.commit();
-            
+
             isRenamedInCloud = true;
         } catch (err) {
             console.error('[API RENAME EVENT] Firestore error:', err.message);
@@ -1629,16 +1631,16 @@ const https = require('https');
 app.get('/api/download', (req, res) => {
     const fileUrl = req.query.url;
     const filename = req.query.name || `ScribbleBooth-${Date.now()}`;
-    
+
     if (!fileUrl || !fileUrl.startsWith('http')) {
         return res.status(400).send('Invalid URL');
     }
-    
+
     https.get(fileUrl, (response) => {
         // Set attachment header to force download dialog
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
-        
+
         // Pipe the cloud storage stream directly to the user
         response.pipe(res);
     }).on('error', (err) => {
