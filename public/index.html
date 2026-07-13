@@ -1326,8 +1326,9 @@
                     </div>
 
                     <p id="payment-status-text"
-                        style="color: white; font-size: min(2.5vh, 20px); margin-bottom: 10px; font-weight: 500;">
+                        style="color: white; font-size: min(2.5vh, 20px); margin-bottom: 20px; font-weight: 500;">
                         Membuka Jendela Pembayaran...</p>
+                    <button class="btn" onclick="cancelPaymentFlow()" style="background: rgba(239,68,68,0.1); border: 2px solid #ef4444; color: #ef4444; padding: 12px 30px; font-weight: bold; font-size: 16px; margin-top: 10px; border-radius: 50px; cursor: pointer;">Batalkan & Kembali</button>
                     <p style="display: none;"><strong id="payment-timer"></strong></p>
                 </div>
             </div>
@@ -2051,14 +2052,11 @@
                     txt.style.color = 'white';
                 }
 
-                if (videoBlob || photoBlob) {
-                    changeState('review-final');
-                } else {
-                    changeState('idle');
-                }
+                // Reset hard ke Idle agar tamu berikutnya bisa pakai mesinnya
+                resetApp();
             } catch (e) {
                 console.error("Error in cancelPaymentFlow:", e);
-                changeState('review-final');
+                resetApp();
             }
         }
 
@@ -2413,6 +2411,7 @@
                     }
 
                     changeState('payment');
+                    startPaymentTimer(180); // Set 3 minutes timeout
 
                     window.snap.pay(data.token, {
                         onSuccess: function (result) {

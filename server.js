@@ -495,6 +495,7 @@ const worker = async (task) => {
                         console.log(`[WhatsApp] ✅ Pesan sukses dikirim ke ${task.phone}`);
                     } catch (err) {
                         console.log(`[WhatsApp] ❌ Pesan gagal dikirim ke ${task.phone}: ${err.message}`);
+                        throw err; // Lempar error agar task diselamatkan ke antrean offline
                     }
                 }
             }
@@ -508,14 +509,32 @@ const worker = async (task) => {
 
         } catch (err) {
             console.error(`\n[QUEUE ERROR] ❌ Error processing task for: ${task.name}`);
-            console.error(`[ERROR DETAILS]:`, err);
+            console.error(`[ERROR DETAILS]:`, err.message || err);
 
-            // Clean up even on error to prevent disk filling
-            [task.videoPath, task.photoPath].forEach(p => {
-                if (p && fs.existsSync(p)) {
-                    try { fs.unlinkSync(p); } catch (e) { }
-                }
+            // OFFLINE QUEUE SAVIOR SYSTEM
+            task.retryCount = (task.retryCount || 0) + 1;
+            if (task.retryCount <= 10) { // Coba ulang hingga 10 kali (sekitar 50 menit)
+                const offlineQueueDir = path.join(__dirname, 'data', 'offline_queue');
+                if (!fs.existsSync(offlineQueueDir)) fs.mkdirSync(offlineQueueDir, { recursive: true });
+                
+                const failedTaskPath = path.join(offlineQueueDir, `task_${Date.now()}_${task.phone || 'no_phone'}.json`);
+                fs.writeFileSync(failedTaskPath, JSON.stringify(task, null, 2));
+                console.log(`[OFFLINE QUEUE] ⚠️ Tidak ada internet. Task diselamatkan ke offline queue (Percobaan ke-${task.retryCount}). Akan dicoba lagi otomatis.`);
+            } else {
+                console.log(`[OFFLINE QUEUE] ❌ Task gagal setelah 10 percobaan. Dihapus permanen dari memori.`);
+                // Clean up raw files only if we give up completely
+                [task.videoPath, task.photoPath].forEach(p => {
+                    if (p && fs.existsSync(p)) {
+                        try { fs.unlinkSync(p); } catch (e) { }
+                    }
+                });
+            }
+
+            // Cleanup temporary processed files (not raw files)
+            [inputPath, photoInputPath, outputVideoPath, outputPhotoPath].forEach(p => {
+                if (p && fs.existsSync(p)) fs.unlinkSync(p);
             });
+
             reject(err);
         }
     });
@@ -523,6 +542,31 @@ const worker = async (task) => {
 
 // Initiate FastQ with concurrency = 2 (allow simultaneous upload while rendering)
 const queue = fastq.promise(worker, 2);
+
+// ==========================================
+// OFFLINE QUEUE AUTO-RETRY MECHANISM
+// Berjalan otomatis setiap 5 menit
+// ==========================================
+setInterval(async () => {
+    const offlineQueueDir = path.join(__dirname, 'data', 'offline_queue');
+    if (fs.existsSync(offlineQueueDir)) {
+        const files = fs.readdirSync(offlineQueueDir).filter(f => f.endsWith('.json'));
+        if (files.length > 0) {
+            console.log(`\n[OFFLINE RECOVERY] 🔄 Menemukan ${files.length} tugas tertunda. Mencoba memproses ulang...`);
+            for (let file of files) {
+                const filePath = path.join(offlineQueueDir, file);
+                try {
+                    const task = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                    console.log(`[OFFLINE RECOVERY] Mengirim ulang data untuk ${task.name}...`);
+                    queue.push(task);
+                    fs.unlinkSync(filePath); // Hapus dari offline queue karena sudah dimasukkan kembali ke FastQ
+                } catch (e) {
+                    console.error("[OFFLINE RECOVERY] Error membaca file antrean:", e.message);
+                }
+            }
+        }
+    }
+}, 300000); // 300.000 ms = 5 menit
 
 // API Endpoint: Get Session Result
 app.get('/api/result/:id', async (req, res) => {
