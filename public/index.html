@@ -1328,7 +1328,8 @@
                     <p id="payment-status-text"
                         style="color: white; font-size: min(2.5vh, 20px); margin-bottom: 20px; font-weight: 500;">
                         Membuka Jendela Pembayaran...</p>
-                    <button class="btn" onclick="cancelPaymentFlow()" style="background: rgba(239,68,68,0.1); border: 2px solid #ef4444; color: #ef4444; padding: 12px 30px; font-weight: bold; font-size: 16px; margin-top: 10px; border-radius: 50px; cursor: pointer;">Batalkan & Kembali</button>
+                    <button id="btn-repay" class="btn" onclick="reopenPayment()" style="display: none; background: #009ef7; color: white; border: none; padding: 12px 30px; font-weight: bold; font-size: 16px; margin-top: 10px; margin-bottom: 10px; border-radius: 50px; cursor: pointer;">Lanjutkan Pembayaran</button>
+                    <button class="btn" onclick="cancelPaymentFlow()" style="background: rgba(239,68,68,0.1); border: 2px solid #ef4444; color: #ef4444; padding: 12px 30px; font-weight: bold; font-size: 16px; margin-top: 10px; margin-bottom: 10px; border-radius: 50px; cursor: pointer;">Batalkan & Kembali</button>
                     <p style="display: none;"><strong id="payment-timer"></strong></p>
                 </div>
             </div>
@@ -2389,6 +2390,36 @@
             changeState('idle');
         }
 
+        let currentPaymentToken = null;
+
+        const getSnapCallbacks = () => ({
+            onSuccess: function (result) {
+                document.getElementById('payment-status-text').innerText = 'Pembayaran Berhasil! 🟢';
+                document.getElementById('payment-status-text').style.color = '#4ade80';
+                setTimeout(() => { processUploadVideo(); }, 1500);
+            },
+            onPending: function (result) {
+                document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran...';
+            },
+            onError: function (result) {
+                alert("Pembayaran gagal diproses.");
+                cancelPaymentFlow();
+            },
+            onClose: function () {
+                document.getElementById('payment-status-text').innerText = 'Pembayaran tertunda. Apakah Anda ingin melanjutkan?';
+                const btnRepay = document.getElementById('btn-repay');
+                if (btnRepay) btnRepay.style.display = 'inline-block';
+            }
+        });
+
+        function reopenPayment() {
+            if (currentPaymentToken) {
+                document.getElementById('btn-repay').style.display = 'none';
+                document.getElementById('payment-status-text').innerText = 'Membuka Jendela Pembayaran...';
+                window.snap.pay(currentPaymentToken, getSnapCallbacks());
+            }
+        }
+
         async function submitVideo() {
             const n = document.getElementById('name').value, p = document.getElementById('phone').value, e = document.getElementById('email-input').value;
 
@@ -2413,23 +2444,8 @@
                     changeState('payment');
                     startPaymentTimer(180); // Set 3 minutes timeout
 
-                    window.snap.pay(data.token, {
-                        onSuccess: function (result) {
-                            document.getElementById('payment-status-text').innerText = 'Pembayaran Berhasil! 🟢';
-                            document.getElementById('payment-status-text').style.color = '#4ade80';
-                            setTimeout(() => { processUploadVideo(); }, 1500);
-                        },
-                        onPending: function (result) {
-                            document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran...';
-                        },
-                        onError: function (result) {
-                            alert("Pembayaran gagal diproses.");
-                            cancelPaymentFlow();
-                        },
-                        onClose: function () {
-                            cancelPaymentFlow();
-                        }
-                    });
+                    currentPaymentToken = data.token;
+                    window.snap.pay(currentPaymentToken, getSnapCallbacks());
                     return;
                 } else if (data.status === 'bypassed') {
                     processUploadVideo();
