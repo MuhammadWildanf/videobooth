@@ -1211,6 +1211,37 @@ app.get('/api/admin/transactions', async (req, res) => {
                 results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             }
         }
+
+        // AUTO-SYNC PENDING TRANSACTIONS WITH MIDTRANS
+        for (let i = 0; i < results.length; i++) {
+            if (results[i].status === 'pending') {
+                try {
+                    const statusResponse = await coreApi.transaction.status(results[i].orderId);
+                    const trStatus = statusResponse.transaction_status;
+                    let updated = false;
+
+                    if (trStatus === 'settlement' || trStatus === 'capture') {
+                        results[i].status = 'settlement';
+                        updated = true;
+                    } else if (trStatus === 'cancel' || trStatus === 'expire' || trStatus === 'deny') {
+                        results[i].status = 'failed';
+                        updated = true;
+                    }
+
+                    if (updated) {
+                        results[i].updatedAt = new Date().toISOString();
+                        await saveTransaction(results[i].orderId, { 
+                            status: results[i].status, 
+                            updatedAt: results[i].updatedAt 
+                        });
+                        paymentCache[results[i].orderId] = results[i].status;
+                    }
+                } catch (err) {
+                    // Ignore Midtrans error (e.g. transaction not found or network issue)
+                }
+            }
+        }
+
         res.json({ success: true, data: results });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
