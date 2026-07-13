@@ -2399,7 +2399,9 @@
                 setTimeout(() => { processUploadVideo(); }, 1500);
             },
             onPending: function (result) {
-                document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran...';
+                document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran... (Lanjutkan jika belum selesai)';
+                const btnRepay = document.getElementById('btn-repay');
+                if (btnRepay) btnRepay.style.display = 'inline-block';
             },
             onError: function (result) {
                 alert("Pembayaran gagal diproses.");
