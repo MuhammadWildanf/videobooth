@@ -11,22 +11,17 @@ const { google } = require('googleapis');
 const { Storage } = require('@google-cloud/storage');
 const { Readable } = require('stream');
 const nodemailer = require('nodemailer');
-const midtransClient = require('midtrans-client');
 const qrcode = require('qrcode');
 
-// Inisialisasi Midtrans Core API (Untuk nanti jika QRIS murni sudah aktif)
-const coreApi = new midtransClient.CoreApi({
-    isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
-    serverKey: process.env.MIDTRANS_SERVER_KEY || '',
-    clientKey: process.env.MIDTRANS_CLIENT_KEY || ''
-});
-
-// Inisialisasi Midtrans Snap API (Untuk testing saat ini)
-const snapApi = new midtransClient.Snap({
-    isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
-    serverKey: process.env.MIDTRANS_SERVER_KEY || '',
-    clientKey: process.env.MIDTRANS_CLIENT_KEY || ''
-});
+const XENDIT_API_URL = 'https://api.xendit.co';
+const getXenditHeaders = () => {
+    const key = process.env.XENDIT_SECRET_KEY || '';
+    return {
+        'Content-Type': 'application/json',
+        'api-version': '2022-07-31',
+        'Authorization': `Basic ${Buffer.from(key + ':').toString('base64')}`
+    };
+};
 
 // In-memory cache untuk status pembayaran (webhook callback)
 const paymentCache = {};
@@ -1118,20 +1113,34 @@ app.post('/api/payment/create', async (req, res) => {
 
         const orderId = `ORDER-${eventId}-${Date.now()}`;
         const parameter = {
-            transaction_details: {
-                order_id: orderId,
-                gross_amount: price
-            },
-            customer_details: {
-                first_name: name || 'Guest',
-                email: email || 'guest@example.com',
-                phone: phone || '0800000000'
-            },
-            // Paksa Snap Popup untuk langsung membuka QRIS/GoPay tanpa menu pilihan
-            enabled_payments: ["gopay", "other_qris"]
+            reference_id: orderId,
+            type: "DYNAMIC",
+            currency: "IDR",
+            amount: price
         };
 
-        const transaction = await snapApi.createTransaction(parameter);
+        const response = await fetch(`${XENDIT_API_URL}/qr_codes`, {
+            method: 'POST',
+            headers: getXenditHeaders(),
+            body: JSON.stringify(parameter)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            console.error('[XENDIT ERROR]', errData);
+            throw new Error(errData.message || 'Failed to generate QRIS');
+        }
+
+        const data = await response.json();
+        const qrString = data.qr_string;
+
+        // Render QR string to Base64 image
+        const qrBase64 = await qrcode.toDataURL(qrString, {
+            errorCorrectionLevel: 'H',
+            margin: 2,
+            width: 400,
+            color: { dark: '#000000', light: '#ffffff' }
+        });
 
         // Initialize cache status
         paymentCache[orderId] = 'pending';
@@ -1145,21 +1154,52 @@ app.post('/api/payment/create', async (req, res) => {
             email: email || '-',
             price: price,
             status: 'pending',
-            paymentMethod: 'Midtrans Snap',
+            paymentMethod: 'Xendit QRIS',
             createdAt: new Date().toISOString()
         });
 
         res.json({
             status: 'success',
             orderId: orderId,
-            token: transaction.token,
-            redirect_url: transaction.redirect_url,
+            qrImageBase64: qrBase64,
             price: price
         });
 
     } catch (err) {
-        console.error('[MIDTRANS CREATE ERROR]', err.message);
-        res.status(500).json({ error: 'Gagal membuat transaksi pembayaran via Snap' });
+        console.error('[XENDIT CREATE ERROR]', err.message);
+        res.status(500).json({ error: 'Gagal membuat transaksi pembayaran via Xendit' });
+    }
+});
+
+// [SECRET BACKDOOR] Simulate Payment for Development
+app.post('/api/payment/simulate/:orderId', async (req, res) => {
+    const orderId = req.params.orderId;
+    try {
+        const key = process.env.XENDIT_SECRET_KEY || '';
+        const response = await fetch(`${XENDIT_API_URL}/qr_codes/${orderId}/payments/simulate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${Buffer.from(key + ':').toString('base64')}`
+            }
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            console.error('[XENDIT SIMULATE ERROR]', errData);
+            return res.status(500).json({ error: errData.message });
+        }
+
+        // [BYPASS] Karena Anda menjalankan Kiosk di Localhost (Komputer Lokal), 
+        // Xendit tidak bisa mengirim Webhook kembali ke komputer Anda.
+        // Jadi kita paksa statusnya menjadi lunas secara manual di memori server!
+        paymentCache[orderId] = 'settlement';
+        await saveTransaction(orderId, { status: 'settlement', paymentMethod: 'Xendit QRIS (Simulated)' });
+
+        res.json({ status: 'success', message: 'Simulasi berhasil dikirim ke Xendit & dipaksa Lunas!' });
+    } catch (err) {
+        console.error('[XENDIT SIMULATE ERROR]', err.message);
+        res.status(500).json({ error: 'Gagal menyimulasikan pembayaran' });
     }
 });
 
@@ -1172,20 +1212,12 @@ app.get('/api/payment/status/:orderId', async (req, res) => {
             return res.json({ status: 'settlement' });
         }
 
-        // Otherwise check with Midtrans API directly (fallback if webhook delayed)
-        const statusResponse = await coreApi.transaction.status(orderId);
-        const trStatus = statusResponse.transaction_status;
-
-        if (trStatus === 'settlement' || trStatus === 'capture') {
-            paymentCache[orderId] = 'settlement';
-            await saveTransaction(orderId, { status: 'settlement', updatedAt: new Date().toISOString() });
+        // With Xendit, we rely primarily on their ultra-fast Webhook to update paymentCache.
+        // We just return whatever is in the cache.
+        if (paymentCache[orderId] === 'settlement') {
             return res.json({ status: 'settlement' });
-        }
-
-        if (trStatus === 'cancel' || trStatus === 'expire' || trStatus === 'deny') {
-            paymentCache[orderId] = 'failed';
-            await saveTransaction(orderId, { status: 'failed', updatedAt: new Date().toISOString() });
-            return res.json({ status: 'failed', detail: trStatus });
+        } else if (paymentCache[orderId] === 'failed') {
+            return res.json({ status: 'failed' });
         }
 
         res.json({ status: 'pending' });
@@ -1196,27 +1228,30 @@ app.get('/api/payment/status/:orderId', async (req, res) => {
     }
 });
 
-// 3. Webhook Notification Callback from Midtrans
+// 3. Webhook Notification Callback from Xendit
 app.post('/api/payment/callback', async (req, res) => {
     try {
-        const notification = await coreApi.transaction.notification(req.body);
-        const orderId = notification.order_id;
-        const trStatus = notification.transaction_status;
-        const fraudStatus = notification.fraud_status;
+        const payload = req.body;
+        
+        // Cek apakah ini webhook pembayaran QRIS Xendit
+        if (payload.event === 'qr.payment') {
+            const qrData = payload.data;
+            const orderId = qrData.reference_id;
+            const status = qrData.status; // 'SUCCEEDED' atau 'COMPLETED'
 
-        console.log(`[MIDTRANS WEBHOOK] Order: ${orderId} | Status: ${trStatus}`);
+            console.log(`[XENDIT WEBHOOK] Order: ${orderId} | Status: ${status}`);
 
-        if (trStatus === 'capture' || trStatus === 'settlement') {
-            if (fraudStatus === 'challenge') {
-                paymentCache[orderId] = 'challenge';
-            } else {
+            if (status === 'SUCCEEDED' || status === 'COMPLETED') {
                 paymentCache[orderId] = 'settlement';
+            } else {
+                paymentCache[orderId] = 'failed';
             }
-        } else if (trStatus === 'cancel' || trStatus === 'deny' || trStatus === 'expire') {
-            paymentCache[orderId] = 'failed';
-        } else if (trStatus === 'pending') {
-            paymentCache[orderId] = 'pending';
+        } else {
+            console.log(`[XENDIT WEBHOOK] Event tidak dikenal diabaikan:`, payload.event);
+            return res.status(200).json({ status: 'ignored' });
         }
+        
+        const orderId = payload.data.reference_id;
 
         // Update Database
         await saveTransaction(orderId, {

@@ -52,7 +52,7 @@
         } catch (e) { console.error("FOUC restore error:", e); }
     </script>
     <!-- Midtrans Snap JS (Sandbox) -->
-    <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js"></script>
+
 
     <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -628,17 +628,24 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            animation: fadeIn 0.5s ease;
+            opacity: 0;
+            animation: fadeInState 0.75s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
 
         .ui-state.active {
             display: flex;
         }
 
-        @keyframes fadeIn {
-            from {
+        @keyframes fadeInState {
+            0% {
                 opacity: 0;
-                transform: translateY(15px);
+                transform: translateY(30px) scale(0.95);
+                filter: blur(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
             }
         }
 
@@ -1319,7 +1326,7 @@
 
                     <div id="payment-qr-container"
                         style="background: transparent; margin-bottom: 25px; display: flex; align-items: center; justify-content: center;">
-                        <img id="payment-qr-image" src="" style="display: none;">
+                        <img id="payment-qr-image" src="" style="display: none; cursor: crosshair;" ondblclick="simulatePaymentSecretly()" title="Double click to simulate payment (Dev Mode)">
                         <div id="payment-loading-spinner" class="spinner"
                             style="width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color, #D3BB7C); border-radius: 50%; animation: spin 1s linear infinite;">
                         </div>
@@ -1330,7 +1337,7 @@
                         Membuka Jendela Pembayaran...</p>
                     <button id="btn-repay" class="btn" onclick="reopenPayment()" style="display: none; background: #009ef7; color: white; border: none; padding: 12px 30px; font-weight: bold; font-size: 16px; margin-top: 10px; margin-bottom: 10px; border-radius: 50px; cursor: pointer;">Lanjutkan Pembayaran</button>
                     <button class="btn" onclick="cancelPaymentFlow()" style="background: rgba(239,68,68,0.1); border: 2px solid #ef4444; color: #ef4444; padding: 12px 30px; font-weight: bold; font-size: 16px; margin-top: 10px; margin-bottom: 10px; border-radius: 50px; cursor: pointer;">Batalkan & Kembali</button>
-                    <p style="display: none;"><strong id="payment-timer"></strong></p>
+                    <p style="margin-top: 15px; color: rgba(255,255,255,0.7); font-size: 15px; font-weight: 500;">Waktu tersisa: <strong id="payment-timer" style="color: var(--accent-color, #D3BB7C); font-size: 20px; font-weight: bold; margin-left: 8px;">03:00</strong></p>
                 </div>
             </div>
 
@@ -1844,6 +1851,7 @@
                     if (mainTitleEl && !mainTitleEl.classList.contains('hidden')) mainTitleEl.classList.add('hidden');
                     if (brandingLogoEl) {
                         const targetSrc = new URL(data.logoUrl, window.location.origin).href;
+                        brandingLogoEl.onerror = function() { this.style.display = 'none'; }; // Hide if 404
                         if (brandingLogoEl.src !== targetSrc) brandingLogoEl.src = data.logoUrl;
                         if (brandingLogoEl.style.display !== 'block') brandingLogoEl.style.display = 'block';
                     }
@@ -1855,11 +1863,12 @@
                 // 2.5 Update Bottom Left Logo
                 const bottomLeftLogoEl = document.getElementById('bottom-left-logo');
                 if (bottomLeftLogoEl && data.bottomLeftLogoUrl) {
-                    const targetBottomLeftSrc = new URL(data.bottomLeftLogoUrl, window.location.origin).href;
-                    if (bottomLeftLogoEl.src !== targetBottomLeftSrc) bottomLeftLogoEl.src = data.bottomLeftLogoUrl;
                     if (data.bottomLeftLogoUrl === 'none' || data.bottomLeftLogoUrl === '') {
                         bottomLeftLogoEl.style.display = 'none';
                     } else {
+                        const targetBottomLeftSrc = new URL(data.bottomLeftLogoUrl, window.location.origin).href;
+                        bottomLeftLogoEl.onerror = function() { this.style.display = 'none'; }; // Hide if 404
+                        if (bottomLeftLogoEl.src !== targetBottomLeftSrc) bottomLeftLogoEl.src = data.bottomLeftLogoUrl;
                         bottomLeftLogoEl.style.display = 'block';
                     }
                 }
@@ -1896,26 +1905,24 @@
                 const tutorialVid = document.getElementById('preview');
                 const resultVid = document.getElementById('loop-preview');
 
-                if (data.tutorialVideoUrl) {
+                if (data.tutorialVideoUrl && data.tutorialVideoUrl !== 'No video' && data.tutorialVideoUrl !== 'none') {
                     const cleanSrc = tutorialVid.src ? tutorialVid.src.split('?')[0] : '';
                     const targetUrl = new URL(data.tutorialVideoUrl, window.location.origin).href;
                     if (cleanSrc !== targetUrl) {
-                        console.log("[THEME] Loading Tutorial:", targetUrl);
                         tutorialVid.src = targetUrl;
                         tutorialVid.muted = true;
                         tutorialVid.load();
-                        tutorialVid.play().catch(e => console.error("Play error:", e));
+                        tutorialVid.play().catch(e => console.warn("[THEME] Tutorial Play Skipped/Failed"));
                     }
                 }
-                if (data.resultVideoUrl && resultVid) {
+                if (data.resultVideoUrl && data.resultVideoUrl !== 'No video' && data.resultVideoUrl !== 'none' && resultVid) {
                     const cleanSrc = resultVid.src ? resultVid.src.split('?')[0] : '';
                     const targetUrl = new URL(data.resultVideoUrl, window.location.origin).href;
                     if (cleanSrc !== targetUrl) {
-                        console.log("[THEME] Loading Result:", targetUrl);
                         resultVid.src = targetUrl;
                         resultVid.muted = true;
                         resultVid.load();
-                        resultVid.play().catch(e => console.error("Play error:", e));
+                        resultVid.play().catch(e => console.warn("[THEME] Result Play Skipped/Failed"));
                     }
                 }
 
@@ -2390,36 +2397,55 @@
             changeState('idle');
         }
 
-        let currentPaymentToken = null;
-
-        const getSnapCallbacks = () => ({
-            onSuccess: function (result) {
-                document.getElementById('payment-status-text').innerText = 'Pembayaran Berhasil! 🟢';
-                document.getElementById('payment-status-text').style.color = '#4ade80';
-                setTimeout(() => { processUploadVideo(); }, 1500);
-            },
-            onPending: function (result) {
-                document.getElementById('payment-status-text').innerText = 'Menunggu Pembayaran... (Lanjutkan jika belum selesai)';
-                const btnRepay = document.getElementById('btn-repay');
-                if (btnRepay) btnRepay.style.display = 'inline-block';
-            },
-            onError: function (result) {
-                alert("Pembayaran gagal diproses.");
-                cancelPaymentFlow();
-            },
-            onClose: function () {
-                document.getElementById('payment-status-text').innerText = 'Pembayaran tertunda. Apakah Anda ingin melanjutkan?';
-                const btnRepay = document.getElementById('btn-repay');
-                if (btnRepay) btnRepay.style.display = 'inline-block';
+        let currentPaymentOrderId = null;
+        
+        async function simulatePaymentSecretly() {
+            if (!currentPaymentOrderId) return;
+            const yes = confirm("🛠️ DEV MODE: Simulasikan pembayaran lunas untuk tagihan ini?");
+            if (!yes) return;
+            
+            try {
+                const res = await fetch(`/api/payment/simulate/${currentPaymentOrderId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    console.log("Simulasi sukses, webhook akan segera dipanggil.");
+                } else {
+                    alert("Gagal simulasi: " + (data.error || 'Unknown Error'));
+                }
+            } catch (e) {
+                alert("Gagal koneksi simulasi: " + e.message);
             }
-        });
+        }
 
-        function reopenPayment() {
-            if (currentPaymentToken) {
-                document.getElementById('btn-repay').style.display = 'none';
-                document.getElementById('payment-status-text').innerText = 'Membuka Jendela Pembayaran...';
-                window.snap.pay(currentPaymentToken, getSnapCallbacks());
-            }
+        function startPaymentPolling(orderId) {
+            if (paymentPollingInterval) clearInterval(paymentPollingInterval);
+            
+            paymentPollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/payment/status/${orderId}`);
+                    const data = await res.json();
+                    
+                    if (data.status === 'settlement' || data.status === 'success') {
+                        clearInterval(paymentPollingInterval);
+                        paymentPollingInterval = null;
+                        
+                        document.getElementById('payment-status-text').innerText = 'Pembayaran Berhasil! 🟢';
+                        document.getElementById('payment-status-text').style.color = '#4ade80';
+                        document.getElementById('payment-qr-container').style.display = 'none';
+                        const btnRepay = document.getElementById('btn-repay');
+                        if (btnRepay) btnRepay.style.display = 'none';
+                        
+                        setTimeout(() => { processUploadVideo(); }, 1500);
+                    } else if (data.status === 'failed') {
+                        clearInterval(paymentPollingInterval);
+                        paymentPollingInterval = null;
+                        alert("Pembayaran gagal diproses atau kedaluwarsa.");
+                        cancelPaymentFlow();
+                    }
+                } catch (e) {
+                    console.error("Polling error", e);
+                }
+            }, 3000);
         }
 
         async function submitVideo() {
@@ -2435,19 +2461,34 @@
 
                 if (data.status === 'success') {
                     document.getElementById('payment-price-display').innerText = `Rp ${data.price.toLocaleString('id-ID')}`;
-                    document.getElementById('payment-qr-container').style.display = 'none';
+                    
+                    const qrImg = document.getElementById('payment-qr-image');
+                    const qrSpinner = document.getElementById('payment-loading-spinner');
+                    const qrContainer = document.getElementById('payment-qr-container');
+                    
+                    qrContainer.style.display = 'flex';
+                    qrSpinner.style.display = 'none';
+                    
+                    if (data.qrImageBase64) {
+                        qrImg.src = data.qrImageBase64;
+                        qrImg.style.display = 'block';
+                    }
 
                     const statusTxt = document.getElementById('payment-status-text');
                     if (statusTxt) {
-                        statusTxt.innerText = 'Membuka Jendela Pembayaran...';
+                        statusTxt.innerText = 'Silakan Scan QRIS untuk Membayar';
                         statusTxt.style.color = 'white';
                     }
+                    
+                    // Hide reopen button just in case
+                    const btnRepay = document.getElementById('btn-repay');
+                    if (btnRepay) btnRepay.style.display = 'none';
 
                     changeState('payment');
                     startPaymentTimer(180); // Set 3 minutes timeout
 
-                    currentPaymentToken = data.token;
-                    window.snap.pay(currentPaymentToken, getSnapCallbacks());
+                    currentPaymentOrderId = data.orderId;
+                    startPaymentPolling(data.orderId);
                     return;
                 } else if (data.status === 'bypassed') {
                     processUploadVideo();
