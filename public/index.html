@@ -5,6 +5,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Videobooth</title>
+    <!-- LOADING SCREEN -->
+    <style>
+        @keyframes ringRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes ringDash {
+            0% { stroke-dashoffset: 280; }
+            50% { stroke-dashoffset: 70; transform: rotate(135deg); }
+            100% { stroke-dashoffset: 280; transform: rotate(450deg); }
+        }
+        @keyframes brandShimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes barShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        @keyframes dotPulse {
+            0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1); }
+        }
+        .app-loading {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center 30%, #2a1f15, #0d0806);
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .app-loading::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(197,160,89,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(212,175,55,0.03) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .app-loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .app-loading-inner {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 80px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(197,160,89,0.1);
+            border-radius: 32px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+        .app-loading-inner::before,
+        .app-loading-inner::after {
+            content: '◆';
+            position: absolute;
+            font-size: 10px;
+            color: rgba(197,160,89,0.3);
+        }
+        .app-loading-inner::before { top: 16px; left: 20px; }
+        .app-loading-inner::after { bottom: 16px; right: 20px; }
+
+        .loading-ring {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 40px;
+            animation: ringRotate 2s linear infinite;
+        }
+        .loading-ring circle {
+            fill: none;
+            stroke: url(#ringGradient);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 280;
+            stroke-dashoffset: 280;
+            animation: ringDash 1.8s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .app-loading-brand {
+            font-family: 'Luxurious Script', cursive;
+            font-size: min(5vh, 40px);
+            background: linear-gradient(135deg, #b38b4d 0%, #d4af37 30%, #f0e5c7 50%, #d4af37 70%, #b38b4d 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 45px;
+            letter-spacing: 3px;
+            text-shadow: none;
+            animation: brandShimmer 3s ease-in-out infinite;
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .loading-bar-track {
+            width: min(240px, 55vw);
+            height: 2px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        .loading-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b38b4d, #d4af37, #f0e5c7);
+            border-radius: 2px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .loading-bar-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: barShimmer 2s ease-in-out infinite;
+        }
+        .loading-status {
+            margin-top: 24px;
+            font-family: 'Aref Ruqaa', serif;
+            font-size: min(1.8vh, 13px);
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 2px;
+        }
+        .loading-dots span {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(197,160,89,0.6);
+            animation: dotPulse 1.4s ease-in-out infinite both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: 0s; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Hide main content until loaded */
+        body.app-is-loading .main-wrapper,
+        body.app-is-loading .webcam-wrapper,
+        body.app-is-loading #kbd-container {
+            opacity: 0 !important;
+        }
+        .main-wrapper, .webcam-wrapper, #kbd-container {
+            transition: opacity 0.6s ease;
+        }
+    </style>
+    <svg style="position:absolute;width:0;height:0;">
+        <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#b38b4d"/>
+                <stop offset="50%" stop-color="#d4af37"/>
+                <stop offset="100%" stop-color="#f0e5c7"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
     <!-- INSTANT THEME RESTORER (Pencegah Style Flash / FOUC saat Refresh) -->
     <script>
         try {
@@ -1185,8 +1357,27 @@
     </style>
 </head>
 
-<body class="state-idle">
+<body class="state-idle app-is-loading">
     <div id="flash-overlay"></div>
+
+    <!-- LOADING SCREEN OVERLAY -->
+    <div id="app-loading" class="app-loading">
+        <div class="app-loading-inner">
+            <svg class="loading-ring" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42"/>
+            </svg>
+            <div class="app-loading-brand" id="loading-brand-text">Loading...</div>
+            <div class="loading-bar-track">
+                <div class="loading-bar-fill" id="loading-bar-fill"></div>
+            </div>
+            <div class="loading-status">
+                <span id="loading-status">Loading</span>
+                <span class="loading-dots">
+                    <span></span><span></span><span></span>
+                </span>
+            </div>
+        </div>
+    </div>
 
     <div class="main-wrapper">
 
@@ -1255,6 +1446,8 @@
                     <button class="btn-start" onclick="changeState('form')" style="margin-top: 2vh;">
                         <span>START HERE</span>
                     </button>
+                    <!-- Xendit KYC Button -->
+                    <button onclick="document.getElementById('business-info-modal').style.display='flex'" style="background: none; border: none; color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 20px; cursor: pointer; text-decoration: underline; font-family: inherit;">ℹ️ Business & Legal Info</button>
                 </div>
             </div>
 
@@ -1744,8 +1937,10 @@
                 // Update document title dynamically
                 if (data.title) {
                     document.title = data.title + " - Videobooth";
+                    if (loadingBrandText) loadingBrandText.innerText = data.title;
                 } else {
                     document.title = activeEvent + " - Videobooth";
+                    if (loadingBrandText) loadingBrandText.innerText = activeEvent;
                 }
 
                 // Set global state variables
@@ -1815,6 +2010,15 @@
                 checkEventStatus(data.status);
                 if (data.status === 'inactive') return;
 
+                // Show Xendit KYC button only if payment is required
+                const kycBtn = document.getElementById('kyc-business-info-btn');
+                if (kycBtn) {
+                    if (data.price && parseInt(data.price) > 0) {
+                        kycBtn.style.display = 'block';
+                    } else {
+                        kycBtn.style.display = 'none';
+                    }
+                }
                 // 1. Preload Critical Images in Parallel
                 const criticalAssets = [];
                 if (data.bgImageUrl) criticalAssets.push(preloadImage(data.bgImageUrl));
@@ -2022,10 +2226,55 @@
                 // Set initial state
                 changeState('idle');
 
+                // Loading complete - dismiss loading screen
+                dismissLoading();
+
             } catch (e) {
                 console.error("Theme apply error:", e);
+                // Still dismiss loading even on error
+                dismissLoading();
             }
         }
+        // --- LOADING SCREEN ---
+        const loadingBarFill = document.getElementById('loading-bar-fill');
+        const loadingStatus = document.getElementById('loading-status');
+        const loadingBrandText = document.getElementById('loading-brand-text');
+        const loadingEl = document.getElementById('app-loading');
+        let loadProgress = 0;
+
+        function updateLoading(pct, msg) {
+            if (loadingBarFill) loadingBarFill.style.width = pct + '%';
+            if (loadingStatus && msg) loadingStatus.innerText = msg;
+            loadProgress = pct;
+        }
+
+        function dismissLoading() {
+            updateLoading(100, 'Selesai');
+            setTimeout(() => {
+                document.body.classList.remove('app-is-loading');
+                if (loadingEl) loadingEl.classList.add('hidden');
+                setTimeout(() => { if (loadingEl) loadingEl.remove(); }, 700);
+            }, 500);
+        }
+
+        // Animate loading bar on first load
+        (function animateLoading() {
+            const steps = [
+                { pct: 30, msg: 'Loading...', delay: 200 },
+                { pct: 70, msg: 'Loading...', delay: 300 },
+                { pct: 90, msg: 'Loading...', delay: 200 },
+            ];
+            let i = 0;
+            function nextStep() {
+                if (i < steps.length) {
+                    updateLoading(steps[i].pct, steps[i].msg);
+                    i++;
+                    setTimeout(nextStep, steps[i - 1].delay);
+                }
+            }
+            nextStep();
+        })();
+
         applyCachedTheme();
         applyTheme();
 
@@ -2536,6 +2785,19 @@
             } catch (e) { changeState('review-final'); }
         }
     </script>
+    <!-- Xendit KYC Business Info Modal -->
+    <div id="business-info-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; font-family: sans-serif;">
+        <div style="background: white; padding: 30px; border-radius: 15px; width: 80%; max-width: 400px; color: #333; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <h3 style="margin-top: 0; color: #000; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 18px;">Business Information</h3>
+            <p style="margin: 10px 0; font-size: 14px;"><strong>Company Name:</strong><br>PT Imajiwa Kreasi Visual</p>
+            <p style="margin: 10px 0; font-size: 14px;"><strong>Services:</strong><br>Interactive Videobooth & Photo Services</p>
+            <p style="margin: 10px 0; font-size: 14px;"><strong>Price Range:</strong><br>Rp 10.000 - Rp 50.000 / session</p>
+            <p style="margin: 10px 0; font-size: 14px;"><strong>Contact & Support:</strong><br>visual.lab@imajiwa.id<br>+62 812-1729-2039</p>
+            <p style="margin: 10px 0; font-size: 14px;"><strong>Address:</strong><br>Jl. Kemang Dalam IV No.K24, RT.3/RW.3, Bangka, Kec. Mampang Prpt., Kota Jakarta Selatan, DKI Jakarta 12730</p>
+            
+            <button onclick="document.getElementById('business-info-modal').style.display='none'" style="margin-top: 20px; width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Tutup (Close)</button>
+        </div>
+    </div>
 </body>
 
 </html>
