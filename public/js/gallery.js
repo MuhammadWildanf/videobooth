@@ -1,4 +1,4 @@
-﻿    <script>
+﻿    
         // --- MULTI-EVENT CONFIGURATION ---
         const urlParams = new URLSearchParams(window.location.search);
         const activeEvent = urlParams.get('event') || 'audric-cathrine';
@@ -342,4 +342,4 @@
             if (!str) return '';
             return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
         }
-    </script>
+    

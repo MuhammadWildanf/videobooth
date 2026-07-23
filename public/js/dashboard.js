@@ -1,4 +1,3 @@
-﻿    <script>
         // Check Login Status
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -178,4 +177,3 @@
                 alert('Failed to connect to server.');
             }
         }
-    </script>

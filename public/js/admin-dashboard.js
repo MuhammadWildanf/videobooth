@@ -1,4 +1,4 @@
-﻿    <script>
+﻿    
         // Check Login Status
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -130,4 +130,4 @@
             link.click();
             document.body.removeChild(link);
         }
-    </script>
+    

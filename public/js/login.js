@@ -1,4 +1,4 @@
-﻿    <script>
+﻿    
         // Check if already logged in
         if (localStorage.getItem('adminToken')) {
             window.location.href = '/dashboard.html';
@@ -35,4 +35,4 @@
                 btn.innerHTML = 'Login to Dashboard';
             }
         });
-    </script>
+    

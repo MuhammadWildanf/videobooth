@@ -1,4 +1,4 @@
-﻿    <script>
+﻿    
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const sessionId = urlParams.get('id');
@@ -126,4 +126,4 @@
                 } catch (e) {}
             }
         });
-    </script>
+    
