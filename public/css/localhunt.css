@@ -1,0 +1,279 @@
+/* --- LOCAL HUNT THEME --- */
+:root {
+    --lh-bg: #f5f9e1;
+    --lh-grid: #e2ecc2;
+    --lh-dark: #2c4230; /* Dark Green Text/Buttons */
+    --lh-pink: #fbe0eb;
+    --lh-orange: #c88137;
+    --lh-cream: #fbf5e6;
+    --lh-red: #d8695f;
+    --lh-white: #ffffff;
+    --font-lh: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--lh-bg);
+    background-image: 
+        linear-gradient(var(--lh-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--lh-grid) 1px, transparent 1px);
+    background-size: 30px 30px;
+    font-family: var(--font-lh);
+    color: var(--lh-dark);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* UI States */
+.ui-state {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.ui-state.active {
+    display: flex;
+}
+
+@keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* TOP LOGO */
+.lh-logo-container {
+    background: var(--lh-pink);
+    padding: 10px 40px;
+    border-radius: 50px;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--lh-dark);
+    margin-top: 40px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.lh-logo-container svg { width: 24px; height: 24px; }
+
+/* FRAME 1: IDLE */
+.lh-idle-layout {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.lh-card {
+    background: var(--lh-white);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    flex: 1;
+    position: relative;
+}
+
+.lh-card.cream {
+    background: var(--lh-cream);
+}
+
+/* Left Card (Idle) */
+.lh-idle-left h1 {
+    font-size: 58px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 10px;
+    color: var(--lh-dark);
+}
+.lh-scribble-red {
+    width: 120px;
+    height: auto;
+    margin-bottom: 20px;
+}
+.lh-idle-left p {
+    font-size: 16px;
+    color: var(--lh-dark);
+    max-width: 250px;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+.btn-lh {
+    background: var(--lh-dark);
+    color: white;
+    border: none;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-size: 28px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.2s;
+}
+.btn-lh:active { transform: scale(0.95); }
+
+/* Right Card (Idle) */
+.lh-idle-right {
+    display: flex;
+    justify-content: space-between;
+}
+.lh-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+}
+.lh-idle-right h2 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 600;
+    font-size: 14px;
+}
+.step-number {
+    background: var(--lh-pink);
+    color: var(--lh-red);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+}
+.step-icon {
+    width: 32px; height: 32px;
+    background: #e2e8e3;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+}
+.lh-phone-mockup {
+    background: #685b51;
+    width: 160px;
+    height: 280px;
+    border-radius: 20px;
+    border: 4px solid var(--lh-dark);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 10px;
+}
+.lh-phone-mockup .dashed-person {
+    width: 80px; height: 120px;
+    border: 2px dashed white;
+    border-radius: 40px 40px 0 0;
+    margin-top: 10px;
+}
+
+/* FRAME 2: PAYMENT */
+.lh-payment-layout {
+    background: var(--lh-white);
+    border-radius: 20px;
+    padding: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.lh-payment-left h1 {
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 20px;
+}
+.lh-payment-left .price {
+    font-size: 48px;
+    color: var(--lh-orange);
+    font-weight: 900;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.lh-payment-left .price::before, .lh-payment-left .price::after {
+    content: '';
+    width: 20px; height: 3px;
+    background: var(--lh-dark);
+    display: inline-block;
+    border-radius: 2px;
+}
+.lh-buttons {
+    display: flex;
+    gap: 15px;
+}
+.btn-outline {
+    background: white;
+    color: var(--lh-dark);
+    border: 2px solid var(--lh-dark);
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-solid {
+    background: var(--lh-dark);
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+.lh-payment-right {
+    background: white;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.lh-qr-box {
+    width: 250px;
+    height: 250px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.lh-qr-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.spinner {
+    width: 40px; height: 40px;
+    border: 4px solid rgba(0,0,0,0.1);
+    border-top: 4px solid var(--lh-dark);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: absolute;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Decors */
+.sparkle-decor {
+    position: absolute;
+    width: 30px; height: 30px;
+}
