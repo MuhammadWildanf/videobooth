@@ -1,5 +1,4 @@
-﻿    <style>
-        :root {
+:root {
             --bg-color: #f7f9fc;
             --sidebar-bg: #1e1e2d;
             --sidebar-text: #a1a5b7;
@@ -47,4 +46,3 @@
         .badge { background: #f1f1f4; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
         
         #logout-btn { margin-top: auto; color: var(--danger); }
-    </style>
