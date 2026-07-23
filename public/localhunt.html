@@ -120,6 +120,8 @@
 
     <!-- Custom Theme Logic Override -->
     <script>
+        let currentInvoiceId = null;
+
         // Override start button to skip form and jump straight to payment
         function startLocalHuntFlow() {
             // Fill dummy data for form requirements
@@ -127,13 +129,13 @@
             document.getElementById('guest-email').value = "hunt@local.id";
             
             // Jump to payment
-            switchState('payment');
+            changeState('payment');
             
             // Generate Xendit Payment
             fetch('/api/payment/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ eventId: currentEventId, name: 'Local Hunter', email: 'hunt@local.id' })
+                body: JSON.stringify({ eventId: activeEvent, name: 'Local Hunter', email: 'hunt@local.id' })
             })
             .then(res => res.json())
             .then(data => {
@@ -143,7 +145,7 @@
                     document.getElementById('payment-qr-image').style.display = 'block';
                     document.getElementById('payment-loading-spinner').style.display = 'none';
                     document.getElementById('payment-status-text').innerText = "Silakan scan kode QRIS menggunakan m-banking Anda.";
-                    startPaymentTimer();
+                    startPaymentTimer(180); // 3 minutes
                     startPaymentPolling();
                 } else {
                     Swal.fire("Error", "Gagal membuat kode pembayaran", "error");
@@ -165,10 +167,34 @@
                     if(d.status === 'PAID' || d.status === 'SETTLED') {
                         document.getElementById('payment-status-text').innerText = "Pembayaran Berhasil! Memulai...";
                         document.getElementById('payment-status-text').style.color = "green";
+                        
+                        // Stop polling and timer
+                        stopPaymentTimer();
+                        if (paymentPollingInterval) clearInterval(paymentPollingInterval);
+                        
+                        // Proceed to recording
+                        setTimeout(() => {
+                            initCameraAndGo();
+                        }, 2000);
                     } else {
                         document.getElementById('payment-status-text').innerText = "Pembayaran belum masuk. Coba lagi dalam 5 detik.";
                     }
                 });
+        }
+
+        // We also need to define startPaymentPolling for automatic checking
+        function startPaymentPolling() {
+            paymentPollingInterval = setInterval(() => {
+                if(currentInvoiceId) {
+                    fetch('/api/payment/status/' + currentInvoiceId)
+                        .then(r => r.json())
+                        .then(d => {
+                            if(d.status === 'PAID' || d.status === 'SETTLED') {
+                                checkPaymentStatusSilent();
+                            }
+                        }).catch(e => console.log(e));
+                }
+            }, 3000);
         }
     </script>
 </body>
