@@ -1,0 +1,43 @@
+﻿    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --accent: #E11D48;
+            --accent-glow: rgba(225, 29, 72, 0.4);
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; overflow: hidden;
+            background-image: radial-gradient(circle at 15% 50%, rgba(225, 29, 72, 0.08), transparent 25%);
+        }
+        .container {
+            text-align: center; max-width: 400px; width: 100%; padding: 40px;
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            animation: fadeUp 0.8s forwards;
+        }
+        .logo { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
+        .logo span { color: var(--accent); }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
+        .form-group input {
+            width: 100%; padding: 14px; background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: white; font-family: 'Outfit', sans-serif; font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus { outline: none; border-color: var(--accent); }
+        .btn-login {
+            width: 100%; display: inline-block; background: var(--accent); color: white;
+            border: none; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 15px;
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px var(--accent-glow); margin-top: 10px;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 12px 25px var(--accent-glow); background: #f43f5e; }
+        #error-msg { color: #f43f5e; font-size: 14px; margin-top: 15px; display: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>

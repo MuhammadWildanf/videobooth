@@ -1,0 +1,50 @@
+﻿    <style>
+        :root {
+            --bg-color: #f7f9fc;
+            --sidebar-bg: #1e1e2d;
+            --sidebar-text: #a1a5b7;
+            --sidebar-active: #ffffff;
+            --primary: #009ef7;
+            --primary-hover: #0095e8;
+            --text-main: #181c32;
+            --text-muted: #a1a5b7;
+            --card-bg: #ffffff;
+            --border: #eff2f5;
+            --success: #50cd89;
+            --danger: #f1416c;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); color: var(--sidebar-text); padding: 20px 0; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 0 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        .sidebar-header h2 { color: white; font-size: 22px; }
+        .nav-item { padding: 12px 25px; cursor: pointer; transition: 0.2s; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .nav-item.active, .nav-item:hover { color: var(--sidebar-active); background: rgba(255,255,255,0.05); }
+        
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .page-title { margin-bottom: 30px; }
+        .page-title h1 { font-size: 28px; font-weight: 600; }
+        
+        .card { background: var(--card-bg); border-radius: 12px; padding: 25px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 25px; }
+        .card-header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .card-title { font-size: 18px; font-weight: 600; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; display: inline-block; text-decoration: none; text-align: center; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .badge { background: #f1f1f4; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        
+        #logout-btn { margin-top: auto; color: var(--danger); }
+    </style>

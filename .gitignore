@@ -1,8 +1,10 @@
 /node_modules
 .env
 token.json
-/uploads
 gcp-key.json
+config/token.json
+config/gcp-key.json
+/uploads
 /data/sessions/
 /data/events/
 /public/uploads_assets/
