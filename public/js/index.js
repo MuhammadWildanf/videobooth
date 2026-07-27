@@ -250,7 +250,7 @@
                         const cdAreaPhoto = document.getElementById('countdown-area-photo');
                         if (cdAreaPhoto) cdAreaPhoto.innerText = 'Take a Photo';
                     }
-                } else if (state === 'review-video') {
+                } else if (state === 'review-video' || state === 'review-final') {
                     // PLAYBACK RECORDED VIDEO
                     if (webcamEl) webcamEl.classList.add('hidden');
                     if (previewEl) {
