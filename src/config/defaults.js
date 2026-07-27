@@ -5,7 +5,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 
 const DEFAULT_CONFIG = {
     status: 'active',
-    title: 'New Event',
+    title: 'Local Hunt',
     subtitle: '#OnceInALifetime',
     descPremium: 'Enter your details to unveil a personalized wedding experience.',
     startText: 'Begin your experience',
