@@ -11,37 +11,43 @@
         let deliveryMethod = 'whatsapp'; // Default, but we collect both now
 
         function drawKbd() {
-            const draw = (id, keys) => {
-                const el = document.getElementById(id); 
+            const isEmail = !num && activeInput?.id === 'email-input';
+
+            const makeKey = (k) => `<div class="key" onclick="kPress('${k}')">${caps ? k : k.toLowerCase()}</div>`;
+            const makeRow = (id, keys, withCaps = false) => {
+                const el = document.getElementById(id);
                 if (!el) return;
                 el.innerHTML = '';
-                if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kCaps()">⬆️</div>`;
-                keys.forEach(k => { el.innerHTML += `<div class="key" onclick="kPress('${k}')">${caps ? k : k.toLowerCase()}</div>`; });
-                if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kBks()">⌫</div>`;
+                if (withCaps) el.innerHTML += `<div class="key wide" onclick="kCaps()">⬆️</div>`;
+                keys.forEach(k => { el.innerHTML += makeKey(k); });
+                if (withCaps) el.innerHTML += `<div class="key wide" onclick="kBks()">⌫</div>`;
+                el.style.display = 'flex';
             };
 
-            let r1 = num ? nums.slice(0, 10) : row1;
-            let r2 = num ? nums.slice(10, 19) : row2;
-            let r3 = num ? nums.slice(19, 26) : row3;
-
-            // In email mode, add number row on top + @ and .
-            if (!num && activeInput?.id === 'email-input') {
-                const numRow = document.getElementById('kbd-0');
-                if (numRow) {
-                    numRow.innerHTML = '';
-                    numRow.style.display = 'flex';
-                    '1234567890'.split('').forEach(k => { numRow.innerHTML += `<div class="key" onclick="kPress('${k}')">${k}</div>`; });
-                }
-                r3 = [...r3];
-                r3.push('@', '.');
+            if (isEmail) {
+                // 4-row email layout: numbers / QWERTY / ASDFG / ZXCVBNM@.
+                makeRow('kbd-0', '1234567890'.split(''));
+                makeRow('kbd-1', row1);
+                makeRow('kbd-2', row2);
+                const r3email = [...row3, '@', '.'];
+                makeRow('kbd-3', r3email, true);
+                const el0 = document.getElementById('kbd-0');
+                if (el0) el0.style.display = 'flex';
+            } else if (num) {
+                // number/symbol mode
+                const el0 = document.getElementById('kbd-0');
+                if (el0) el0.style.display = 'none';
+                makeRow('kbd-1', nums.slice(0, 10));
+                makeRow('kbd-2', nums.slice(10, 19));
+                makeRow('kbd-3', nums.slice(19, 26), true);
             } else {
-                const numRow = document.getElementById('kbd-0');
-                if (numRow) numRow.style.display = 'none';
+                // normal letter mode
+                const el0 = document.getElementById('kbd-0');
+                if (el0) el0.style.display = 'none';
+                makeRow('kbd-1', row1);
+                makeRow('kbd-2', row2);
+                makeRow('kbd-3', row3, true);
             }
-
-            draw('kbd-1', r1);
-            draw('kbd-2', r2);
-            draw('kbd-3', r3);
         }
         drawKbd();
 
