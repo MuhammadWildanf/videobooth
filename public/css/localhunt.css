@@ -90,8 +90,7 @@ body.state-review-final #panel-left,
 body.state-ready #panel-right,
 body.state-recording #panel-right,
 body.state-review-video #panel-right,
-body.state-ready-photo #panel-right,
-body.state-review-final #panel-right {
+body.state-ready-photo #panel-right {
   display: flex !important;
 }
 
@@ -107,7 +106,8 @@ body.state-idle #panel-right,
 body.state-payment #panel-left,
 body.state-payment #panel-right,
 body.state-payment-qris #panel-left,
-body.state-payment-qris #panel-right {
+body.state-payment-qris #panel-right,
+body.state-review-final #panel-right {
   display: none !important;
 }
 
