@@ -24,10 +24,19 @@
             let r2 = num ? nums.slice(10, 19) : row2;
             let r3 = num ? nums.slice(19, 26) : row3;
 
-            // In email mode (non-num), let's swap some less used keys for @ and .
+            // In email mode, add number row on top + @ and .
             if (!num && activeInput?.id === 'email-input') {
+                const numRow = document.getElementById('kbd-0');
+                if (numRow) {
+                    numRow.innerHTML = '';
+                    numRow.style.display = 'flex';
+                    '1234567890'.split('').forEach(k => { numRow.innerHTML += `<div class="key" onclick="kPress('${k}')">${k}</div>`; });
+                }
                 r3 = [...r3];
                 r3.push('@', '.');
+            } else {
+                const numRow = document.getElementById('kbd-0');
+                if (numRow) numRow.style.display = 'none';
             }
 
             draw('kbd-1', r1);
@@ -784,18 +793,19 @@
                 const videoConstraints = obsCamera
                     ? {
                         deviceId: { exact: obsCamera.deviceId },
-                        width: { ideal: 1080 },
-                        height: { ideal: 1920 }
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
                     }
                     : {
-                        width: { ideal: 1080 },
-                        height: { ideal: 1920 }
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        aspectRatio: { ideal: 16/9 }
                     };
 
                 console.log('Kamera dipilih:', obsCamera ? obsCamera.label : 'Default Camera');
                 
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
+                    stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
                 } catch (audioOrConstErr) {
                     console.warn("Retrying camera with fallback constraints:", audioOrConstErr);
                     try {
@@ -899,7 +909,7 @@
             rloop();
 
             const cs = rc.captureStream(30);
-            const at = stream.getAudioTracks()[0]; if (at) cs.addTrack(at);
+            // Audio intentionally excluded (no mic)
             mediaRecorder = new MediaRecorder(cs, {
                 mimeType: 'video/webm;codecs=h264',
                 videoBitsPerSecond: 8000000 // 8 Mbps untuk kualitas jernih kristal

@@ -630,6 +630,9 @@
                         style="margin-top: 6px; font-weight: 700; color: var(--lh-orange); font-size: 16px; text-align: center;">
                         <span id="countdown-area">Start Recording</span>
                     </div>
+
+                    <!-- Back Button -->
+                    <button onclick="changeState('form')" style="margin-top: 10px; background: transparent; border: 2px solid #1d3d29; color: #1d3d29; padding: 10px 24px; border-radius: 30px; font-weight: 800; font-size: 14px; cursor: pointer;">❮ BACK</button>
                 </div>
             </div>
 
@@ -738,6 +741,9 @@
                         style="margin-top: 25px; font-weight: 700; color: var(--lh-orange); font-size: 28px;">
                         <span id="countdown-area-photo">Take a Photo</span>
                     </div>
+
+                    <!-- Back Button -->
+                    <button onclick="changeState('review-video')" style="margin-top: 16px; background: transparent; border: 2px solid #1d3d29; color: #1d3d29; padding: 10px 24px; border-radius: 30px; font-weight: 800; font-size: 14px; cursor: pointer;">❮ BACK</button>
                 </div>
             </div>
 
@@ -813,11 +819,11 @@
 
         </div>
 
-        <!-- RIGHT PANEL (PHONE MOCKUP CAMERA) -->
+        <!-- RIGHT PANEL (16:9 CAMERA FRAME) -->
         <div class="lh-panel-right" id="panel-right"
-            style="width: 450px; display: none; flex-direction: column; justify-content: center; align-items: center; position: relative;">
+            style="display: none; flex-direction: column; justify-content: center; align-items: center; position: relative; flex: 1;">
             <div class="lh-phone-mockup"
-                style="width: 100%; height: 85%; max-height: 850px; border-radius: 30px; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+                style="width: 100%; aspect-ratio: 16/9; border-radius: 18px; position: relative; overflow: hidden; display: flex; flex-direction: column;">
 
                 <!-- FULL SCREEN CAMERA LAYER (Now contained inside mockup) -->
                 <div id="camera-container"
@@ -835,8 +841,8 @@
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 3;"></canvas>
 
                     <!-- OVERLAY FRAME PNG LAYER -->
-                    <img id="overlay-frame-img" src="/overlay.png" alt="Overlay Frame"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 4;"
+                    <img id="overlay-frame-img" src="/overlay-16x9.png" alt="Overlay Frame"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; z-index: 4;"
                         onerror="this.style.display='none';">
 
                     <div id="countdown-overlay"
@@ -858,6 +864,7 @@
 
     <!-- Keyboard Container -->
     <div id="kbd-container" class="keyboard-wrapper">
+        <div class="keyboard-row" id="kbd-0" style="display:none;"></div>
         <div class="keyboard-row" id="kbd-1"></div>
         <div class="keyboard-row" id="kbd-2"></div>
         <div class="keyboard-row" id="kbd-3"></div>
