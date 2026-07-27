@@ -214,7 +214,11 @@
                 }
             } else {
                 if (leftPanel) leftPanel.classList.remove('hidden-panel');
-                if (rightPanel) rightPanel.classList.remove('hidden-panel');
+                if (state === 'review-final') {
+                    if (rightPanel) rightPanel.classList.add('hidden-panel');
+                } else {
+                    if (rightPanel) rightPanel.classList.remove('hidden-panel');
+                }
                 if (rightLabel) rightLabel.classList.add('hidden');
 
                 const previewEl = document.getElementById('preview');
