@@ -53,18 +53,39 @@
                             ? `<button class="btn" style="background: #ffe2e5; color: #f1416c; padding: 6px 12px; font-size: 12px; border-radius: 6px; opacity: 0.5; cursor: not-allowed;" disabled>🗑️ Delete</button>`
                             : `<button onclick="deleteEvent('${evt.id}')" class="btn" style="background: #ffe2e5; color: #f1416c; padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer;">🗑️ Delete</button>`;
 
+                        const isCustom = (evt.id === 'localhunt' || evt.noConfig);
+
+                        const configBtn = isCustom
+                            ? `<button class="btn" style="background: #e4e6ef; color: #a1a5b7; padding: 6px 12px; font-size: 12px; border-radius: 6px; opacity: 0.5; cursor: not-allowed;" disabled title="Event custom ini tidak menggunakan Config UI">⚙️ Config</button>`
+                            : `<a href="/config.html?event=${evt.id}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; border-radius: 6px;">⚙️ Config</a>`;
+
+                        let boothPath = '/';
+                        if (evt.id === 'localhunt' || evt.boothPage) {
+                            const bp = evt.boothPage || 'localhunt.html';
+                            boothPath = bp.startsWith('/') ? bp : `/${bp}`;
+                        }
+                        const boothUrl = boothPath.includes('?') ? boothPath : `${boothPath}?event=${evt.id}`;
+
+                        let galleryPath = '/gallery.html';
+                        if (evt.id === 'localhunt' || evt.galleryPage) {
+                            const gp = evt.galleryPage || 'localhunt-gallery.html';
+                            const fullGp = gp.endsWith('.html') ? gp : `${gp}.html`;
+                            galleryPath = fullGp.startsWith('/') ? fullGp : `/${fullGp}`;
+                        }
+                        const galleryUrl = galleryPath.includes('?') ? galleryPath : `${galleryPath}?event=${evt.id}`;
+
                         tbody.innerHTML += `
                             <tr>
                                 <td><span class="badge" style="font-size: 14px; padding: 6px 12px;">${evt.id}</span></td>
                                 <td>${statusBadge}</td>
                                 <td>
                                     <div class="action-btns" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                                        <a href="/config.html?event=${evt.id}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; border-radius: 6px;">⚙️ Config</a>
+                                        ${configBtn}
                                         ${renameBtn}
                                         ${toggleBtn}
                                         ${deleteBtn}
-                                        <a href="/?event=${evt.id}" target="_blank" class="btn btn-success" style="background: #e1f0ff; color: #009ef7; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none;">🔗 Open Booth</a>
-                                        <a href="/gallery.html?event=${evt.id}" target="_blank" class="btn" style="background: #e1f0ff; color: #009ef7; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none;">🖼️ Gallery</a>
+                                        <a href="${boothUrl}" target="_blank" class="btn btn-success" style="background: #e1f0ff; color: #009ef7; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none;">🔗 Open Booth</a>
+                                        <a href="${galleryUrl}" target="_blank" class="btn" style="background: #e1f0ff; color: #009ef7; padding: 6px 12px; font-size: 12px; border-radius: 6px; text-decoration: none;">🖼️ Gallery</a>
                                     </div>
                                 </td>
                             </tr>

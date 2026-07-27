@@ -1,201 +1,1047 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Hunt Videobooth</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/localhunt.css">
-    
+    <link rel="stylesheet" href="/css/localhunt.css?v=20260727_v14">
+
     <!-- Dependency Scripts from Core System -->
-    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <style>
+        /* Force panel visibility regardless of external css cache */
+        body.state-form #panel-left,
+        body.state-ready #panel-left,
+        body.state-recording #panel-left,
+        body.state-review-video #panel-left,
+        body.state-ready-photo #panel-left,
+        body.state-review-final #panel-left,
+        body.state-processing #panel-left,
+        body.state-review #panel-left,
+        body.state-ready #panel-right,
+        body.state-recording #panel-right,
+        body.state-review-video #panel-right,
+        body.state-ready-photo #panel-right,
+        body.state-review-final #panel-right {
+            display: flex !important;
+        }
+    </style>
 </head>
+
 <body>
+    <div id="flash-overlay"></div>
 
-    <div class="lh-logo-container">
-        L<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>CAL HUNT
+    <!-- TOP 3 LOGOS HEADER BAR (100% Pure Image Slots) -->
+    <div class="lh-top-logos-bar"
+        style="position: absolute; top: 22px; left: 0; width: 100%; padding: 0 65px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 100; pointer-events: none;">
+
+        <!-- 1. Left Logo Image Slot (/logo-localhunt.png) -->
+        <div class="lh-logo-box left" style="pointer-events: auto; display: flex; align-items: center;">
+            <img id="lh-logo-left" src="/LH.png" alt="Local Hunt Logo"
+                style="height: 52px; max-width: 220px; object-fit: contain;">
+        </div>
+
+        <!-- 2. Center Logo Image Slot (/logo-lumea.png) -->
+        <div class="lh-logo-box center" style="pointer-events: auto; display: flex; align-items: center;">
+            <img id="lh-logo-center" src="/Lumea-black.png" alt="Lumea Logo"
+                style="height: 44px; max-width: 200px; object-fit: contain;">
+        </div>
+
+        <!-- 3. Right Logo Image Slot (/logo-partner.png) -->
+        <div class="lh-logo-box right" style="pointer-events: auto; display: flex; align-items: center;">
+            <img id="lh-logo-right" src="/imajiwalab.png" alt="Partner Logo"
+                style="height: 50px; max-width: 220px; object-fit: contain;">
+        </div>
     </div>
 
-    <!-- STATE: IDLE (FRAME 1) -->
-    <div id="state-idle" class="ui-state active">
-        <div class="lh-idle-layout">
-            <div class="lh-card lh-idle-left">
-                <h1>DISCOVER.<br>DRAW.<br>SHARE.</h1>
-                <!-- Simple red zigzag placeholder -->
-                <svg class="lh-scribble-red" viewBox="0 0 100 20" fill="none" stroke="var(--lh-red)" stroke-width="4"><path d="M0 10 Q 25 -10, 50 10 T 100 10"></path></svg>
+    <div class="lh-split-container"
+        style="display: flex; width: 100%; height: calc(100vh - 105px); margin-top: 75px; padding: 15px 60px; box-sizing: border-box; gap: 40px; position: relative;">
+
+        <!-- FULL SCREEN STATES -->
+        <!-- STATE: IDLE -->
+        <div id="state-idle" class="ui-state active"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; padding: 15px 40px; box-sizing: border-box;">
+            <div
+                style="display: flex; gap: 30px; width: 94%; max-width: 2372px; height: 72.3vh; max-height: 1041px; justify-content: center; align-items: stretch;">
+
+                <!-- Left Card (DISCOVER. DRAW. SHARE. - Figma Width: 1287px) -->
+                <div class="lh-card lh-idle-left"
+                    style="flex: 1287; background: white; border-radius: 28px; padding: 45px 50px; box-shadow: 0 12px 35px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                    <!-- Sparkle Image inside card -->
+                    <div
+                        style="position: absolute; top: 80px; right: 35px; pointer-events: none; opacity: 0.75; z-index: 5;">
+                        <img id="lh-card-sparkle-img" src="/top-left-sparkle.png" alt="Sparkle"
+                            style="width: 95px; height: 95px; object-fit: contain;"
+                            onerror="this.style.display='none'; document.getElementById('lh-fallback-card-sparkle-svg').style.display='block';">
+                        <svg id="lh-fallback-card-sparkle-svg" width="80" height="80" viewBox="0 0 50 50" fill="none"
+                            style="display: none;">
+                            <path d="M25 0 C25 15 35 25 50 25 C35 25 25 35 25 50 C25 35 15 25 0 25 C15 25 25 15 25 0 Z"
+                                stroke="#f4999e" stroke-width="2" fill="none" />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h1
+                            style="font-size: 50px; font-weight: 900; line-height: 1.05; color: #1d3d29; margin-bottom: 12px; letter-spacing: -0.5px;">
+                            DISCOVER.<br>DRAW.<br>SHARE.</h1>
+                        <svg width="220" height="28" viewBox="0 0 220 28" fill="none" style="margin-bottom: 25px;">
+                            <path d="M5 14 Q 55 2, 105 24 T 215 14" stroke="#f4999e" stroke-width="6"
+                                stroke-linecap="round" />
+                        </svg>
+                        <p
+                            style="font-size: 15px; color: #1d3d29; max-width: 280px; font-weight: 500; line-height: 1.45; margin-bottom: 25px;">
+                            Create a memorable Local Hunt video by writing or doodling on the mirror.</p>
+                    </div>
+
+                    <!-- START HERE BUTTON -->
+                    <div style="position: relative; width: 100%;">
+                        <button class="btn-lh" onclick="startLocalHuntFlow()"
+                            style="background: #1d3d29; color: white; border: none; padding: 22px 30px; border-radius: 20px; font-size: 30px; font-weight: 900; cursor: pointer; width: 100%; transition: transform 0.2s; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(29,61,41,0.22); outline: none;">START
+                            HERE</button>
+                        <!-- Pink dash accents on top-right of button -->
+                        <div
+                            style="position: absolute; right: -14px; top: -14px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 6;">
+                            <div
+                                style="width: 14px; height: 4px; background: #f4999e; border-radius: 2px; transform: rotate(30deg);">
+                            </div>
+                            <div style="width: 18px; height: 4px; background: #f4999e; border-radius: 2px;"></div>
+                            <div
+                                style="width: 14px; height: 4px; background: #f4999e; border-radius: 2px; transform: rotate(-30deg);">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Card (How it works & Phone Mockup - Figma Width: 1085px) -->
+                <div class="lh-card cream lh-idle-right"
+                    style="flex: 1085; background: #fcf7ec; border-radius: 28px; padding: 40px 45px; box-shadow: 0 12px 35px rgba(0,0,0,0.04); display: flex; gap: 25px; align-items: center; position: relative;">
+                    <div
+                        style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                        <div>
+                            <h2 style="font-size: 28px; font-weight: 900; color: #1d3d29; margin-bottom: 2px;">How it
+                                works</h2>
+                            <svg width="130" height="16" viewBox="0 0 130 16" fill="none" style="margin-bottom: 22px;">
+                                <path d="M2 8 Q 32 1, 65 11 T 128 8" stroke="#f4999e" stroke-width="4.5"
+                                    stroke-linecap="round" />
+                            </svg>
+
+                            <div class="lh-steps" style="display: flex; flex-direction: column; gap: 22px;">
+                                <div class="step-item" style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="width: 24px; height: 24px; border-radius: 50%; background: #ff9ebb; color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        1</div>
+                                    <div class="step-icon"
+                                        style="width: 38px; height: 38px; background: #e2e8e3; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d3d29"
+                                            stroke-width="2.5">
+                                            <path d="M3 3h18v18H3zM12 8v8M8 12h8"></path>
+                                        </svg>
+                                    </div>
+                                    <div style="font-weight: 700; font-size: 14px; color: #1d3d29;">Pay with QRIS</div>
+                                </div>
+                                <div class="step-item" style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="width: 24px; height: 24px; border-radius: 50%; background: #ff9ebb; color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        2</div>
+                                    <div class="step-icon"
+                                        style="width: 38px; height: 38px; background: #e2e8e3; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d3d29"
+                                            stroke-width="2.5">
+                                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div style="font-weight: 700; font-size: 14px; color: #1d3d29; line-height: 1.25;">
+                                        Write<br>on the mirror</div>
+                                </div>
+                                <div class="step-item" style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="width: 24px; height: 24px; border-radius: 50%; background: #ff9ebb; color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        3</div>
+                                    <div class="step-icon"
+                                        style="width: 38px; height: 38px; background: #e2e8e3; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d3d29"
+                                            stroke-width="2.5">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                    </div>
+                                    <div style="font-weight: 700; font-size: 14px; color: #1d3d29; line-height: 1.25;">
+                                        Get your<br>video result</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <svg width="110" height="24" viewBox="0 0 110 24" fill="none" style="margin-bottom: 6px;">
+                                <path d="M3 12 Q 50 1, 98 12 M 85 4 L 102 12 L 85 20" stroke="#f4999e" stroke-width="4"
+                                    stroke-linecap="round" />
+                            </svg>
+                            <div
+                                style="font-weight: 700; font-size: 13px; color: #1d3d29; max-width: 170px; line-height: 1.3;">
+                                What you draw appears in front of you in the video!</div>
+                        </div>
+                    </div>
+
+                    <!-- Phone Mockup Preview Frame -->
+                    <div class="lh-phone-mockup"
+                        style="width: 200px; height: 370px; background: #3e3835; border-radius: 26px; padding: 18px; position: relative; border: 5px solid #e08378; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.18); flex-shrink: 0;">
+                        <!-- Top Right Doodles -->
+                        <div style="display: flex; justify-content: flex-end; align-items: flex-start; z-index: 2;">
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                                <!-- Pink Heart + Dash Accents -->
+                                <div style="position: relative;">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f7a4af"
+                                        stroke-width="2.5">
+                                        <path
+                                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                        </path>
+                                    </svg>
+                                    <div style="position: absolute; top: -5px; right: -8px; display: flex; gap: 2px;">
+                                        <div
+                                            style="width: 2px; height: 5px; background: #f7a4af; transform: rotate(20deg);">
+                                        </div>
+                                        <div style="width: 2px; height: 7px; background: #f7a4af;"></div>
+                                        <div
+                                            style="width: 2px; height: 5px; background: #f7a4af; transform: rotate(-20deg);">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Gold Star Doodle -->
+                                <div style="position: relative; margin-top: 12px;">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#f2a83b"
+                                        stroke-width="2.5" stroke-linejoin="round">
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                        </polygon>
+                                    </svg>
+                                    <div
+                                        style="position: absolute; bottom: -6px; right: -3px; display: flex; gap: 3px;">
+                                        <div
+                                            style="width: 7px; height: 2px; background: #f2a83b; transform: rotate(30deg);">
+                                        </div>
+                                        <div
+                                            style="width: 5px; height: 2px; background: #f2a83b; transform: rotate(-30deg);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Left Smiley Face Doodle -->
+                        <div style="position: absolute; top: 175px; left: 12px; z-index: 2;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f2a83b"
+                                stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3.5" stroke-linecap="round"></line>
+                                <line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3.5" stroke-linecap="round"></line>
+                            </svg>
+                        </div>
+
+                        <!-- Dashed Silhouette Outline -->
+                        <div
+                            style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 135px; height: 190px; pointer-events: none;">
+                            <div
+                                style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 68px; height: 68px; border: 2.5px dashed rgba(255,255,255,0.85); border-radius: 50%;">
+                            </div>
+                            <div
+                                style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 125px; height: 110px; border: 2.5px dashed rgba(255,255,255,0.85); border-top-left-radius: 60px; border-top-right-radius: 60px; border-bottom: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- STATE: PAYMENT METHOD SELECTION (FRAME 1 / FRAME 3) -->
+        <div id="state-payment" class="ui-state"
+            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 20px 40px; box-sizing: border-box; justify-content: center; align-items: center;">
+            
+            <div style="display: flex; gap: 30px; width: 94%; max-width: 2200px; height: 74vh; max-height: 1040px; justify-content: center; align-items: stretch;">
                 
-                <p>Create a memorable Local Hunt video by writing or doodling on the mirror.</p>
-                <button class="btn-lh" onclick="startLocalHuntFlow()">START HERE</button>
+                <!-- Left Card: Method Selection -->
+                <div class="lh-card cream" style="flex: 1.2; background: white; border-radius: 28px; padding: 45px 50px; box-shadow: 0 12px 35px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                    
+                    <!-- Sparkle Image inside card -->
+                    <div style="position: absolute; top: 35px; right: 35px; pointer-events: none; opacity: 0.75; z-index: 5;">
+                        <svg width="45" height="45" viewBox="0 0 50 50" fill="none"><path d="M25 0 C25 15 35 25 50 25 C35 25 25 35 25 50 C25 35 15 25 0 25 C15 25 25 15 25 0 Z" stroke="#f4999e" stroke-width="2.5" fill="none"/></svg>
+                    </div>
+
+                    <div>
+                        <h1 style="font-size: 42px; font-weight: 900; color: #1d3d29; margin-bottom: 8px; line-height: 1.05; letter-spacing: -0.5px;">
+                            CHOOSE YOUR<br>PAYMENT METHOD.
+                        </h1>
+                        <p style="font-size: 15px; color: #1d3d29; max-width: 320px; font-weight: 500; line-height: 1.4; margin-bottom: 30px;">
+                            Select one option to continue to the Local Hunt experience.
+                        </p>
+
+                        <!-- Method Option Buttons -->
+                        <div style="display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 480px;">
+                            
+                            <!-- Option 1: PAY WITH QRIS -->
+                            <div onclick="showQrisPaymentScreen()"
+                                style="background: #fbf7ee; border: 2px solid #f4999e; padding: 18px 24px; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(244,153,158,0.12);"
+                                onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';">
+                                <div style="display: flex; align-items: center; gap: 18px;">
+                                    <div style="width: 54px; height: 54px; background: #e2ecc2; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1d3d29" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="7" height="7"></rect>
+                                            <rect x="14" y="3" width="7" height="7"></rect>
+                                            <rect x="14" y="14" width="7" height="7"></rect>
+                                            <rect x="3" y="14" width="7" height="7"></rect>
+                                        </svg>
+                                    </div>
+                                    <div style="text-align: left;">
+                                        <div style="font-size: 20px; font-weight: 900; color: #1d3d29; line-height: 1.2;">PAY WITH QRIS</div>
+                                        <div style="font-size: 13px; font-weight: 600; color: #4a7c59; margin-top: 2px;">Scan a QR code to pay and start.</div>
+                                    </div>
+                                </div>
+                                <div style="color: #f4999e; font-size: 24px; font-weight: 900;">➔</div>
+                            </div>
+
+                            <!-- Option 2: USE VOUCHER -->
+                            <div onclick="confirmVoucherPass()"
+                                style="background: #fbf7ee; border: 2px solid #f4999e; padding: 18px 24px; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(244,153,158,0.12);"
+                                onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';">
+                                <div style="display: flex; align-items: center; gap: 18px;">
+                                    <div style="width: 54px; height: 54px; background: #e2ecc2; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1d3d29" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"></path>
+                                            <line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="3 3"></line>
+                                        </svg>
+                                    </div>
+                                    <div style="text-align: left;">
+                                        <div style="font-size: 20px; font-weight: 900; color: #1d3d29; line-height: 1.2;">USE VOUCHER</div>
+                                        <div style="font-size: 13px; font-weight: 600; color: #4a7c59; margin-top: 2px;">Enter or scan your voucher code.</div>
+                                    </div>
+                                </div>
+                                <div style="color: #f4999e; font-size: 24px; font-weight: 900;">➔</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Bottom Back Button -->
+                    <div style="display: flex; justify-content: flex-start; margin-top: 25px;">
+                        <button onclick="changeState('idle')"
+                            style="background: white; border: 2px solid #1d3d29; color: #1d3d29; padding: 10px 24px; border-radius: 30px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            ❮ BACK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Card: How to Continue -->
+                <div class="lh-card cream" style="flex: 1; background: #fcf7ec; border-radius: 28px; padding: 40px 45px; box-shadow: 0 12px 35px rgba(0,0,0,0.04); display: flex; flex-direction: column; align-items: center; text-align: center;">
+                    <div style="width: 100%;">
+                        <h2 style="font-size: 24px; font-weight: 900; color: #1d3d29; margin-bottom: 4px;">HOW TO CONTINUE</h2>
+                        <svg width="120" height="14" viewBox="0 0 120 14" fill="none" style="margin-bottom: 40px;">
+                            <path d="M2 7 Q 30 1, 60 11 T 118 7" stroke="#f4999e" stroke-width="4" stroke-linecap="round" />
+                        </svg>
+
+                        <!-- Main Illustration & Steps Layout -->
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 40px; margin-bottom: 20px;">
+                            
+                            <!-- Left: Smartphone & Ticket -->
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                                <!-- Smartphone -->
+                                <div style="width: 110px; height: 210px; border: 3px solid #1d3d29; border-radius: 20px; background: white; position: relative; padding: 15px 10px; display: flex; flex-direction: column; align-items: center;">
+                                    <!-- Notch -->
+                                    <div style="width: 35px; height: 5px; background: #1d3d29; border-radius: 3px; margin-bottom: 25px;"></div>
+                                    <!-- QR Display -->
+                                    <div style="position: relative; width: 75px; height: 75px;">
+                                        <!-- Corners -->
+                                        <div style="position: absolute; top: 0; left: 0; width: 12px; height: 12px; border-top: 2.5px solid #f4999e; border-left: 2.5px solid #f4999e;"></div>
+                                        <div style="position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-top: 2.5px solid #f4999e; border-right: 2.5px solid #f4999e;"></div>
+                                        <div style="position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; border-bottom: 2.5px solid #f4999e; border-left: 2.5px solid #f4999e;"></div>
+                                        <div style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-bottom: 2.5px solid #f4999e; border-right: 2.5px solid #f4999e;"></div>
+                                        <!-- QR inside -->
+                                        <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                                            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="#1d3d29" stroke-width="2" stroke-linecap="square">
+                                                <rect x="4" y="4" width="5" height="5" fill="#1d3d29"></rect>
+                                                <rect x="15" y="4" width="5" height="5" fill="#1d3d29"></rect>
+                                                <rect x="15" y="15" width="5" height="5" fill="#1d3d29"></rect>
+                                                <rect x="4" y="15" width="5" height="5" fill="#1d3d29"></rect>
+                                                <path d="M9 15h2v2H9zM9 20h2v-3H9zM15 9h-2v2h2z"></path>
+                                                <rect x="10" y="10" width="4" height="4" fill="#1d3d29"></rect>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <!-- Decorative pink dashes on screen -->
+                                    <svg width="70" height="20" viewBox="0 0 80 20" style="position: absolute; bottom: 20px; left: 20px;">
+                                        <path d="M0 15 Q 15 5, 30 15 T 70 15" stroke="#f4999e" stroke-width="3" fill="none" opacity="0.8" stroke-linecap="round"/>
+                                    </svg>
+                                    <svg width="40" height="20" viewBox="0 0 80 20" style="position: absolute; bottom: 10px; left: 20px;">
+                                        <path d="M0 10 Q 15 0, 30 10 T 40 10" stroke="#f4999e" stroke-width="3" fill="none" opacity="0.8" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+
+                                <div style="color: #f4999e; font-weight: 800; font-size: 16px; letter-spacing: 1px;">&rarr; or &larr;</div>
+
+                                <!-- Ticket -->
+                                <div style="width: 110px; height: 55px; background: #e2ecc2; border: 2.5px solid #1d3d29; border-radius: 8px; position: relative; display: flex; justify-content: center; align-items: center; transform: rotate(-5deg);">
+                                    <div style="position: absolute; left: -10px; top: 18px; width: 16px; height: 16px; background: #fcf7ec; border-radius: 50%; border-right: 2.5px solid #1d3d29;"></div>
+                                    <div style="position: absolute; right: -10px; top: 18px; width: 16px; height: 16px; background: #fcf7ec; border-radius: 50%; border-left: 2.5px solid #1d3d29;"></div>
+                                    <div style="width: 2px; height: 80%; border-left: 2px dashed rgba(29,61,41,0.4); position: absolute; left: 35px;"></div>
+                                    <div style="font-size: 26px; font-weight: 900; color: #1d3d29; margin-left: 15px; margin-bottom: 2px;">%</div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Steps -->
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0; position: relative; padding-top: 15px;">
+                                
+                                <!-- Step 1 -->
+                                <div style="display: flex; align-items: center; gap: 14px; position: relative; z-index: 2; margin-bottom: 45px;">
+                                    <div style="width: 26px; height: 26px; border-radius: 50%; background: #f4999e; color: white; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center;">1</div>
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2ecc2; display: flex; align-items: center; justify-content: center;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d3d29" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 14a8 8 0 0 1-8 8"></path>
+                                            <path d="M18 11v-1a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+                                            <path d="M14 10V9a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v1"></path>
+                                            <path d="M10 9.5V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v10"></path>
+                                            <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+                                        </svg>
+                                    </div>
+                                    <div style="font-weight: 800; font-size: 15px; color: #1d3d29; line-height: 1.25; text-align: left;">Choose<br>QRIS or Voucher</div>
+                                </div>
+
+                                <!-- Connecting Dashed Line -->
+                                <div style="position: absolute; left: 12px; top: 40px; width: 2px; height: 48px; border-left: 2px dashed #f4999e; z-index: 1;"></div>
+
+                                <!-- Step 2 -->
+                                <div style="display: flex; align-items: center; gap: 14px; position: relative; z-index: 2;">
+                                    <div style="width: 26px; height: 26px; border-radius: 50%; background: #f4999e; color: white; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center;">2</div>
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2ecc2; display: flex; align-items: center; justify-content: center;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d3d29" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div style="font-weight: 800; font-size: 15px; color: #1d3d29; line-height: 1.25; text-align: left;">Complete<br>payment to start</div>
+                                </div>
+                                
+                                <!-- Horizontal separator -->
+                                <div style="width: 100%; height: 2px; background: rgba(29,61,41,0.08); margin-top: 35px; margin-bottom: 25px;"></div>
+                                
+                                <div style="display: flex; gap: 14px; align-items: center; max-width: 240px;">
+                                    <div style="font-size: 26px; color: #f4999e; display: flex; align-items: center; justify-content: center;">
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f4999e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                        </svg>
+                                    </div>
+                                    <div style="font-size: 14px; font-weight: 700; color: #4a7c59; line-height: 1.35; text-align: left;">
+                                        After payment, the experience begins automatically.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
+        </div>
+
+        <!-- STATE: DEDICATED QRIS PAYMENT (FRAME 2) -->
+        <div id="state-payment-qris" class="ui-state"
+            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 20px 40px; box-sizing: border-box; justify-content: center; align-items: center;">
             
-            <div class="lh-card cream lh-idle-right">
-                <div style="width: 50%;">
-                    <h2>How it works</h2>
-                    <div class="lh-steps">
-                        <div class="step-item">
-                            <div class="step-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--lh-dark)" stroke-width="2"><path d="M3 3h18v18H3zM12 8v8M8 12h8"></path></svg></div>
-                            <div>Pay with QRIS</div>
+            <div class="lh-card cream"
+                style="width: 94%; max-width: 2200px; height: 74vh; max-height: 1040px; background: white; border-radius: 28px; padding: 45px 50px; box-shadow: 0 12px 35px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                
+                <!-- Main Content Row -->
+                <div style="display: flex; gap: 40px; width: 100%; align-items: center; justify-content: space-between; flex: 1;">
+                    
+                    <!-- Left Section: Header, Price & Buttons -->
+                    <div style="flex: 1; text-align: left; display: flex; flex-direction: column; justify-content: center;">
+                        <h1 style="font-size: 42px; font-weight: 900; color: #1d3d29; margin-bottom: 4px; line-height: 1.05;">
+                            START YOUR<br>LOCAL HUNT
+                        </h1>
+                        <svg width="180" height="16" viewBox="0 0 180 16" fill="none" style="margin-bottom: 25px;">
+                            <path d="M4 8 Q 45 2, 90 14 T 176 8" stroke="#f4999e" stroke-width="5" stroke-linecap="round"/>
+                        </svg>
+
+                        <!-- Price Tag -->
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 30px;">
+                            <span style="font-size: 54px; color: #d97706; font-weight: 900; letter-spacing: -1px;" id="payment-price-display">Rp25.000</span>
                         </div>
-                        <div class="step-item">
-                            <div class="step-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--lh-dark)" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-                            <div>Write on the mirror</div>
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; align-items: center; gap: 16px; width: 100%; max-width: 480px;">
+                            <button onclick="checkPaymentStatusSilent()"
+                                style="flex: 1.2; background: #1d3d29; color: white; border: none; padding: 18px 24px; border-radius: 18px; font-weight: 900; cursor: pointer; font-size: 17px; box-shadow: 0 8px 22px rgba(29,61,41,0.25);">
+                                I HAVE PAID
+                            </button>
+
+                            <button onclick="checkPaymentStatusSilent()"
+                                style="flex: 1; background: white; color: #1d3d29; border: 2.5px solid #1d3d29; padding: 16px 20px; border-radius: 18px; font-weight: 800; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                🔄 CHECK PAYMENT
+                            </button>
                         </div>
-                        <div class="step-item">
-                            <div class="step-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--lh-dark)" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>
-                            <div>Get your video result</div>
+                    </div>
+
+                    <!-- Center Section: Clean QRIS Card -->
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; padding: 22px; border-radius: 26px; border: 2.5px solid #f4999e; box-shadow: 0 10px 30px rgba(244,153,158,0.18);">
+                        <img id="payment-qr-image" src="/qris-static.png" alt="QRIS Code"
+                            style="width: 280px; height: 280px; object-fit: contain; background: white; border-radius: 12px;">
+                        <div id="payment-status-text" style="margin-top: 15px; font-weight: 800; font-size: 16px; color: #1d3d29; text-align: center; height: 24px;"></div>
+                    </div>
+
+                    <!-- Right Section: Guide Footnote -->
+                    <div style="flex: 0.8; display: flex; flex-direction: column; align-items: flex-end; text-align: right; justify-content: flex-end; height: 100%;">
+                        <div style="font-weight: 700; font-size: 14px; color: #1d3d29; max-width: 180px; line-height: 1.35; margin-top: auto;">
+                            What you draw appears in front of you in the video!
                         </div>
                     </div>
                 </div>
-                <div class="lh-phone-mockup">
-                    <div style="font-family: 'Comic Sans MS', cursive; color: var(--lh-pink); transform: rotate(-10deg); margin-bottom: 5px;">Your<br>Adventures</div>
-                    <div class="dashed-person"></div>
-                    <div style="font-family: 'Comic Sans MS', cursive; color: var(--lh-grid); margin-top: auto; text-align: right; width: 100%;">Let's<br>Go!</div>
+
+                <!-- Bottom Back / Cancel button -->
+                <div style="display: flex; justify-content: flex-start; margin-top: 15px;">
+                    <button onclick="changeState('payment')"
+                        style="background: white; border: 2px solid #1d3d29; color: #1d3d29; padding: 10px 24px; border-radius: 30px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        ❮ BACK
+                    </button>
                 </div>
             </div>
         </div>
-        <div style="margin-top: 20px; font-weight: 500; font-size: 14px;">What you draw appears in front of you in the video!</div>
-    </div>
 
-    <!-- STATE: PAYMENT (FRAME 2) -->
-    <div id="state-payment" class="ui-state">
-        <div class="lh-payment-layout">
-            <div class="lh-payment-left">
-                <h1>START YOUR<br>LOCAL HUNT</h1>
-                <div class="price" id="payment-price-display">Rp10.000</div>
-                <div class="lh-buttons">
-                    <!-- Overriding standard payment buttons to match design -->
-                    <button class="btn-solid" onclick="checkPaymentStatusSilent()">I HAVE PAID</button>
-                    <button class="btn-outline" onclick="cancelPaymentFlow()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> CANCEL</button>
+        <!-- LEFT PANEL (UI STATES) -->
+        <div class="lh-panel-left" id="panel-left" style="flex: 1; position: relative;">
+
+            <!-- STATE: FORM -->
+            <div id="state-form" class="ui-state center-panel"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 35px 40px; box-sizing: border-box;">
+                    <h1
+                        style="font-size: 34px; font-weight: 900; text-align: center; margin-bottom: 6px; color: var(--lh-dark);">
+                        WHO ARE YOU?</h1>
+                    <p
+                        style="text-align: center; font-weight: 600; margin-bottom: 22px; color: #4a7c59; font-size: 15px;">
+                        Enter your
+                        details to receive your Local Hunt video & photo.</p>
+
+                    <div class="input-group" style="margin-bottom: 16px;">
+                        <label
+                            style="font-weight: bold; margin-bottom: 5px; display: block; color: var(--lh-dark); font-size: 14px;">Name</label>
+                        <input type="text" id="name" placeholder="Local Hunter" inputmode="none" autocomplete="off"
+                            spellcheck="false"
+                            style="width: 100%; padding: 13px 16px; border-radius: 12px; border: 2px solid #e2ecc2; font-size: 16px; font-family: 'Outfit', sans-serif;">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 16px;">
+                        <label
+                            style="font-weight: bold; margin-bottom: 5px; display: block; color: var(--lh-dark); font-size: 14px;">WhatsApp
+                            Number</label>
+                        <input type="text" id="phone" class="phone-input" placeholder="08XX-XXXX-XXXX" inputmode="none"
+                            autocomplete="off" spellcheck="false"
+                            style="width: 100%; padding: 13px 16px; border-radius: 12px; border: 2px solid #e2ecc2; font-size: 16px; font-family: 'Outfit', sans-serif;">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 22px;">
+                        <label
+                            style="font-weight: bold; margin-bottom: 5px; display: block; color: var(--lh-dark); font-size: 14px;">Email
+                            Address</label>
+                        <input type="email" id="email-input" placeholder="hunter@local.id" inputmode="none"
+                            autocomplete="off" spellcheck="false"
+                            style="width: 100%; padding: 13px 16px; border-radius: 12px; border: 2px solid #e2ecc2; font-size: 16px; font-family: 'Outfit', sans-serif;">
+                    </div>
+
+                    <button class="btn-lh" onclick="startCameraFlow()"
+                        style="width: 100%; padding: 16px; font-size: 18px; border-radius: 14px;">CONTINUE ➔</button>
                 </div>
-                <p id="payment-status-text" style="margin-top: 15px; font-weight: 600; color: var(--lh-orange);">Waiting for QRIS...</p>
-                <p style="margin-top: 15px; font-weight: 500; font-size: 14px; color: #888;">Time remaining: <strong id="payment-timer" style="color: var(--lh-dark);">03:00</strong></p>
             </div>
-            
-            <div>
-                <div class="lh-payment-right">
-                    <div style="text-align: center; margin-bottom: 10px; font-weight: 800; font-size: 12px;">QRIS Code Standar<br>Pembayaran Nasional</div>
-                    <div class="lh-qr-box" id="payment-qr-container">
-                        <img id="payment-qr-image" src="" style="display: none;" ondblclick="simulatePaymentSecretly()">
-                        <div id="payment-loading-spinner" class="spinner"></div>
+
+            <!-- STATE: READY (INSTRUCTIONS) -->
+            <div id="state-ready" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 30px; box-sizing: border-box; text-align: left;">
+
+                    <h1
+                        style="font-size: 26px; font-weight: 900; color: var(--lh-dark); margin-bottom: 12px; line-height: 1.15;">
+                        READY TO CREATE YOUR<br>LOCAL HUNT MOMENT?</h1>
+
+                    <!-- 4 Step Guide Rows -->
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                        <div
+                            style="background: white; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #f4999e; display: flex; align-items: center; gap: 12px;">
+                            <div
+                                style="width: 24px; height: 24px; border-radius: 50%; background: var(--lh-orange); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                1</div>
+                            <span style="font-weight: 700; font-size: 13px; color: #222;">🪞 Stand in front of the
+                                two-way mirror.</span>
+                        </div>
+                        <div
+                            style="background: white; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #f4999e; display: flex; align-items: center; gap: 12px;">
+                            <div
+                                style="width: 24px; height: 24px; border-radius: 50%; background: var(--lh-orange); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                2</div>
+                            <span style="font-weight: 700; font-size: 13px; color: #222;">🖊️ Use the marker to write or
+                                doodle.</span>
+                        </div>
+                        <div
+                            style="background: white; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #f4999e; display: flex; align-items: center; gap: 12px;">
+                            <div
+                                style="width: 24px; height: 24px; border-radius: 50%; background: var(--lh-orange); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                3</div>
+                            <span style="font-weight: 700; font-size: 13px; color: #222;">👤 Keep your face
+                                visible.</span>
+                        </div>
+                        <div
+                            style="background: white; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #f4999e; display: flex; align-items: center; gap: 12px;">
+                            <div
+                                style="width: 24px; height: 24px; border-radius: 50%; background: var(--lh-orange); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                4</div>
+                            <span style="font-weight: 700; font-size: 13px; color: #222;">👆 Tap the button when you are
+                                ready.</span>
+                        </div>
+                    </div>
+
+                    <!-- Stats Bar -->
+                    <div
+                        style="background: #f2f7ef; border-radius: 12px; padding: 8px 15px; display: flex; justify-content: space-around; text-align: center; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-size: 10px; font-weight: 800; color: #4a7c59;">DURATION</div>
+                            <div style="font-size: 12px; font-weight: 900; color: var(--lh-dark);"
+                                id="ready-duration-val">30 SECONDS</div>
+                        </div>
+                        <div style="border-left: 1px solid #d0e2cb; padding-left: 15px;">
+                            <div style="font-size: 10px; font-weight: 800; color: #4a7c59;">POSITION</div>
+                            <div style="font-size: 12px; font-weight: 900; color: var(--lh-dark);">UPPER BODY</div>
+                        </div>
+                        <div style="border-left: 1px solid #d0e2cb; padding-left: 15px;">
+                            <div style="font-size: 10px; font-weight: 800; color: #4a7c59;">DOODLE</div>
+                            <div style="font-size: 12px; font-weight: 900; color: var(--lh-dark);">TWO-WAY MIRROR</div>
+                        </div>
+                    </div>
+
+                    <!-- Big Orange CTA Button -->
+                    <button class="btn-lh" id="btn-record" onclick="startRecording()"
+                        style="background: var(--lh-orange); color: white; font-size: 24px; padding: 16px; width: 100%; border-radius: 16px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 8px 25px rgba(224,140,40,0.35);">
+                        I'M READY ➔
+                    </button>
+
+                    <div class="countdown-text"
+                        style="margin-top: 6px; font-weight: 700; color: var(--lh-orange); font-size: 16px; text-align: center;">
+                        <span id="countdown-area">Start Recording</span>
                     </div>
                 </div>
-                <div style="margin-top: 20px; font-weight: 500; font-size: 12px; text-align: right; max-width: 250px;">What you draw appears in front of you in the video!</div>
+            </div>
+
+            <!-- STATE: RECORDING -->
+            <div id="state-recording" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 28px 30px; box-sizing: border-box; text-align: center; pointer-events: auto;">
+
+                    <!-- Top Header Area -->
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <div
+                            style="background: #e2ecc2; color: #1d3d29; padding: 6px 18px; border-radius: 20px; font-size: 12px; font-weight: 900; letter-spacing: 1px; margin-bottom: 8px;">
+                            3 Step 3 of 4
+                        </div>
+                        <h1
+                            style="color: var(--lh-dark); font-size: 34px; font-weight: 900; margin: 0; line-height: 1.1;">
+                            RECORD YOUR VIDEO</h1>
+                        <svg width="170" height="16" viewBox="0 0 170 16" fill="none" style="margin-top: 4px;">
+                            <path d="M4 8 Q 42 2, 85 14 T 166 8" stroke="#f4999e" stroke-width="5"
+                                stroke-linecap="round" />
+                        </svg>
+                        <div
+                            style="margin-top: 10px; background: #ffffff; border: 1.5px solid #e2ecc2; padding: 8px 18px; border-radius: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                            <span style="font-size: 16px;">🖊️</span>
+                            <span style="font-weight: 700; font-size: 13px; color: #1d3d29;">Doodle on the two-way
+                                mirror now!</span>
+                        </div>
+                    </div>
+
+                    <!-- Live REC Timer Glass Box -->
+                    <div
+                        style="background: linear-gradient(135deg, #ffffff 0%, #fcf7ec 100%); border: 2.5px solid #f4999e; border-radius: 24px; padding: 25px 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(244,153,158,0.22); position: relative; overflow: hidden;">
+
+                        <!-- Top Live Rec Badge -->
+                        <div
+                            style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                            <div
+                                style="display: inline-flex; align-items: center; gap: 8px; background: #fde8e8; border: 1.5px solid #f87171; padding: 5px 16px; border-radius: 20px;">
+                                <div
+                                    style="width: 12px; height: 12px; border-radius: 50%; background: #dc2626; animation: pulse 1.2s infinite;">
+                                </div>
+                                <span
+                                    style="font-weight: 900; color: #dc2626; font-size: 13px; letter-spacing: 1.5px;">RECORDING
+                                    LIVE</span>
+                            </div>
+                        </div>
+
+                        <!-- Main Timer Text -->
+                        <div style="font-size: 52px; font-weight: 900; color: var(--lh-dark); letter-spacing: -1px; margin: 4px 0;"
+                            id="recording-live-timer">00:00 / 00:30</div>
+                        <div style="font-size: 12px; font-weight: 700; color: #4a7c59;">Keep doodling until time runs
+                            out!</div>
+                    </div>
+
+                    <!-- Red Stop Button -->
+                    <button class="btn-lh" onclick="stopRecording()"
+                        style="background: linear-gradient(135deg, #d8695f 0%, #c0392b 100%); color: white; font-size: 20px; padding: 18px; width: 100%; border-radius: 18px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 8px 25px rgba(216,105,95,0.35); transition: transform 0.2s;">
+                        ⏹ STOP RECORDING EARLY
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATE: REVIEW VIDEO -->
+            <div id="state-review-video" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 25px 35px; box-sizing: border-box;">
+                    <div style="text-align: center;">
+                        <h1 style="font-size: 30px; font-weight: 900; color: var(--lh-dark); margin: 0;">REVIEW YOUR
+                            VIDEO</h1>
+                        <svg width="140" height="12" viewBox="0 0 140 12" fill="none">
+                            <path d="M4 6 Q 35 2, 70 10 T 136 6" stroke="#f4999e" stroke-width="3.5"
+                                stroke-linecap="round" />
+                        </svg>
+                    </div>
+
+                    <div
+                        style="flex: 1; display: flex; justify-content: center; align-items: center; width: 100%; min-height: 0; margin: 12px 0;">
+                        <video id="video-playback" controls
+                            style="max-height: 100%; max-width: 100%; width: auto; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); object-fit: contain;"></video>
+                    </div>
+
+                    <div style="display: flex; gap: 14px; width: 100%; max-width: 420px; flex-shrink: 0;">
+                        <button class="btn-outline" onclick="retakeVideo()"
+                            style="flex: 1; padding: 14px 20px; border: 2.5px solid var(--lh-dark); color: var(--lh-dark); font-size: 16px; font-weight: 800; border-radius: 12px; cursor: pointer; background: transparent;">RETAKE</button>
+                        <button class="btn-solid" onclick="changeState('ready-photo')"
+                            style="flex: 1; padding: 14px 20px; background: var(--lh-dark); color: white; font-size: 16px; font-weight: 800; border-radius: 12px; border: none; cursor: pointer;">NEXT:
+                            PHOTO ➔</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE: READY PHOTO -->
+            <div id="state-ready-photo" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px;">
+                    <h1 style="font-size: 38px; font-weight: 900; color: var(--lh-dark); margin-bottom: 20px;">READY FOR
+                        PHOTO?</h1>
+                    <button class="btn-lh" id="btn-photo-shutter" onclick="startPhotoCountdown()"
+                        style="font-size: 26px; padding: 20px 45px; width: auto; box-shadow: 0 10px 25px rgba(29,61,41,0.25); border-radius: 18px;">
+                        📸 TAKE PHOTO
+                    </button>
+                    <div class="countdown-text"
+                        style="margin-top: 25px; font-weight: 700; color: var(--lh-orange); font-size: 28px;">
+                        <span id="countdown-area-photo">Take a Photo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE: REVIEW FINAL -->
+            <div id="state-review-final" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 25px 30px; box-sizing: border-box;">
+                    <div style="text-align: center;">
+                        <h1 style="font-size: 30px; font-weight: 900; color: var(--lh-dark); margin: 0;">REVIEW YOUR
+                            MOMENT</h1>
+                        <p style="font-size: 13px; font-weight: 600; color: #4a7c59; margin-top: 2px;">You may submit
+                            your result or take it again.</p>
+                    </div>
+
+                    <div
+                        style="flex: 1; display: flex; gap: 15px; justify-content: center; align-items: center; width: 100%; min-height: 0; margin: 10px 0;">
+                        <video id="final-video-preview" autoplay muted loop
+                            style="max-height: 100%; max-width: 48%; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); object-fit: contain;"></video>
+                        <img id="final-photo-preview"
+                            style="max-height: 100%; max-width: 48%; border-radius: 14px; object-fit: contain; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; width: 100%; justify-content: center; flex-shrink: 0;">
+                        <button class="btn-outline" onclick="retakeVideo()"
+                            style="padding: 12px 16px; border: 2px solid var(--lh-dark); color: var(--lh-dark); font-size: 14px; font-weight: 800; border-radius: 12px; cursor: pointer; background: transparent;">RETAKE
+                            ALL</button>
+                        <button class="btn-outline" onclick="retakePhotoOnly()"
+                            style="padding: 12px 16px; border: 2px solid var(--lh-dark); color: var(--lh-dark); font-size: 14px; font-weight: 800; border-radius: 12px; cursor: pointer; background: transparent;">RETAKE
+                            PHOTO</button>
+                        <button class="btn-solid" onclick="confirmSubmitModal()"
+                            style="padding: 12px 24px; background: var(--lh-dark); color: white; font-size: 15px; font-weight: 800; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 6px 18px rgba(29,61,41,0.25);">SUBMIT
+                            ➔</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE: PROCESSING (FAST BACKGROUND RESET) -->
+            <div id="state-processing" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card"
+                    style="height: 100%; background: #ffffff; border: 2px solid #f4999e; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px; box-sizing: border-box;">
+
+                    <div style="font-size: 64px; margin-bottom: 15px;">🎉</div>
+                    <h1 style="font-size: 32px; font-weight: 900; color: var(--lh-dark); margin-bottom: 8px;">
+                        YOUR MOMENT IS BEING PROCESSED!</h1>
+                    <p
+                        style="font-size: 15px; font-weight: 600; color: #4a7c59; max-width: 420px; margin-bottom: 25px;">
+                        Your video & photo are being rendered in the background and will be sent directly to your
+                        WhatsApp & Email.
+                    </p>
+
+                    <div
+                        style="background: #fcf7ec; border: 1.5px solid #e2ecc2; border-radius: 16px; padding: 14px 22px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">💬</span>
+                        <span style="font-weight: 700; font-size: 13px; color: #1d3d29;">Check your WhatsApp & Email
+                            inbox in a moment!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE: SUCCESS -->
+            <div id="state-review" class="ui-state"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="lh-card cream"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <h1 style="font-size: 48px; color: var(--lh-dark); margin-bottom: 20px;">ALL DONE!</h1>
+                    <p style="font-size: 20px; font-weight: 500; margin-bottom: 30px;">Your video is ready to be shared!
+                    </p>
+                    <div id="qr-result-container"></div>
+                    <button class="btn-lh" onclick="resetApp()"
+                        style="margin-top: 40px; width: auto; padding: 20px 50px;">FINISH</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL (PHONE MOCKUP CAMERA) -->
+        <div class="lh-panel-right" id="panel-right"
+            style="width: 450px; display: none; flex-direction: column; justify-content: center; align-items: center; position: relative;">
+            <div class="lh-phone-mockup"
+                style="width: 100%; height: 85%; max-height: 850px; border-radius: 30px; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+
+                <!-- FULL SCREEN CAMERA LAYER (Now contained inside mockup) -->
+                <div id="camera-container"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; display: flex; justify-content: center; align-items: center;">
+                    <video id="webcam" autoplay muted playsinline class="hidden"
+                        style="width: 100%; height: 100%; object-fit: cover; position: absolute; pointer-events: none;"></video>
+                    <video id="preview" autoplay muted playsinline loop class="hidden"
+                        style="width: 100%; height: 100%; object-fit: cover; position: absolute; pointer-events: none;"></video>
+                    <video id="loop-preview" autoplay muted playsinline loop class="hidden"
+                        style="width: 100%; height: 100%; object-fit: cover; position: absolute; pointer-events: none;"></video>
+
+                    <canvas id="canvas-overlay"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2;"></canvas>
+                    <canvas id="drawing_canvas"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 3;"></canvas>
+
+                    <!-- OVERLAY FRAME PNG LAYER -->
+                    <img id="overlay-frame-img" src="/overlay.png" alt="Overlay Frame"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 4;"
+                        onerror="this.style.display='none';">
+
+                    <div id="countdown-overlay"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 100px; color: white; text-shadow: 0 0 20px #000; font-weight: bold; z-index: 5;">
+                    </div>
+
+                    <!-- TIMER SVG -->
+                    <svg class="timer-progress-container hidden" id="svg-timer"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;">
+                        <rect class="progress-rect" id="rect-timer" x="5" y="5" rx="15" ry="15"
+                            style="fill: none; stroke: #d8695f; stroke-width: 10px; border-radius: 15px;">
+                        </rect>
+                    </svg>
+                </div>
             </div>
         </div>
+
     </div>
 
-    <!-- REQUIRED HIDDEN STATES FOR CORE JS COMPATIBILITY -->
-    <div style="display: none;">
-        <!-- Camera Video Element Required by index.js -->
-        <video id="video-feed" autoplay muted playsinline></video>
-        <canvas id="canvas-overlay"></canvas>
-        <div id="countdown-overlay"></div>
-
-        <!-- Form State (Skipped) -->
-        <div id="state-form" class="ui-state">
-            <input type="text" id="guest-name" value="Local Hunter">
-            <input type="email" id="guest-email" value="localhunt@event.com">
-        </div>
-
-        <!-- Recording State -->
-        <div id="state-recording" class="ui-state">
-            <h1 style="color: white; font-size: 40px; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">DRAW ON THE MIRROR NOW!</h1>
-            <button onclick="stopRecording()" style="padding: 20px; background: red; color: white;">STOP RECORDING</button>
-        </div>
-
-        <!-- Review State -->
-        <div id="state-review" class="ui-state">
-            <video id="video-playback" controls></video>
-            <div id="qr-result-container"></div>
-            <button onclick="resetKiosk()">FINISH</button>
-        </div>
+    <!-- Keyboard Container -->
+    <div id="kbd-container" class="keyboard-wrapper">
+        <div class="keyboard-row" id="kbd-1"></div>
+        <div class="keyboard-row" id="kbd-2"></div>
+        <div class="keyboard-row" id="kbd-3"></div>
     </div>
 
     <!-- Include Core System Logic -->
-    <script src="/js/index.js"></script>
+    <!-- Include Core System Logic -->
+    <!-- Include Core System Logic -->
+    <!-- Include Core System Logic -->
+    <!-- Include Core System Logic -->
+    <script src="/js/index.js?v=20260727_v13"></script>
 
     <!-- Custom Theme Logic Override -->
     <script>
+        // Disable gesture tracking feature
+        window.enableGesture = false;
+
+        // Disable persistent panels during idle and form (they will be full screen)
+        window.showLeftPanel = false;
+        window.showRightPanel = false;
+
         let currentInvoiceId = null;
 
-        // Override start button to skip form and jump straight to payment
+        // Start button opens Payment Method selection screen (Frame 1/3)
         function startLocalHuntFlow() {
-            // Fill dummy data for form requirements
-            document.getElementById('guest-name').value = "Local Hunter";
-            document.getElementById('guest-email').value = "hunt@local.id";
-            
-            // Jump to payment
             changeState('payment');
-            
-            // Generate Xendit Payment
-            fetch('/api/payment/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ eventId: activeEvent, name: 'Local Hunter', email: 'hunt@local.id' })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    currentInvoiceId = data.invoiceId;
-                    document.getElementById('payment-qr-image').src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(data.qrString);
-                    document.getElementById('payment-qr-image').style.display = 'block';
-                    document.getElementById('payment-loading-spinner').style.display = 'none';
-                    document.getElementById('payment-status-text').innerText = "Silakan scan kode QRIS menggunakan m-banking Anda.";
-                    startPaymentTimer(180); // 3 minutes
-                    startPaymentPolling();
-                } else {
-                    Swal.fire("Error", "Gagal membuat kode pembayaran", "error");
-                    cancelPaymentFlow();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                cancelPaymentFlow();
-            });
         }
-        
+
+        // Pay with QRIS button opens Dedicated QRIS Payment screen (Frame 2)
+        function showQrisPaymentScreen() {
+            window.lastPaymentMethod = 'Static QRIS';
+            changeState('payment-qris');
+
+            const qrImg = document.getElementById('payment-qr-image');
+            if (qrImg) {
+                qrImg.src = '/qris-static.png';
+                qrImg.style.display = 'block';
+            }
+            const spinner = document.getElementById('payment-loading-spinner');
+            if (spinner) spinner.style.display = 'none';
+        }
+
         function checkPaymentStatusSilent() {
-            if(!currentInvoiceId) return;
-            document.getElementById('payment-status-text').innerText = "Memeriksa status...";
-            fetch('/api/payment/status/' + currentInvoiceId)
-                .then(r => r.json())
-                .then(d => {
-                    if(d.status === 'PAID' || d.status === 'SETTLED') {
-                        document.getElementById('payment-status-text').innerText = "Pembayaran Berhasil! Memulai...";
-                        document.getElementById('payment-status-text').style.color = "green";
-                        
-                        // Stop polling and timer
-                        stopPaymentTimer();
-                        if (paymentPollingInterval) clearInterval(paymentPollingInterval);
-                        
-                        // Proceed to recording
-                        setTimeout(() => {
-                            initCameraAndGo();
-                        }, 2000);
-                    } else {
-                        document.getElementById('payment-status-text').innerText = "Pembayaran belum masuk. Coba lagi dalam 5 detik.";
-                    }
+            window.lastPaymentMethod = 'Static QRIS';
+            const statusTxt = document.getElementById('payment-status-text');
+            if (statusTxt) {
+                statusTxt.innerText = "Payment Verified! 🟢";
+                statusTxt.style.color = "#1d3d29";
+            }
+            if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
+            if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) {
+                clearInterval(paymentPollingInterval);
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Payment Verified! ✨',
+                    text: 'Opening registration form...',
+                    icon: 'success',
+                    timer: 1200,
+                    showConfirmButton: false
                 });
+            }
+            setTimeout(() => {
+                changeState('form');
+            }, 1200);
         }
 
         // We also need to define startPaymentPolling for automatic checking
         function startPaymentPolling() {
             paymentPollingInterval = setInterval(() => {
-                if(currentInvoiceId) {
+                if (currentInvoiceId) {
                     fetch('/api/payment/status/' + currentInvoiceId)
                         .then(r => r.json())
                         .then(d => {
-                            if(d.status === 'PAID' || d.status === 'SETTLED') {
+                            if (d.status === 'PAID' || d.status === 'SETTLED') {
                                 checkPaymentStatusSilent();
                             }
                         }).catch(e => console.log(e));
                 }
             }, 3000);
         }
+
+        async function simulatePaymentSecretly() {
+            if (!currentInvoiceId) return;
+            const yes = confirm("🛠️ DEV MODE: Simulasikan pembayaran lunas untuk tagihan Local Hunt ini?");
+            if (!yes) return;
+
+            try {
+                // Panggil API simulasi ke server (abaikan jika server belum di-restart atau Xendit error)
+                fetch(`/api/payment/simulate/${currentInvoiceId}`, { method: 'POST' }).catch(e => console.log(e));
+
+                // LANGSUNG PAKSA UI UNTUK LANJUT
+                document.getElementById('payment-status-text').innerText = "Pembayaran Berhasil (Bypass DEV)! Memulai...";
+                document.getElementById('payment-status-text').style.color = "green";
+
+                // Hentikan timer & polling
+                if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
+                if (paymentPollingInterval) clearInterval(paymentPollingInterval);
+
+                // Pindah ke form
+                setTimeout(() => {
+                    changeState('form');
+                }, 2000);
+            } catch (e) {
+                console.error("Bypass error:", e);
+            }
+        }
+
+        function confirmSubmitModal() {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '✨ Submit this result?',
+                    text: 'Your video and photo will be processed and sent directly to your WhatsApp & Email.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d3d29',
+                    cancelButtonColor: '#555555',
+                    confirmButtonText: 'YES, SUBMIT',
+                    cancelButtonText: 'CANCEL'
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        processUploadVideo();
+                    }
+                });
+            } else {
+                processUploadVideo();
+            }
+        }
+
+        function confirmVoucherPass() {
+            window.lastPaymentMethod = 'Voucher';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '🎟️ Redeem Voucher',
+                    text: 'Would you like to redeem your voucher to get started?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d3d29',
+                    cancelButtonColor: '#d8695f',
+                    confirmButtonText: 'Redeem Voucher',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
+                        if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) {
+                            clearInterval(paymentPollingInterval);
+                            paymentPollingInterval = null;
+                        }
+                        const statusTxt = document.getElementById('payment-status-text');
+                        if (statusTxt) {
+                            statusTxt.innerText = "Voucher Verified! 🟢";
+                            statusTxt.style.color = "#1d3d29";
+                        }
+                        Swal.fire({
+                            title: 'Voucher Verified! 🎟️✨',
+                            text: 'Opening form...',
+                            icon: 'success',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+                        setTimeout(() => {
+                            changeState('form');
+                        }, 1200);
+                    }
+                });
+            } else {
+                const yes = confirm("🎟️ Would you like to redeem your voucher to get started?");
+                if (yes) {
+                    window.lastPaymentMethod = 'Voucher';
+                    if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
+                    if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) clearInterval(paymentPollingInterval);
+                    changeState('form');
+                }
+            }
+        }
+
+        window.resetKiosk = function () {
+            if (typeof resetApp === 'function') resetApp();
+            else window.location.href = '/localhunt.html?event=localhunt';
+        };
     </script>
 </body>
+
 </html>

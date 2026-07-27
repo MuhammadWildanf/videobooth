@@ -1,6 +1,6 @@
         // --- MULTI-EVENT CONFIGURATION ---
         const urlParams = new URLSearchParams(window.location.search);
-        const activeEvent = urlParams.get('event') || 'audric-cathrine';
+        const activeEvent = urlParams.get('event') || (window.location.pathname.includes('localhunt') ? 'localhunt' : 'audric-cathrine');
 
         // --- KEYBOARD SYSTEM ---
         let activeInput = null;
@@ -12,7 +12,9 @@
 
         function drawKbd() {
             const draw = (id, keys) => {
-                const el = document.getElementById(id); el.innerHTML = '';
+                const el = document.getElementById(id); 
+                if (!el) return;
+                el.innerHTML = '';
                 if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kCaps()">⬆️</div>`;
                 keys.forEach(k => { el.innerHTML += `<div class="key" onclick="kPress('${k}')">${caps ? k : k.toLowerCase()}</div>`; });
                 if (id === 'kbd-3') el.innerHTML += `<div class="key wide" onclick="kBks()">⌫</div>`;
@@ -34,27 +36,36 @@
         }
         drawKbd();
 
-        document.getElementById('name').addEventListener('click', () => {
-            activeInput = document.getElementById('name');
-            num = false;
-            drawKbd();
-            document.getElementById('kbd-container').classList.add('show');
-            document.querySelector('.center-panel').classList.add('keyboard-active');
-        });
-        document.getElementById('phone').addEventListener('click', () => {
-            activeInput = document.getElementById('phone');
-            num = true;
-            drawKbd();
-            document.getElementById('kbd-container').classList.add('show');
-            document.querySelector('.center-panel').classList.add('keyboard-active');
-        });
-        document.getElementById('email-input').addEventListener('click', () => {
-            activeInput = document.getElementById('email-input');
-            num = false;
-            drawKbd();
-            document.getElementById('kbd-container').classList.add('show');
-            document.querySelector('.center-panel').classList.add('keyboard-active');
-        });
+        const nameInput = document.getElementById('name');
+        if (nameInput) {
+            nameInput.addEventListener('click', () => {
+                activeInput = document.getElementById('name');
+                num = false;
+                drawKbd();
+                document.getElementById('kbd-container').classList.add('show');
+                document.querySelector('.center-panel').classList.add('keyboard-active');
+            });
+        }
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('click', () => {
+                activeInput = document.getElementById('phone');
+                num = true;
+                drawKbd();
+                document.getElementById('kbd-container').classList.add('show');
+                document.querySelector('.center-panel').classList.add('keyboard-active');
+            });
+        }
+        const emailInput = document.getElementById('email-input');
+        if (emailInput) {
+            emailInput.addEventListener('click', () => {
+                activeInput = document.getElementById('email-input');
+                num = false;
+                drawKbd();
+                document.getElementById('kbd-container').classList.add('show');
+                document.querySelector('.center-panel').classList.add('keyboard-active');
+            });
+        }
 
         function kPress(k) { if (activeInput) activeInput.value += k; }
         function kBks() { if (activeInput) activeInput.value = activeInput.value.slice(0, -1); }
@@ -77,23 +88,51 @@
         }
 
         // Hide keyboard when clicking outside inputs (on center panel)
-        document.querySelector('.center-panel').addEventListener('click', (e) => {
-            if (e.target.tagName !== 'INPUT' && !e.target.closest('.keyboard-wrapper')) {
-                document.getElementById('kbd-container').classList.remove('show');
-                document.querySelector('.center-panel').classList.remove('keyboard-active');
-            }
-        });
+        const centerPanel = document.querySelector('.center-panel');
+        if (centerPanel) {
+            centerPanel.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'INPUT' && !e.target.closest('.keyboard-wrapper')) {
+                    const kbdContainer = document.getElementById('kbd-container');
+                    if (kbdContainer) kbdContainer.classList.remove('show');
+                    centerPanel.classList.remove('keyboard-active');
+                }
+            });
+        }
 
         // --- STATE & UI TRANSITION ---
+        let stateTransitionTimeout = null;
         function changeState(state) {
+            window.changeState = changeState;
             window.currentState = state;
 
+            const currentActive = document.querySelectorAll('.ui-state.active');
+            
+            if (currentActive.length > 0) {
+                // Trigger fade-out animation
+                currentActive.forEach(el => el.classList.remove('fade-out'));
+                void document.body.offsetWidth; // Force reflow
+                currentActive.forEach(el => el.classList.add('fade-out'));
+                
+                if (stateTransitionTimeout) clearTimeout(stateTransitionTimeout);
+                
+                stateTransitionTimeout = setTimeout(() => {
+                    executeChangeState(state);
+                }, 200);
+            } else {
+                executeChangeState(state);
+            }
+        }
+
+        function executeChangeState(state) {
             // Update state classes on body
-            document.body.classList.remove('state-idle', 'state-form', 'state-ready', 'state-ready-photo', 'state-recording', 'state-review-video', 'state-review-final', 'state-processing', 'state-payment');
+            document.body.classList.remove('state-idle', 'state-form', 'state-ready', 'state-ready-photo', 'state-recording', 'state-review-video', 'state-review-final', 'state-processing', 'state-payment', 'state-payment-qris');
             document.body.classList.add('state-' + state);
 
-            document.querySelectorAll('.ui-state').forEach(el => el.classList.remove('active'));
-            document.getElementById('state-' + state).classList.add('active');
+            document.querySelectorAll('.ui-state').forEach(el => {
+                el.classList.remove('active', 'fade-out');
+            });
+            const newState = document.getElementById('state-' + state);
+            if (newState) newState.classList.add('active');
 
             const largeImg = document.getElementById('photo-preview-large');
             if (largeImg) {
@@ -113,6 +152,12 @@
                 document.body.classList.add('state-form-active');
             } else {
                 document.body.classList.remove('state-form-active');
+                // explicitly hide keyboard
+                const kbdContainer = document.getElementById('kbd-container');
+                if (kbdContainer) kbdContainer.classList.remove('show');
+                const centerPanel = document.querySelector('.center-panel');
+                if (centerPanel) centerPanel.classList.remove('keyboard-active');
+                activeInput = null;
             }
 
             if (state === 'idle') {
@@ -131,22 +176,22 @@
             if (state === 'idle' || state === 'form') {
                 if (state === 'idle') {
                     if (window.showLeftPanel !== false) {
-                        leftPanel.classList.remove('hidden-panel');
+                        if (leftPanel) leftPanel.classList.remove('hidden-panel');
                     } else {
-                        leftPanel.classList.add('hidden-panel');
+                        if (leftPanel) leftPanel.classList.add('hidden-panel');
                     }
 
                     if (window.showRightPanel !== false) {
-                        rightPanel.classList.remove('hidden-panel');
+                        if (rightPanel) rightPanel.classList.remove('hidden-panel');
                     } else {
-                        rightPanel.classList.add('hidden-panel');
+                        if (rightPanel) rightPanel.classList.add('hidden-panel');
                     }
                 } else {
-                    leftPanel.classList.add('hidden-panel');
-                    rightPanel.classList.add('hidden-panel');
+                    if (leftPanel) leftPanel.classList.add('hidden-panel');
+                    if (rightPanel) rightPanel.classList.add('hidden-panel');
                 }
 
-                rightLabel.classList.remove('hidden');
+                if (rightLabel) rightLabel.classList.remove('hidden');
 
                 // Tampilkan video jika URL-nya ada
                 const previewVid = document.getElementById('preview');
@@ -154,22 +199,39 @@
 
                 if (webcamEl) webcamEl.classList.add('hidden');
 
-                if (previewVid.src) {
+                if (previewVid && previewVid.getAttribute('src') && previewVid.getAttribute('src') !== 'No video' && previewVid.getAttribute('src') !== '') {
                     previewVid.classList.remove('hidden');
-                    previewVid.play().catch(e => console.log("Tutorial play error:", e));
+                    previewVid.play().catch(() => {});
+                } else if (previewVid) {
+                    previewVid.classList.add('hidden');
                 }
 
-                if (loopVid.src) {
+                if (loopVid && loopVid.getAttribute('src') && loopVid.getAttribute('src') !== 'No video' && loopVid.getAttribute('src') !== '') {
                     loopVid.classList.remove('hidden');
-                    loopVid.play().catch(e => console.log("Result preview play error:", e));
+                    loopVid.play().catch(() => {});
+                } else if (loopVid) {
+                    loopVid.classList.add('hidden');
                 }
             } else {
-                leftPanel.classList.add('hidden-panel');
-                rightPanel.classList.remove('hidden-panel');
-                rightLabel.classList.add('hidden');
-                if (state === 'ready' || state === 'ready-photo') {
+                if (leftPanel) leftPanel.classList.remove('hidden-panel');
+                if (rightPanel) rightPanel.classList.remove('hidden-panel');
+                if (rightLabel) rightLabel.classList.add('hidden');
+
+                const previewEl = document.getElementById('preview');
+                const loopEl = document.getElementById('loop-preview');
+
+                if (state === 'ready' || state === 'ready-photo' || state === 'recording') {
+                    // LIVE CAMERA STATES: Show webcam, hide recorded previews
                     if (webcamEl) webcamEl.classList.remove('hidden');
-                    document.getElementById('preview').classList.add('hidden');
+                    if (previewEl) {
+                        previewEl.classList.add('hidden');
+                        try { previewEl.pause(); } catch(e){}
+                    }
+                    if (loopEl) {
+                        loopEl.classList.add('hidden');
+                        try { loopEl.pause(); } catch(e){}
+                    }
+
                     if (state === 'ready') {
                         // Reset Button UI
                         const btn = document.getElementById('btn-record');
@@ -177,24 +239,28 @@
                             btn.classList.remove('recording');
                             btn.style.pointerEvents = 'auto';
                         }
-                        document.getElementById('countdown-area').innerText = 'Start Recording';
-                    } else {
+                        const cdArea = document.getElementById('countdown-area');
+                        if (cdArea) cdArea.innerText = 'Start Recording';
+                    } else if (state === 'ready-photo') {
                         // Reset Shutter Button UI
                         const btn = document.getElementById('btn-photo-shutter');
                         if (btn) {
                             btn.style.pointerEvents = 'auto';
                         }
-                        document.getElementById('countdown-area-photo').innerText = 'Take a Photo';
+                        const cdAreaPhoto = document.getElementById('countdown-area-photo');
+                        if (cdAreaPhoto) cdAreaPhoto.innerText = 'Take a Photo';
+                    }
+                } else if (state === 'review-video') {
+                    // PLAYBACK RECORDED VIDEO
+                    if (webcamEl) webcamEl.classList.add('hidden');
+                    if (previewEl) {
+                        previewEl.classList.remove('hidden');
+                        previewEl.play().catch(() => {});
                     }
                 } else {
                     if (webcamEl) webcamEl.classList.add('hidden');
-                    if (state === 'review-video') {
-                        document.getElementById('preview').classList.remove('hidden');
-                    } else if (state === 'review-final') {
-                        document.getElementById('preview').classList.add('hidden');
-                    } else {
-                        document.getElementById('preview').classList.remove('hidden');
-                    }
+                    if (previewEl) previewEl.classList.add('hidden');
+                    if (loopEl) loopEl.classList.add('hidden');
                 }
             }
         }
@@ -262,8 +328,20 @@
                 // Set global state variables
                 window.showLeftPanel = data.showLeftPanel !== false;
                 window.showRightPanel = data.showRightPanel !== false;
-                window.enableGesture = data.enableGesture !== false;
-                window.recordingDuration = data.recordingDuration || 15;
+                window.recordingDuration = data.recordingDuration || 30;
+                const readyDurationEl = document.getElementById('ready-duration-val');
+                if (readyDurationEl) {
+                    readyDurationEl.innerText = `${window.recordingDuration} SECONDS`;
+                }
+
+                if (typeof data.sessionPrice !== 'undefined') {
+                    const priceDisplayEl = document.getElementById('payment-price-display');
+                    if (priceDisplayEl) {
+                        const numericPrice = parseInt(data.sessionPrice) || 0;
+                        priceDisplayEl.innerText = `Rp${numericPrice.toLocaleString('id-ID')}`;
+                    }
+                }
+
                 window.readyCdText = data.readyCdText || 'Recording Begins in...';
                 window.recordingCdText = data.recordingCdText || 'Recording...';
                 window.photoCdText = data.photoCdText || 'Taking Photo in...';
@@ -470,6 +548,19 @@
                     rootStyle.setProperty('--frame-image', 'none');
                 }
 
+                // Sync Overlay Frame Image
+                const overlayFrameEl = document.getElementById('overlay-frame-img');
+                if (overlayFrameEl) {
+                    const ov = data.overlayImageUrl || data.frameImageUrl;
+                    if (ov && ov !== 'none' && ov !== 'Default') {
+                        const targetOvSrc = new URL(ov, window.location.origin).href;
+                        if (overlayFrameEl.src !== targetOvSrc) overlayFrameEl.src = ov;
+                        overlayFrameEl.style.display = 'block';
+                    } else if (ov === 'none') {
+                        overlayFrameEl.style.display = 'none';
+                    }
+                }
+
                 if (data.accentColor && rootStyle.getPropertyValue('--accent') !== data.accentColor) rootStyle.setProperty('--accent', data.accentColor);
                 if (data.titleColor && rootStyle.getPropertyValue('--title-color') !== data.titleColor) rootStyle.setProperty('--title-color', data.titleColor);
                 if (data.descColor && rootStyle.getPropertyValue('--desc-color') !== data.descColor) rootStyle.setProperty('--desc-color', data.descColor);
@@ -487,7 +578,20 @@
                 if (rootStyle.getPropertyValue('--body-font-dyn') !== fontFamily) rootStyle.setProperty('--body-font-dyn', fontFamily);
 
                 window.enableGesture = data.enableGesture !== false;
-                window.recordingDuration = data.recordingDuration || 15;
+                window.recordingDuration = data.recordingDuration || 30;
+                const readyDurationEl = document.getElementById('ready-duration-val');
+                if (readyDurationEl) {
+                    readyDurationEl.innerText = `${window.recordingDuration} SECONDS`;
+                }
+
+                if (typeof data.sessionPrice !== 'undefined') {
+                    const priceDisplayEl = document.getElementById('payment-price-display');
+                    if (priceDisplayEl) {
+                        const numericPrice = parseInt(data.sessionPrice) || 0;
+                        priceDisplayEl.innerText = `Rp${numericPrice.toLocaleString('id-ID')}`;
+                    }
+                }
+
                 window.readyCdText = data.readyCdText || 'Recording Begins in...';
                 window.recordingCdText = data.recordingCdText || 'Recording...';
                 window.photoCdText = data.photoCdText || 'Taking Photo in...';
@@ -597,14 +701,18 @@
         // --- BOOTH LOGIC ---
         let stream, mediaRecorder, recordedChunks = [], videoBlob, photoBlob, isProcessing = false;
         const webcam = document.getElementById('webcam'), preview = document.getElementById('preview');
-        const drawing = document.getElementById('drawing_canvas'), dCtx = drawing.getContext('2d');
+        const drawing = document.getElementById('drawing_canvas');
+        const dCtx = drawing ? drawing.getContext('2d') : null;
 
-        let paymentPollingInterval = null;
+        window.paymentPollingInterval = null;
         let paymentTimeoutTimer = null;
 
         async function startCameraFlow() {
             const n = document.getElementById('name').value, p = document.getElementById('phone').value, e = document.getElementById('email-input').value;
             if (!n || !p) return alert("Please input your name and contact details!");
+            // Simpan email ke variabel global agar tersedia saat upload
+            window._savedEmail = e ? e.trim() : '';
+            console.log('[FORM] Data disimpan → Nama:', n, '| WA:', p, '| Email:', window._savedEmail || '(kosong)');
             initCameraAndGo();
         }
 
@@ -649,108 +757,71 @@
             }, 1000);
         }
 
-        function stopPaymentTimer() {
+        window.stopPaymentTimer = function stopPaymentTimer() {
             if (paymentTimeoutTimer) {
                 clearInterval(paymentTimeoutTimer);
                 paymentTimeoutTimer = null;
             }
-        }
+        };
 
         async function initCameraAndGo() {
             try {
-                // Cari OBS Virtual Camera secara eksplisit
-                const devices = await navigator.mediaDevices.enumerateDevices();
+                // Jika kamera sudah aktif berjalan, langsung pindah ke ready tanpa panggil ulang
+                if (stream && stream.active) {
+                    changeState('ready');
+                    return;
+                }
+
+                const devices = await navigator.mediaDevices.enumerateDevices().catch(() => []);
                 const obsCamera = devices.find(d =>
                     d.kind === 'videoinput' && d.label.toLowerCase().includes('obs')
                 );
 
-                // Paksa resolusi 1080x1920 — tanpa ini browser hanya minta 360x634 (default)
                 const videoConstraints = obsCamera
                     ? {
                         deviceId: { exact: obsCamera.deviceId },
-                        width: { exact: 1080 },
-                        height: { exact: 1920 },
-                        resizeMode: 'none'
+                        width: { ideal: 1080 },
+                        height: { ideal: 1920 }
                     }
-                    : { width: { exact: 1080 }, height: { exact: 1920 }, resizeMode: 'none' };
+                    : {
+                        width: { ideal: 1080 },
+                        height: { ideal: 1920 }
+                    };
 
                 console.log('Kamera dipilih:', obsCamera ? obsCamera.label : 'Default Camera');
-                stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
-                webcam.srcObject = stream;
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
+                } catch (audioOrConstErr) {
+                    console.warn("Retrying camera with fallback constraints:", audioOrConstErr);
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
+                    } catch (videoErr) {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    }
+                }
 
-                webcam.onloadedmetadata = () => {
-                    const vw = webcam.videoWidth, vh = webcam.videoHeight;
-                    console.log(`[Camera] Resolusi: ${vw}x${vh} | Rasio: ${(vw / vh).toFixed(4)}`);
-                    const track = stream.getVideoTracks()[0];
-                    console.log('[Camera] Track settings:', JSON.stringify(track.getSettings()));
-                };
+                if (webcam) webcam.srcObject = stream;
+
+                if (webcam) {
+                    webcam.onloadedmetadata = () => {
+                        const vw = webcam.videoWidth, vh = webcam.videoHeight;
+                        console.log(`[Camera] Resolusi: ${vw}x${vh} | Rasio: ${(vw / vh).toFixed(4)}`);
+                    };
+                }
 
                 changeState('ready');
-                if (window.enableGesture) initHandTracking();
-            } catch (e) { alert("Camera Error: Check permissions."); console.error(e); }
-        }
-
-        let hands = null;
-        function initHandTracking() {
-            hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-            hands.onResults(onRes);
-            isProcessing = true;
-            webcam.onloadedmetadata = () => {
-                drawing.width = webcam.videoWidth; drawing.height = webcam.videoHeight;
-                loop();
-            };
-        }
-
-        let px = null, py = null;
-        function onRes(res) {
-            if (!isProcessing) return;
-            if (res.multiHandLandmarks?.length > 0) {
-                const lm = res.multiHandLandmarks[0];
-                const tip = lm[8], mcp = lm[5], mid = lm[12];
-
-                // Gesture logic: Index finger up, middle finger down
-                const isDraw = tip.y < mcp.y - 0.04 && mid.y > lm[10].y;
-
-                // Coordinate Smoothing
-                const rawX = tip.x * drawing.width;
-                const rawY = tip.y * drawing.height;
-
-                const cx = px ? px * 0.4 + rawX * 0.6 : rawX;
-                const cy = py ? py * 0.4 + rawY * 0.6 : rawY;
-
-                if (isDraw) {
-                    if (px) {
-                        dCtx.beginPath();
-                        dCtx.moveTo(px, py);
-                        dCtx.lineTo(cx, cy);
-
-                        // Premium Glow Effect
-                        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-                        dCtx.strokeStyle = accent || "#c5a059";
-                        dCtx.lineWidth = 14;
-                        dCtx.lineCap = "round";
-                        dCtx.lineJoin = "round";
-
-                        dCtx.shadowBlur = 10;
-                        dCtx.shadowColor = accent || "#c5a059";
-
-                        dCtx.stroke();
-
-                        // Add an extra inner white line for a "light pen" effect
-                        dCtx.beginPath();
-                        dCtx.moveTo(px, py);
-                        dCtx.lineTo(cx, cy);
-                        dCtx.strokeStyle = "#ffffff";
-                        dCtx.lineWidth = 4;
-                        dCtx.shadowBlur = 0;
-                        dCtx.stroke();
-                    }
-                    px = cx; py = cy;
-                } else { px = null; py = null; }
+            } catch (e) {
+                console.error("Camera Initialization Note:", e);
+                changeState('ready');
             }
         }
-        async function loop() { if (isProcessing) await hands.send({ image: webcam }); requestAnimationFrame(loop); }
+
+        // Gesture Hand Tracking Removed for Performance & Simplicity
+        window.enableGesture = false;
+        function initHandTracking() {
+            window.enableGesture = false;
+        }
 
         function startRecording() {
             // Fase 1: Persiapan 3, 2, 1
@@ -770,35 +841,44 @@
         }
 
         function actuallyStartRecording() {
+            changeState('recording');
             recordedChunks = [];
             document.getElementById('btn-record').classList.add('recording');
-            const duration = window.recordingDuration || 15;
-            document.getElementById('countdown-area').innerHTML = `${window.recordingCdText} <span id="countdown-val">${duration}</span>`;
+            const duration = window.recordingDuration || 30;
+            const formatSec = (s) => (s < 10 ? '0' + s : s);
+            const liveTimerEl = document.getElementById('recording-live-timer');
+            if (liveTimerEl) {
+                liveTimerEl.innerText = `00:00 / 00:${formatSec(duration)}`;
+            }
+            const cdArea = document.getElementById('countdown-area');
+            if (cdArea) cdArea.innerHTML = `${window.recordingCdText} <span id="countdown-val">${duration}</span>`;
 
             // Tampilkan & Reset Timer Bar (Dinamis)
             const svgTimer = document.getElementById('svg-timer');
             const rectTimer = document.getElementById('rect-timer');
-            svgTimer.classList.remove('hidden');
+            if (svgTimer && rectTimer) {
+                svgTimer.classList.remove('hidden');
 
-            setTimeout(() => {
-                const parent = svgTimer.parentElement;
-                const offset = 10; // Padding agar glow tidak terpotong
-                const w = parent.clientWidth - offset;
-                const h = parent.clientHeight - offset;
+                setTimeout(() => {
+                    const parent = svgTimer.parentElement;
+                    const offset = 10; // Padding agar glow tidak terpotong
+                    const w = parent.clientWidth - offset;
+                    const h = parent.clientHeight - offset;
 
-                rectTimer.setAttribute('width', w);
-                rectTimer.setAttribute('height', h);
-                rectTimer.setAttribute('x', offset / 2);
-                rectTimer.setAttribute('y', offset / 2);
+                    rectTimer.setAttribute('width', w);
+                    rectTimer.setAttribute('height', h);
+                    rectTimer.setAttribute('x', offset / 2);
+                    rectTimer.setAttribute('y', offset / 2);
 
-                const perimeter = 2 * (w + h);
-                rectTimer.style.strokeDasharray = perimeter;
-                rectTimer.style.strokeDashoffset = 0;
-                rectTimer.style.transition = 'none'; // Reset transition
-                rectTimer.offsetHeight; // Force reflow
-                rectTimer.style.transition = `stroke-dashoffset ${duration}s linear`;
-                rectTimer.style.strokeDashoffset = perimeter;
-            }, 50);
+                    const perimeter = 2 * (w + h);
+                    rectTimer.style.strokeDasharray = perimeter;
+                    rectTimer.style.strokeDashoffset = 0;
+                    rectTimer.style.transition = 'none'; // Reset transition
+                    rectTimer.offsetHeight; // Force reflow
+                    rectTimer.style.transition = `stroke-dashoffset ${duration}s linear`;
+                    rectTimer.style.strokeDashoffset = perimeter;
+                }, 50);
+            }
 
             const rc = document.createElement('canvas'); const rctx = rc.getContext('2d');
             let isRec = true;
@@ -825,8 +905,11 @@
                 isRec = false;
                 videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
                 preview.src = URL.createObjectURL(videoBlob);
-                document.getElementById('final-video-preview').src = preview.src;
-                svgTimer.classList.add('hidden');
+                const finalVid = document.getElementById('final-video-preview');
+                if (finalVid) finalVid.src = preview.src;
+                const playbackVid = document.getElementById('video-playback');
+                if (playbackVid) playbackVid.src = preview.src;
+                if (svgTimer) svgTimer.classList.add('hidden');
                 changeState('review-video');
             };
             mediaRecorder.start();
@@ -834,15 +917,28 @@
             let t = duration;
             const timer = setInterval(() => {
                 t--;
-                document.getElementById('countdown-val').innerText = t;
+                const elapsed = duration - t;
+                const liveTimerEl = document.getElementById('recording-live-timer');
+                if (liveTimerEl) {
+                    liveTimerEl.innerText = `00:${formatSec(elapsed)} / 00:${formatSec(duration)}`;
+                }
+                const cdVal = document.getElementById('countdown-val');
+                if (cdVal) cdVal.innerText = t;
                 if (t <= 0) {
                     clearInterval(timer);
-                    mediaRecorder.stop();
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                     document.getElementById('btn-record').classList.remove('recording');
                     document.getElementById('btn-record').style.pointerEvents = 'auto';
                 }
             }, 1000);
         }
+
+        window.stopRecording = function() {
+            console.log("[REC] Manual stop requested");
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        };
 
         function retakeVideo() {
             dCtx.clearRect(0, 0, 10000, 10000);
@@ -887,24 +983,29 @@
         function takePhoto() {
             // Flash Effect
             const flash = document.getElementById('flash-overlay');
-            flash.classList.add('active');
-            setTimeout(() => flash.classList.remove('active'), 100);
+            if (flash) {
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 100);
+            }
 
             // Capture from rc canvas (already used in recording loop)
             const rc = document.createElement('canvas');
-            rc.width = webcam.videoWidth;
-            rc.height = webcam.videoHeight;
+            rc.width = (webcam && webcam.videoWidth) ? webcam.videoWidth : 1080;
+            rc.height = (webcam && webcam.videoHeight) ? webcam.videoHeight : 1920;
             const rctx = rc.getContext('2d');
-            rctx.drawImage(webcam, 0, 0);
-            if (window.enableGesture) rctx.drawImage(drawing, 0, 0);
+            if (webcam) rctx.drawImage(webcam, 0, 0);
+            if (window.enableGesture && drawing) rctx.drawImage(drawing, 0, 0);
 
             rc.toBlob((blob) => {
                 photoBlob = blob;
                 const url = URL.createObjectURL(blob);
-                document.getElementById('final-photo-preview').src = url;
-                document.getElementById('photo-preview-large').src = url;
+                const fp = document.getElementById('final-photo-preview');
+                if (fp) fp.src = url;
+                const pl = document.getElementById('photo-preview-large');
+                if (pl) pl.src = url;
                 changeState('review-final');
-                document.getElementById('btn-record').style.pointerEvents = 'auto';
+                const btnRec = document.getElementById('btn-record');
+                if (btnRec) btnRec.style.pointerEvents = 'auto';
             }, 'image/jpeg', 0.95);
         }
 
@@ -919,9 +1020,39 @@
             const emailEl = document.getElementById('email-input');
             if (emailEl) emailEl.value = '';
 
+            // Bersihkan email yang disimpan agar tidak bocor ke sesi pengunjung berikutnya
+            window._savedEmail = '';
+
             // Clear drawing canvas
             if (typeof dCtx !== 'undefined' && dCtx) {
                 dCtx.clearRect(0, 0, 10000, 10000);
+            }
+
+            // Revoke Object URLs to free browser RAM memory during continuous usage
+            const previewVid = document.getElementById('preview');
+            if (previewVid) {
+                if (previewVid.src && previewVid.src.startsWith('blob:')) URL.revokeObjectURL(previewVid.src);
+                previewVid.src = '';
+                previewVid.load();
+            }
+
+            const finalVid = document.getElementById('final-video-preview');
+            if (finalVid) {
+                if (finalVid.src && finalVid.src.startsWith('blob:')) URL.revokeObjectURL(finalVid.src);
+                finalVid.src = '';
+                finalVid.load();
+            }
+
+            const finalPhoto = document.getElementById('final-photo-preview');
+            if (finalPhoto) {
+                if (finalPhoto.src && finalPhoto.src.startsWith('blob:')) URL.revokeObjectURL(finalPhoto.src);
+                finalPhoto.src = '';
+            }
+
+            const largePhoto = document.getElementById('photo-preview-large');
+            if (largePhoto) {
+                if (largePhoto.src && largePhoto.src.startsWith('blob:')) URL.revokeObjectURL(largePhoto.src);
+                largePhoto.src = '';
             }
 
             // Clear recorded blobs and preview source
@@ -929,26 +1060,10 @@
             photoBlob = null;
             recordedChunks = [];
 
-            const previewVid = document.getElementById('preview');
-            if (previewVid) {
-                previewVid.src = '';
-                previewVid.load();
-            }
-
-            const finalVid = document.getElementById('final-video-preview');
-            if (finalVid) {
-                finalVid.src = '';
-                finalVid.load();
-            }
-
-            const finalPhoto = document.getElementById('final-photo-preview');
-            if (finalPhoto) {
-                finalPhoto.src = '';
-            }
-
-            const largePhoto = document.getElementById('photo-preview-large');
-            if (largePhoto) {
-                largePhoto.src = '';
+            // Clear payment polling & timers
+            if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) {
+                clearInterval(paymentPollingInterval);
+                paymentPollingInterval = null;
             }
 
             // Hide virtual keyboard
@@ -961,6 +1076,21 @@
             // Return to idle state smoothly!
             changeState('idle');
         }
+
+        // --- AUTOMATIC INACTIVITY RESET SAFEGUARD (90 SECONDS) ---
+        let inactivityTimer = null;
+        function resetInactivityTimer() {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            if (window.currentState && window.currentState !== 'idle' && window.currentState !== 'recording' && window.currentState !== 'processing') {
+                inactivityTimer = setTimeout(() => {
+                    console.log("[INACTIVITY SAFEGUARD] Pengunjung tidak aktif selama 90 detik. Mengembalikan ke Idle...");
+                    resetApp();
+                }, 90000); // 90 seconds
+            }
+        }
+        ['click', 'touchstart', 'mousemove', 'keypress'].forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer, { passive: true });
+        });
 
         let currentPaymentOrderId = null;
         
@@ -1072,32 +1202,103 @@
             fd.append('video', videoBlob, 'recording.mp4');
             if (photoBlob) fd.append('photo', photoBlob, 'photo.jpg');
             fd.append('name', document.getElementById('name').value);
+            fd.append('paymentMethod', window.lastPaymentMethod || 'Static QRIS');
+            fd.append('eventId', activeEvent || 'localhunt');
 
             let phoneValueRaw = document.getElementById('phone').value;
-            let emailValue = document.getElementById('email-input').value;
+            // Gunakan email dari variabel global yang disimpan saat form diisi
+            let emailValue = window._savedEmail || document.getElementById('email-input')?.value || '';
+            emailValue = emailValue.trim();
+            console.log('[UPLOAD] Email yang akan dikirim:', emailValue || '(kosong)');
 
             if (phoneValueRaw) {
-                const prefix = document.querySelector('.phone-prefix').innerText.replace(/[^0-9]/g, '');
+                const prefixEl = document.querySelector('.phone-prefix');
+                const prefix = prefixEl ? prefixEl.innerText.replace(/[^0-9]/g, '') : '62';
                 let phoneValue = phoneValueRaw.replace(/[^0-9]/g, '');
                 if (phoneValue.startsWith('62')) phoneValue = phoneValue.substring(2);
                 else if (phoneValue.startsWith('0')) phoneValue = phoneValue.substring(1);
                 fd.append('phone', prefix + phoneValue);
             }
-            if (emailValue) {
+            if (emailValue && emailValue.includes('@')) {
                 fd.append('email', emailValue);
+                console.log('[UPLOAD] Email ditambahkan ke FormData:', emailValue);
+            } else {
+                console.log('[UPLOAD] Email tidak valid atau kosong, tidak dikirim.');
             }
 
             fd.append('deliveryMethod', 'both');
-            fd.append('eventId', activeEvent);
+            if (currentPaymentOrderId || window.currentInvoiceId) {
+                fd.append('orderId', currentPaymentOrderId || window.currentInvoiceId || '');
+            }
 
             try {
                 const r = await fetch('/api/videobooth/submit', { method: 'POST', body: fd });
                 if (r.ok) {
+                    const data = await r.json().catch(() => ({}));
+                    if (data.qrCode) {
+                        const qrImg = document.getElementById('qr-code-img');
+                        if (qrImg) qrImg.src = data.qrCode;
+                    }
+                    changeState('review');
                     setTimeout(() => {
                         resetApp();
-                    }, 5000);
+                    }, 10000);
+                } else {
+                    alert("Gagal mengunggah file. Silakan coba lagi.");
+                    changeState('review-final');
                 }
-                else changeState('review-final');
-            } catch (e) { changeState('review-final'); }
+            } catch (e) {
+                console.error("Upload error:", e);
+                alert("Terjadi kesalahan koneksi saat pengunggahan.");
+                changeState('review-final');
+            }
+        }
+
+        function confirmVoucherPass() {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '🎟️ Redeem Voucher',
+                    text: 'Would you like to redeem your voucher to get started?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d3d29',
+                    cancelButtonColor: '#d8695f',
+                    confirmButtonText: 'Redeem Voucher',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
+                        if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) {
+                            clearInterval(paymentPollingInterval);
+                            paymentPollingInterval = null;
+                        }
+                        const statusTxt = document.getElementById('payment-status-text');
+                        if (statusTxt) {
+                            statusTxt.innerText = "Voucher Verified! 🟢";
+                            statusTxt.style.color = "#4ade80";
+                        }
+                        setTimeout(() => {
+                            if (window.currentState === 'payment') {
+                                if (document.getElementById('state-form')) {
+                                    changeState('form');
+                                } else {
+                                    processUploadVideo();
+                                }
+                            }
+                        }, 1200);
+                    }
+                });
+            } else {
+                const yes = confirm("🎟️ Would you like to redeem your voucher to get started?");
+                if (yes) {
+                    if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
+                    if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) clearInterval(paymentPollingInterval);
+                    if (document.getElementById('state-form')) {
+                        changeState('form');
+                    } else {
+                        processUploadVideo();
+                    }
+                }
+            }
         }
     

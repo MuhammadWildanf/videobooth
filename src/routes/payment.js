@@ -28,6 +28,20 @@ router.post('/payment/create', async (req, res) => {
         }
 
         const orderId = `ORDER-${eventId}-${Date.now()}`;
+
+        // INSTANT STATIC QRIS FALLBACK
+        if (config.useStaticQRIS || !process.env.XENDIT_SECRET_KEY || process.env.XENDIT_SECRET_KEY.trim() === '' || process.env.XENDIT_SECRET_KEY.includes('dummy')) {
+            const staticQr = config.staticQrisUrl || '/qris-static.png';
+            paymentCache[orderId] = 'pending';
+            return res.json({
+                status: 'success',
+                orderId: orderId,
+                qrImageBase64: staticQr,
+                price: price,
+                isStatic: true
+            });
+        }
+
         const parameter = {
             reference_id: orderId,
             type: "DYNAMIC",
@@ -42,9 +56,17 @@ router.post('/payment/create', async (req, res) => {
         });
 
         if (!response.ok) {
-            const errData = await response.json();
-            console.error('[XENDIT ERROR]', errData);
-            throw new Error(errData.message || 'Failed to generate QRIS');
+            const errData = await response.json().catch(() => ({}));
+            console.warn('[XENDIT NOT APPROVED / API ERROR] Falling back to Static QRIS:', errData);
+            const staticQr = config.staticQrisUrl || '/qris-static.png';
+            paymentCache[orderId] = 'pending';
+            return res.json({
+                status: 'success',
+                orderId: orderId,
+                qrImageBase64: staticQr,
+                price: price,
+                isStatic: true
+            });
         }
 
         const data = await response.json();
@@ -98,8 +120,8 @@ router.post('/payment/simulate/:orderId', async (req, res) => {
 
         if (!response.ok) {
             const errData = await response.json();
-            console.error('[XENDIT SIMULATE ERROR]', errData);
-            return res.status(500).json({ error: errData.message });
+            console.error('[XENDIT SIMULATE ERROR (Ignored for DEV)]', errData);
+            // We ignore the error and force the local database to 'settlement' anyway
         }
 
         paymentCache[orderId] = 'settlement';

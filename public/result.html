@@ -1,48 +1,44 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Special Moment - lumea</title>
+    <title>Momen Spesialmu - ScribbleBooth</title>
     <link rel="stylesheet" href="/css/result.css">
 </head>
-
 <body>
     <div id="loading" class="loading">Memuat kenangan Anda... ✨</div>
-
     <div id="error" class="error-state">
         Maaf, sesi Anda tidak ditemukan atau sudah kadaluarsa.
     </div>
 
     <div id="content" class="container" style="display: none;">
-        <!-- Centered Lumea Logo (Premium Branding like index.html) -->
+        <!-- Logo: diisi dinamis dari config event via result.js (logoUrl) -->
         <div style="text-align: center; margin-bottom: 25px;">
-            <img src="/logo-lumea.png" alt="Lumea Logo"
-                style="height: 50px; width: auto; object-fit: contain; pointer-events: none;">
+            <img id="eventLogoEl" src="" alt="Logo"
+                style="height: 50px; width: auto; object-fit: contain; pointer-events: none; display: none;">
         </div>
 
+        <p id="userName" style="text-align:center; font-size:18px; color: var(--title-color, #D3BB7C); margin: 0 0 20px 0; font-weight: 600;"></p>
 
         <div class="media-grid">
             <div class="media-card" id="videoContainer" style="display: none;">
                 <video id="videoElement" autoplay loop muted playsinline controls></video>
                 <div style="padding: 15px; background: rgba(20, 15, 10, 0.95);">
-                    <a id="videoDownload" href="#" target="_blank" class="btn" style="width: 100%;">🎬 Save Your
-                        Video</a>
+                    <a id="videoDownload" href="#" target="_blank" class="btn" style="width: 100%;">🎬 Unduh Video</a>
                 </div>
             </div>
-
             <div class="media-card" id="photoContainer" style="display: none;">
-                <img id="photoElement" src="" alt="ScribbleBooth Photo">
+                <img id="photoElement" src="" alt="Photo">
                 <div style="padding: 15px; background: rgba(20, 15, 10, 0.95);">
-                    <a id="photoDownload" href="#" target="_blank" class="btn" style="width: 100%;">📸 Save Your
-                        Photo</a>
+                    <a id="photoDownload" href="#" target="_blank" class="btn" style="width: 100%;">📸 Unduh Foto</a>
                 </div>
             </div>
         </div>
 
-        <p class="footer-text">
-            <strong>Here’s to the moments you’ll always look back on - @momentsbylumea</strong>
+        <!-- Footer: diisi dinamis dari config event (resultFooterText) -->
+        <p id="resultFooterText" class="footer-text">
+            <strong>Terima kasih atas momen spesialmu &mdash; Imajiwa Creative Studio</strong>
         </p>
     </div>
 

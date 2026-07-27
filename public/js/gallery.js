@@ -1,4 +1,4 @@
-﻿    
+    
         // --- MULTI-EVENT CONFIGURATION ---
         const urlParams = new URLSearchParams(window.location.search);
         const activeEvent = urlParams.get('event') || 'audric-cathrine';
@@ -48,14 +48,19 @@
 
         function applyConfig(config) {
             if (!config) return;
+            const isCustom = document.body.getAttribute('data-custom-page') === 'true';
+
             // Update active event date if present
             if (config.eventDate) {
                 activeEventDate = config.eventDate;
             }
 
-            // Title and subtitle syncing
-            if (config.galleryTitle || config.title) {
-                document.getElementById('galleryTitle').innerText = config.galleryTitle || config.title;
+            if (!isCustom) {
+                // Title and subtitle syncing
+                if (config.galleryTitle || config.title) {
+                    const titleEl = document.getElementById('galleryTitle');
+                    if (titleEl) titleEl.innerText = config.galleryTitle || config.title;
+                }
             }
 
             if (config.gallerySubtitle || config.subtitle) {
@@ -66,50 +71,49 @@
                         month: 'long',
                         year: 'numeric'
                     });
-                    document.getElementById('gallerySubtitle').innerHTML = `${config.gallerySubtitle || config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
+                    const subEl = document.getElementById('gallerySubtitle');
+                    if (subEl) subEl.innerHTML = `${config.gallerySubtitle || config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
                 } catch (e) {
-                    document.getElementById('gallerySubtitle').innerText = config.gallerySubtitle || config.subtitle;
+                    const subEl = document.getElementById('gallerySubtitle');
+                    if (subEl) subEl.innerText = config.gallerySubtitle || config.subtitle;
                 }
-            } else {
-                try {
-                    const dateObj = new Date(activeEventDate);
-                    const formattedEventDate = dateObj.toLocaleDateString('en-US', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    });
-                    document.getElementById('gallerySubtitle').innerHTML = `Gallery of happiness from ScribbleBooth guests &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
-                } catch (e) { }
-            }
-            
-            // Other texts
-            if (config.gallerySearchPlaceholder) {
-                document.getElementById('search-input').placeholder = config.gallerySearchPlaceholder;
-            }
-            if (config.galleryEmptyText) {
-                document.getElementById('empty-state').innerHTML = `<p>${config.galleryEmptyText}</p>`;
-            }
-            if (config.galleryTextColor) {
-                document.documentElement.style.setProperty('--text-main', config.galleryTextColor);
-            }
-            if (config.galleryBgColor) {
-                document.documentElement.style.setProperty('--bg-dark', config.galleryBgColor);
             }
 
-            // Logo syncing
-            if (config.logoUrl) {
-                const logo = document.getElementById('logoElement');
-                logo.src = config.logoUrl;
-                logo.style.display = 'inline-block';
+            // Other texts
+            if (config.gallerySearchPlaceholder) {
+                const searchEl = document.getElementById('search-input');
+                if (searchEl) searchEl.placeholder = config.gallerySearchPlaceholder;
             }
-            // Background & colors syncing
-            if (config.bgImageUrl && config.bgImageUrl !== 'Default' && config.bgImageUrl !== 'none') {
-                document.body.style.backgroundImage = `url('${config.bgImageUrl}')`;
-            } else {
-                document.body.style.backgroundImage = 'none';
+            if (config.galleryEmptyText) {
+                const emptyEl = document.getElementById('empty-state');
+                if (emptyEl) emptyEl.innerHTML = `<p>${config.galleryEmptyText}</p>`;
             }
-            if (config.accentColor) {
-                document.documentElement.style.setProperty('--accent', config.accentColor);
+
+            if (!isCustom) {
+                if (config.galleryTextColor) {
+                    document.documentElement.style.setProperty('--text-main', config.galleryTextColor);
+                }
+                if (config.galleryBgColor) {
+                    document.documentElement.style.setProperty('--bg-dark', config.galleryBgColor);
+                }
+
+                // Logo syncing
+                if (config.logoUrl) {
+                    const logo = document.getElementById('logoElement');
+                    if (logo) {
+                        logo.src = config.logoUrl;
+                        logo.style.display = 'inline-block';
+                    }
+                }
+                // Background & colors syncing
+                if (config.bgImageUrl && config.bgImageUrl !== 'Default' && config.bgImageUrl !== 'none') {
+                    document.body.style.backgroundImage = `url('${config.bgImageUrl}')`;
+                } else {
+                    document.body.style.backgroundImage = 'none';
+                }
+                if (config.accentColor) {
+                    document.documentElement.style.setProperty('--accent', config.accentColor);
+                }
             }
         }
 

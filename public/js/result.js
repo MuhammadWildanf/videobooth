@@ -1,4 +1,4 @@
-﻿    
+    
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const sessionId = urlParams.get('id');
@@ -15,26 +15,43 @@
 
             // Function to apply config data to the UI
             function applyConfig(configData) {
-                if (configData.bgImageUrl && configData.bgImageUrl !== 'Default' && configData.bgImageUrl !== 'none') {
-                    document.body.style.backgroundImage = `url('${configData.bgImageUrl}')`;
-                } else {
-                    document.body.style.backgroundImage = 'none';
+                const isCustom = document.body.getAttribute('data-custom-page') === 'true';
+
+                // Logo event
+                const logoEl = document.getElementById('eventLogoEl');
+                if (logoEl && configData.logoUrl && configData.logoUrl !== '/uploads_logo/logo-placeholder.png') {
+                    logoEl.src = configData.logoUrl;
+                    logoEl.style.display = 'inline-block';
+                    logoEl.onerror = function() { this.style.display = 'none'; };
                 }
-                if (configData.accentColor) {
-                    document.documentElement.style.setProperty('--accent', configData.accentColor);
+
+                if (!isCustom) {
+                    // Background
+                    if (configData.bgImageUrl && configData.bgImageUrl !== 'Default' && configData.bgImageUrl !== 'none') {
+                        document.body.style.backgroundImage = `url('${configData.bgImageUrl}')`;
+                    } else {
+                        document.body.style.backgroundImage = 'none';
+                    }
+
+                    // Colors
+                    if (configData.accentColor) document.documentElement.style.setProperty('--accent', configData.accentColor);
+                    if (configData.bgColor1)    document.documentElement.style.setProperty('--bg-1', configData.bgColor1);
+                    if (configData.bgColor2)    document.documentElement.style.setProperty('--bg-2', configData.bgColor2);
+                    if (configData.titleColor)  document.documentElement.style.setProperty('--title-color', configData.titleColor);
+                    if (configData.descColor)   document.documentElement.style.setProperty('--desc-color', configData.descColor);
                 }
-                if (configData.bgColor1) {
-                    document.documentElement.style.setProperty('--bg-1', configData.bgColor1);
-                }
-                if (configData.bgColor2) {
-                    document.documentElement.style.setProperty('--bg-2', configData.bgColor2);
-                }
-                if (configData.titleColor) {
-                    document.documentElement.style.setProperty('--title-color', configData.titleColor);
-                }
-                if (configData.descColor) {
-                    document.documentElement.style.setProperty('--desc-color', configData.descColor);
-                }
+
+                // Button text
+                const videoBtn = document.getElementById('videoDownload');
+                if (videoBtn && configData.resultSaveVideoText) videoBtn.innerHTML = configData.resultSaveVideoText;
+                const photoBtn = document.getElementById('photoDownload');
+                if (photoBtn && configData.resultSavePhotoText) photoBtn.innerHTML = configData.resultSavePhotoText;
+
+                // Footer text
+                const footerEl = document.getElementById('resultFooterText');
+                if (footerEl && configData.resultFooterText && !isCustom) footerEl.innerHTML = `<strong>${configData.resultFooterText}</strong>`;
+
+                // Font
                 if (configData.fontUrl) {
                     let link = document.getElementById('dynamic-font');
                     if (!link) {
@@ -53,19 +70,18 @@
                         document.head.appendChild(styleParams);
                     }
                     styleParams.innerHTML = `
-                        :root { 
-                            --title-font-dyn: ${configData.titleFontFamily || "'Luxurious Script', cursive"}; 
+                        :root {
+                            --title-font-dyn: ${configData.titleFontFamily || "'Luxurious Script', cursive"};
                             --body-font-dyn: ${configData.fontFamily || "'Aref Ruqaa', serif"};
                         }
                         body, button, .btn, .footer-text, .loading, .error-state {
                             font-family: var(--body-font-dyn) !important;
                         }
-                        .title {
-                            font-family: var(--title-font-dyn) !important;
-                        }
+                        .title { font-family: var(--title-font-dyn) !important; }
                     `;
                 }
             }
+
 
             try {
                 const response = await fetch(`/api/result/${sessionId}`, { cache: 'no-store' });
@@ -101,6 +117,16 @@
                     try {
                         const configRes = await fetch(`/api/config?event=${eventId}`, { cache: 'no-store' });
                         const configData = await configRes.json();
+
+                        // Auto-redirect if custom resultPage is configured for this event and we are currently on standard result.html
+                        const targetResultPage = configData.resultPage || (eventId === 'localhunt' ? 'localhunt-result' : null);
+                        if (targetResultPage && !window.location.pathname.includes(targetResultPage)) {
+                            const cleanPage = targetResultPage.endsWith('.html') ? targetResultPage : `${targetResultPage}.html`;
+                            console.log(`[ROUTER] Auto-redirecting session ${sessionId} to custom result page: /${cleanPage}`);
+                            window.location.href = `/${cleanPage}?id=${sessionId}`;
+                            return;
+                        }
+
                         applyConfig(configData);
                     } catch (e) {
                         console.error("Failed to load event-specific theme config:", e);

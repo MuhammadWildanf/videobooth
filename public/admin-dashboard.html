@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Riwayat Transaksi - Imajiwa Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css?v=20260724_v1">
 </head>
 <body>
 
@@ -51,8 +51,19 @@
         </div>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                 <div class="card-title">🧾 Daftar Transaksi</div>
+                <div class="filter-controls" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <div style="position: relative;">
+                        <input type="text" id="search-input" placeholder="🔍 Cari Nama / Order ID / WA..." onkeyup="handleFilterChange()" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; width: 260px; outline: none; font-family: inherit;">
+                    </div>
+                    <select id="status-filter" onchange="handleFilterChange()" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: white; cursor: pointer; outline: none; font-family: inherit;">
+                        <option value="all">⚡ Semua Status</option>
+                        <option value="settlement">✅ Berhasil</option>
+                        <option value="pending">⏳ Pending</option>
+                        <option value="failed">❌ Gagal</option>
+                    </select>
+                </div>
             </div>
             <table>
                 <thead>
@@ -62,16 +73,38 @@
                         <th>Nama Tamu</th>
                         <th>Kontak (WA)</th>
                         <th>Nominal</th>
+                        <th>Metode Pembayaran</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="tx-body">
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Memuat data transaksi...</td></tr>
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Memuat data transaksi...</td></tr>
                 </tbody>
             </table>
+
+            <!-- Pagination Footer -->
+            <div class="pagination-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid var(--border); margin-top: 20px; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 13px;">
+                    <span>Tampilkan:</span>
+                    <select id="page-size-select" onchange="handlePageSizeChange()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; cursor: pointer;">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span id="pagination-info" style="margin-left: 10px; font-weight: 500; color: var(--text-main);">Menampilkan 0 - 0 dari 0 transaksi</span>
+                </div>
+                <div class="pagination-buttons" style="display: flex; gap: 6px; align-items: center;">
+                    <button class="btn-sm" id="btn-first" onclick="goToPage(1)">« Pertama</button>
+                    <button class="btn-sm" id="btn-prev" onclick="prevPage()">‹ Sebelum</button>
+                    <span id="page-indicator" style="padding: 0 10px; font-weight: 600; font-size: 13px;">Halaman 1 dari 1</span>
+                    <button class="btn-sm" id="btn-next" onclick="nextPage()">Lanjut ›</button>
+                    <button class="btn-sm" id="btn-last" onclick="goToLastPage()">Terakhir »</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="/js/admin-dashboard.js"></script>
+    <script src="/js/admin-dashboard.js?v=20260724_v2"></script>
 </body>
 </html>

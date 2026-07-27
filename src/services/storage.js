@@ -72,10 +72,14 @@ const createDriveFolder = async (folderName) => {
 
 let gcpStorage = null;
 try {
+    const keyPath = fs.existsSync(path.join(ROOT, 'gcp-key.json'))
+        ? path.join(ROOT, 'gcp-key.json')
+        : path.join(ROOT, 'config', 'gcp-key.json');
     gcpStorage = new Storage({
         projectId: process.env.GCP_PROJECT_ID,
-        keyFilename: path.join(ROOT, 'config', 'gcp-key.json')
+        keyFilename: keyPath
     });
+    console.log(`[GCP] Kunci GCP Storage berhasil dimuat dari: ${keyPath}`);
 } catch (err) {
     console.error('[GCP] Error inisialisasi GCP Storage (pastikan gcp-key.json ada):', err.message);
 }

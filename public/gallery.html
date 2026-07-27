@@ -1,36 +1,29 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kenangan Spesial Anda - Lumea Gallery</title>
-
-    <!-- Google Fonts for modern serif/sans-serif backup -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
-        rel="stylesheet">
-
+    <title>Galeri Kenangan - ScribbleBooth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/gallery.css">
 </head>
-
 <body>
 
-    <!-- Navbar with Back button -->
+    <!-- Navbar -->
     <header class="navbar">
         <a class="btn-back" id="back-to-booth" href="/" style="text-decoration: none; align-items: center; justify-content: center; gap: 8px;">
             <span>⬅️</span> BACK TO BOOTH
         </a>
     </header>
 
-    <!-- Branding Title Area -->
+    <!-- Branding: diisi dinamis dari config event via gallery.js (logoUrl, galleryTitle) -->
     <div class="branding-container">
-        <img id="logoElement" src="/logo-lumea.png" alt="Logo" class="brand-logo">
+        <img id="logoElement" src="" alt="Logo" class="brand-logo" style="display:none;">
         <h1 id="galleryTitle" class="title" style="display: none;">Your Special Memories</h1>
         <p id="gallerySubtitle" class="subtitle">Gallery of happiness from ScribbleBooth guests</p>
     </div>
 
-    <!-- Filter Control Panel -->
+    <!-- Filter -->
     <section class="filter-panel">
         <div class="input-group">
             <label for="search-input">Search Guest Name</label>
@@ -39,19 +32,15 @@
                 <input type="text" id="search-input" placeholder="Type your name here..." oninput="filterGallery()">
             </div>
         </div>
-
         <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
     </section>
 
     <!-- Gallery Grid -->
     <main class="gallery-container" id="gallery-grid">
-        <!-- Spinner Loading State -->
         <div class="status-message" id="loading-state">
             <div class="spinner"></div>
             <p>Preparing all the beautiful memories... ✨</p>
         </div>
-
-        <!-- Empty / No Results State -->
         <div class="status-message" id="empty-state" style="display: none;">
             <p>Sorry, no memories found for this search.</p>
         </div>
@@ -61,16 +50,14 @@
     <div class="lightbox" id="mediaLightbox" onclick="closeLightbox(event)">
         <div class="lightbox-content" onclick="event.stopPropagation()">
             <button class="btn-close" onclick="closeLightbox(event)">&times;</button>
-
             <div class="lightbox-media">
                 <video id="lightboxVideo" style="display: none;" loop controls autoplay></video>
                 <img id="lightboxImage" style="display: none;" src="" alt="Memory">
             </div>
-
             <div class="lightbox-footer">
                 <div class="lightbox-info">
-                    <span class="lightbox-name" id="lightboxName">Audric</span>
-                    <span style="font-size: 12px; color: var(--text-muted);" id="lightboxDate">23 May 2026</span>
+                    <span class="lightbox-name" id="lightboxName"></span>
+                    <span style="font-size: 12px; color: var(--text-muted);" id="lightboxDate"></span>
                 </div>
                 <a href="#" id="lightboxDownloadBtn" target="_blank" class="lightbox-btn">
                     <span>📥 Download Original Quality</span>
@@ -79,13 +66,11 @@
         </div>
     </div>
 
-    <!-- Footer branding -->
+    <!-- Footer: diisi dinamis dari gallery.js -->
     <footer class="footer">
-        <p><strong>Here’s to the moments you’ll always look back on - @momentsbylumea</strong></p>
+        <p><strong>Imajiwa Creative Studio &mdash; ScribbleBooth</strong></p>
     </footer>
 
-    <!-- Frontend logic -->
     <script src="/js/gallery.js"></script>
 </body>
-
 </html>

@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Videobooth</title>
-    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/index.css?v=20260724_v1">
     <svg style="position:absolute;width:0;height:0;">
         <defs>
             <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -67,11 +67,6 @@
 
     <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <!-- MediaPipe Script -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 
 <body class="state-idle app-is-loading">
@@ -364,7 +359,11 @@
             <div class="video-container" style="background: #000;">
                 <video id="webcam" autoplay muted playsinline class="hidden" style="z-index: 20;"></video>
                 <canvas id="output_canvas" class="hidden"></canvas>
-                <canvas id="drawing_canvas"></canvas>
+                <canvas id="drawing_canvas" style="z-index: 22;"></canvas>
+                <!-- OVERLAY FRAME PNG LAYER -->
+                <img id="overlay-frame-img" src="/overlay.png" alt="Overlay Frame"
+                    style="width:100%; height:100%; object-fit:cover; z-index: 24; position: absolute; top:0; left:0; pointer-events: none;"
+                    onerror="this.style.display='none';">
                 <img id="photo-preview-large" class="hidden"
                     style="width:100%; height:100%; object-fit:cover; z-index: 15; position: absolute; top:0; left:0;"
                     alt="Photo Preview Large">
@@ -382,8 +381,8 @@
             </div>
         </div>
 
-        <!-- Tempat Logo Lumea (Kiri Bawah) - Ditempatkan secara persisten di luar state-state agar tidak blink/kedip -->
-        <img id="bottom-left-logo" src="/logo-lumea.png" alt="Bottom Logo">
+        <!-- Logo perusahaan kiri bawah — diisi dinamis dari config event (bottomLeftLogoUrl) -->
+        <img id="bottom-left-logo" src="/logo-lumea.png" alt="Bottom Logo" style="display:none;">
     </div>
 
     <!-- KEYBOARD (MOVED TO BEFORE SCRIPT TO AVOID NULL REFERENCES) -->

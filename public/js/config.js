@@ -86,18 +86,39 @@
                             ? `<button class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; opacity: 0.3; cursor: not-allowed;" disabled>✏️ Rename</button>`
                             : `<button onclick="renameEvent('${evt.id}')" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff; cursor: pointer;">✏️ Rename</button>`;
 
+                        const isCustom = (evt.id === 'localhunt' || evt.noConfig);
+
+                        const configBtn = isCustom
+                            ? `<button class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; opacity: 0.3; cursor: not-allowed;" disabled title="Event custom ini tidak menggunakan Config UI">⚙️ Configure</button>`
+                            : `<a href="/config.html?event=${evt.id}" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none;">⚙️ Configure</a>`;
+
+                        let boothPath = '/';
+                        if (evt.id === 'localhunt' || evt.boothPage) {
+                            const bp = evt.boothPage || 'localhunt.html';
+                            boothPath = bp.startsWith('/') ? bp : `/${bp}`;
+                        }
+                        const boothUrl = boothPath.includes('?') ? boothPath : `${boothPath}?event=${evt.id}`;
+
+                        let galleryPath = '/gallery.html';
+                        if (evt.id === 'localhunt' || evt.galleryPage) {
+                            const gp = evt.galleryPage || 'localhunt-gallery.html';
+                            const fullGp = gp.endsWith('.html') ? gp : `${gp}.html`;
+                            galleryPath = fullGp.startsWith('/') ? fullGp : `/${fullGp}`;
+                        }
+                        const galleryUrl = galleryPath.includes('?') ? galleryPath : `${galleryPath}?event=${evt.id}`;
+
                         row.innerHTML = `
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <strong style="font-size: 15px; color: #fff; font-family: 'Outfit', sans-serif;">${evt.id}</strong>
                                 ${statusBadge}
                             </div>
                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                <a href="/config.html?event=${evt.id}" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none;">⚙️ Configure</a>
+                                ${configBtn}
                                 ${renameBtn}
                                 ${toggleBtn}
                                 ${deleteBtn}
-                                <a href="/?event=${evt.id}" target="_blank" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff;">🎥 Open Booth</a>
-                                <a href="/gallery.html?event=${evt.id}" target="_blank" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff;">🖼️ Gallery</a>
+                                <a href="${boothUrl}" target="_blank" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff;">🎥 Open Booth</a>
+                                <a href="${galleryUrl}" target="_blank" class="btn-browse" style="margin:0; padding: 6px 12px; font-size: 11px; border-radius: 6px; text-decoration: none; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: #fff;">🖼️ Gallery</a>
                             </div>
                         `;
                         container.appendChild(row);

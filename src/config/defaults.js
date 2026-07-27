@@ -105,7 +105,7 @@ const DEFAULT_CONFIG = {
     fontFamily: "'Kaisei Opti', serif",
     titleFontFamily: "'Luxurious Script', cursive",
 
-    enableGesture: true,
+    enableGesture: false,
     showLeftPanel: true,
     showRightPanel: true,
     idleHeadMode: 'title',
@@ -113,8 +113,14 @@ const DEFAULT_CONFIG = {
     qrResetDuration: 45,
     eventDate: '2026-05-23',
 
+    // Halaman result & gallery khusus per event.
+    // Kosong = pakai halaman default sistem (result.html / gallery.html)
+    // Isi nama file tanpa .html, contoh: 'localhunt-result'
+    resultPage: '',
+    galleryPage: '',
+
     logoUrl: '/uploads_logo/logo-placeholder.png',
-    bottomLeftLogoUrl: '/logo-lumea.png',
+    bottomLeftLogoUrl: '',
     bgImageUrl: '/bg1.png',
     frameImageUrl: '/frame_gold.png',
     overlayImageUrl: '/overlay.png',

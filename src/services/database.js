@@ -223,7 +223,14 @@ async function listEvents() {
             const snapshot = await db.collection('events').get();
             const events = [];
             snapshot.forEach(doc => {
-                events.push({ id: doc.id, status: doc.data().status || 'active' });
+                const data = doc.data() || {};
+                events.push({
+                    id: doc.id,
+                    status: data.status || 'active',
+                    boothPage: data.boothPage || '',
+                    galleryPage: data.galleryPage || '',
+                    resultPage: data.resultPage || ''
+                });
             });
             if (!events.some(e => e.id === 'audric-cathrine')) {
                 events.push({ id: 'audric-cathrine', status: 'active' });
@@ -239,13 +246,19 @@ async function listEvents() {
         dirs.forEach(d => {
             const configPath = path.join(EVENTS_DIR, d, 'config.json');
             let status = 'active';
+            let boothPage = '';
+            let galleryPage = '';
+            let resultPage = '';
             if (fs.existsSync(configPath)) {
                 try {
                     const cfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
                     status = cfg.status || 'active';
+                    boothPage = cfg.boothPage || '';
+                    galleryPage = cfg.galleryPage || '';
+                    resultPage = cfg.resultPage || '';
                 } catch (e) { }
             }
-            events.push({ id: d, status });
+            events.push({ id: d, status, boothPage, galleryPage, resultPage });
         });
     }
     if (!events.some(e => e.id === 'audric-cathrine')) {

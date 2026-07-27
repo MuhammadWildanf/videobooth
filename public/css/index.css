@@ -867,10 +867,10 @@
 
         .progress-rect {
             fill: none;
-            stroke: var(--accent, #c5a059);
+            stroke: var(--accent, #f4999e);
             stroke-width: 4;
             stroke-linecap: round;
-            filter: drop-shadow(0 0 8px rgba(197, 160, 89, 0.8));
+            filter: drop-shadow(0 0 8px rgba(244, 153, 158, 0.8));
             transition: none;
         }
 
@@ -1276,4 +1276,38 @@
             letter-spacing: 2px;
             text-transform: uppercase;
             margin-top: 10px;
+        }
+
+        /* --- PREMIUM LIQUID SPRING TRANSITIONS FOR MAIN INDEX THEME --- */
+        .ui-state {
+            transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ui-state.active {
+            animation: slideUpSpringMain 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        }
+
+        @keyframes slideUpSpringMain {
+            0% {
+                opacity: 0;
+                transform: translateY(28px) scale(0.96);
+            }
+            60% {
+                opacity: 0.85;
+                transform: translateY(-4px) scale(1.008);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .btn-primary, .btn-start, .btn-action, .btn-outline {
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .btn-primary:hover, .btn-start:hover, .btn-action:hover {
+            transform: translateY(-3px) scale(1.015) !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25) !important;
+        }
+        .btn-primary:active, .btn-start:active, .btn-action:active {
+            transform: translateY(1px) scale(0.98) !important;
         }
