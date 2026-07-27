@@ -799,13 +799,13 @@
                 const videoConstraints = obsCamera
                     ? {
                         deviceId: { exact: obsCamera.deviceId },
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
+                        width: { ideal: 1080 },
+                        height: { ideal: 1920 }
                     }
                     : {
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        aspectRatio: { ideal: 16/9 }
+                        width: { ideal: 1080 },
+                        height: { ideal: 1920 },
+                        aspectRatio: { ideal: 9/16 }
                     };
 
                 console.log('Kamera dipilih:', obsCamera ? obsCamera.label : 'Default Camera');
