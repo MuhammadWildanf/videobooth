@@ -9,8 +9,8 @@ const DEFAULT_CONFIG = {
     subtitle: '#OnceInALifetime',
     descPremium: 'Enter your details to unveil a personalized wedding experience.',
     startText: 'Begin your experience',
-    messageTemplate: 'Halo {name}! ✨\n\nKenangan Anda di ScribbleBooth sudah siap! Silakan lihat dan download melalui link folder di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!',
-    emailSubject: 'Kenangan ScribbleBooth Anda sudah siap! ✨',
+    messageTemplate: 'Halo {name}! ✨\n\nKenangan Anda di Local Hunt Videobooth sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!',
+    emailSubject: 'Kenangan Local Hunt Videobooth Anda sudah siap! ✨',
 
     bgColor1: '#1a100a',
     bgColor2: '#3c2a21',
