@@ -9,8 +9,8 @@ const DEFAULT_CONFIG = {
     subtitle: '#OnceInALifetime',
     descPremium: 'Enter your details to unveil a personalized wedding experience.',
     startText: 'Begin your experience',
-    messageTemplate: 'Halo {name}! ✨\n\nKenangan Anda di Local Hunt Videobooth sudah siap! Silakan lihat dan download melalui link di bawah ini:\n\n🔗 {link}\n\nTerima kasih sudah mampir!',
-    emailSubject: 'Kenangan Local Hunt Videobooth Anda sudah siap! ✨',
+    messageTemplate: 'Hi {name}! ✨\n\nYour memories at Local Hunt Videobooth are ready! Please view and download them via the link below:\n\n🔗 {link}\n\nThank you for stopping by!',
+    emailSubject: 'Your Local Hunt Videobooth memories are ready! ✨',
 
     bgColor1: '#1a100a',
     bgColor2: '#3c2a21',

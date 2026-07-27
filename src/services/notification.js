@@ -99,7 +99,7 @@ async function sendVideoEmail(toEmail, userName, resultLink, config = {}) {
     }
 
     const senderName = (config.email_config && config.email_config.fromName) || config.title || 'Local Hunt Videobooth';
-    const emailSubject = config.emailSubject || `✨ Hasil Video & Foto ${senderName} Anda Sudah Siap!`;
+    const emailSubject = config.emailSubject || `✨ Your ${senderName} Video & Photo are Ready!`;
     const senderEmail = (config.email_config && config.email_config.user && config.email_config.user !== 'YOUR_EMAIL@gmail.com') ? config.email_config.user : SMTP_USER;
 
     let currentTransporter = transporter;
