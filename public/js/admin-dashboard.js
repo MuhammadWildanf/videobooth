@@ -34,6 +34,21 @@ function logout() {
     window.location.href = '/login.html';
 }
 
+async function deleteTransaction(orderId) {
+    if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini? Data tidak bisa dikembalikan.')) return;
+    try {
+        const res = await fetch(`/api/admin/transactions/${orderId}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success || result.status === 'success') {
+            fetchTransactions();
+        } else {
+            alert('Gagal menghapus transaksi: ' + (result.message || ''));
+        }
+    } catch (e) {
+        alert('Gagal koneksi ke server.');
+    }
+}
+
 async function fetchTransactions() {
     try {
         const res = await fetch('/api/admin/transactions');
@@ -125,7 +140,7 @@ function renderCurrentPageTable() {
     const pageData = filteredTransactionsData.slice(startIdx, endIdx);
 
     if (pageData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Tidak ada transaksi yang cocok dengan filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">Tidak ada transaksi yang cocok dengan filter.</td></tr>';
     } else {
         let html = '';
         pageData.forEach(tx => {
@@ -155,6 +170,7 @@ function renderCurrentPageTable() {
                     <td style="font-weight: 600;">Rp ${(parseInt(tx.price)||0).toLocaleString('id-ID')}</td>
                     <td style="font-size: 13px; color: var(--text-main);">${tx.paymentMethod || '-'}</td>
                     <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                    <td><button class="btn-sm" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" onclick="deleteTransaction('${tx.orderId}')">Hapus</button></td>
                 </tr>
             `;
         });

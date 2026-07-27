@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const qrcode = require('qrcode');
 const { paymentCache } = require('../services/queue');
-const { getEventConfig, saveTransaction, listTransactions, db } = require('../services/database');
+const { getEventConfig, saveTransaction, listTransactions, deleteTransaction, db } = require('../services/database');
 const { DEFAULT_CONFIG } = require('../config/defaults');
 
 const XENDIT_API_URL = 'https://api.xendit.co';
@@ -233,6 +233,20 @@ router.get('/admin/transactions', async (req, res) => {
         res.json({ success: true, data: results });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+router.delete('/admin/transactions/:orderId', async (req, res) => {
+    try {
+        const deleted = await deleteTransaction(req.params.orderId);
+        if (deleted) {
+            res.json({ success: true, message: 'Transaksi berhasil dihapus.' });
+        } else {
+            res.status(404).json({ success: false, message: 'Transaksi tidak ditemukan.' });
+        }
+    } catch (err) {
+        console.error('[API DELETE TRANSACTION] Error:', err.message);
+        res.status(500).json({ success: false, message: 'Gagal menghapus transaksi.' });
     }
 });
 

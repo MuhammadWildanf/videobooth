@@ -217,6 +217,24 @@ async function listTransactions() {
     return results;
 }
 
+async function deleteTransaction(orderId) {
+    let deleted = false;
+    if (db) {
+        try {
+            await db.collection('transactions').doc(orderId).delete();
+            deleted = true;
+        } catch (e) {
+            console.error('[DB] Firestore deleteTransaction error:', e.message);
+        }
+    }
+    const filePath = path.join(TRANSACTIONS_DIR, `${orderId}.json`);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        deleted = true;
+    }
+    return deleted;
+}
+
 async function listEvents() {
     if (db) {
         try {
@@ -311,8 +329,9 @@ module.exports = {
     getSession,
     listSessions,
     deleteSession,
-    saveTransaction,
     listTransactions,
+    saveTransaction,
+    deleteTransaction,
     listEvents,
     createEvent,
     isEventActive
