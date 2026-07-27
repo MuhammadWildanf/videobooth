@@ -9,6 +9,7 @@ const DEFAULT_CONFIG = {
     subtitle: '#OnceInALifetime',
     descPremium: 'Enter your details to unveil a personalized wedding experience.',
     startText: 'Begin your experience',
+    sessionPrice: 30000,
     messageTemplate: 'Hi {name}! ✨\n\nYour memories at Local Hunt Videobooth are ready! Please view and download them via the link below:\n\n🔗 {link}\n\nThank you for stopping by!',
     emailSubject: 'Your Local Hunt Videobooth memories are ready! ✨',
 

@@ -1278,6 +1278,7 @@
                             statusTxt.style.color = "#4ade80";
                         }
                         setTimeout(() => {
+                            window.lastPaymentMethod = 'Voucher';
                             if (window.currentState === 'payment') {
                                 if (document.getElementById('state-form')) {
                                     changeState('form');
@@ -1293,6 +1294,7 @@
                 if (yes) {
                     if (typeof stopPaymentTimer === 'function') stopPaymentTimer();
                     if (typeof paymentPollingInterval !== 'undefined' && paymentPollingInterval) clearInterval(paymentPollingInterval);
+                    window.lastPaymentMethod = 'Voucher';
                     if (document.getElementById('state-form')) {
                         changeState('form');
                     } else {
