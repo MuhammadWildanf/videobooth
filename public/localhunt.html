@@ -510,13 +510,13 @@
         </div>
 
         <!-- LEFT PANEL (UI STATES) -->
-        <div class="lh-panel-left" id="panel-left" style="flex: 1; position: relative;">
+        <div class="lh-panel-left" id="panel-left" style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center;">
 
             <!-- STATE: FORM -->
             <div id="state-form" class="ui-state center-panel"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                 <div class="lh-card cream"
-                    style="height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 35px 40px; box-sizing: border-box;">
+                    style="width: 100%; max-height: 680px; height: 85%; display: flex; flex-direction: column; justify-content: center; padding: 30px 36px; box-sizing: border-box; border-radius: 24px;">
                     <h1
                         style="font-size: 34px; font-weight: 900; text-align: center; margin-bottom: 6px; color: var(--lh-dark);">
                         WHO ARE YOU?</h1>
@@ -558,9 +558,9 @@
 
             <!-- STATE: READY (INSTRUCTIONS) -->
             <div id="state-ready" class="ui-state"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                 <div class="lh-card cream"
-                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 30px; box-sizing: border-box; text-align: left;">
+                    style="width: 100%; max-height: 680px; height: 85%; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 28px; box-sizing: border-box; border-radius: 24px; overflow-y: auto;">
 
                     <h1
                         style="font-size: 26px; font-weight: 900; color: var(--lh-dark); margin-bottom: 12px; line-height: 1.15;">
@@ -638,9 +638,9 @@
 
             <!-- STATE: RECORDING -->
             <div id="state-recording" class="ui-state"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; align-items: center; justify-content: center;">
                 <div class="lh-card cream"
-                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 28px 30px; box-sizing: border-box; text-align: center; pointer-events: auto;">
+                    style="width: 100%; max-height: 680px; height: 85%; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 28px; box-sizing: border-box; text-align: center; pointer-events: auto; border-radius: 24px;">
 
                     <!-- Top Header Area -->
                     <div style="display: flex; flex-direction: column; align-items: center;">
@@ -698,9 +698,9 @@
 
             <!-- STATE: REVIEW VIDEO -->
             <div id="state-review-video" class="ui-state"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                 <div class="lh-card cream"
-                    style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 25px 35px; box-sizing: border-box;">
+                    style="width: 100%; max-height: 680px; height: 85%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 22px 30px; box-sizing: border-box; border-radius: 24px;">
                     <div style="text-align: center;">
                         <h1 style="font-size: 30px; font-weight: 900; color: var(--lh-dark); margin: 0;">REVIEW YOUR
                             VIDEO</h1>
@@ -728,9 +728,9 @@
 
             <!-- STATE: READY PHOTO -->
             <div id="state-ready-photo" class="ui-state"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                 <div class="lh-card cream"
-                    style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px;">
+                    style="width: 100%; max-height: 680px; height: 85%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 28px; box-sizing: border-box; border-radius: 24px;">
                     <h1 style="font-size: 38px; font-weight: 900; color: var(--lh-dark); margin-bottom: 20px;">READY FOR
                         PHOTO?</h1>
                     <button class="btn-lh" id="btn-photo-shutter" onclick="startPhotoCountdown()"
@@ -841,7 +841,7 @@
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; z-index: 3;"></canvas>
 
                     <!-- OVERLAY FRAME PNG LAYER -->
-                    <img id="overlay-frame-img" src="/overlay-16x9.png" alt="Overlay Frame"
+                    <img id="overlay-frame-img" src="/overlay-portrait.png" alt="Overlay Frame"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; z-index: 4;"
                         onerror="this.style.display='none';">
 
