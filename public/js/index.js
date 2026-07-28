@@ -902,7 +902,7 @@
 
             // Pre-load overlay image for baking into video & photo
             const overlayImg = new Image();
-            overlayImg.src = '/overlay-portrait.png';
+            overlayImg.src = '/FRAME.png';
 
             const rc = document.createElement('canvas'); const rctx = rc.getContext('2d');
             let isRec = true;
