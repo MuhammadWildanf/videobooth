@@ -900,15 +900,22 @@
                 }, 50);
             }
 
+            // Pre-load overlay image for baking into video & photo
+            const overlayImg = new Image();
+            overlayImg.src = '/overlay-portrait.png';
+
             const rc = document.createElement('canvas'); const rctx = rc.getContext('2d');
             let isRec = true;
             const rloop = () => {
                 if (!isRec) return;
                 rc.width = webcam.videoWidth; rc.height = webcam.videoHeight;
                 rctx.save();
-                // Removed mirror logic for 'Normal' recording
                 rctx.drawImage(webcam, 0, 0);
                 if (window.enableGesture) rctx.drawImage(drawing, 0, 0);
+                // Bake overlay frame into recording
+                if (overlayImg.complete && overlayImg.naturalWidth > 0) {
+                    rctx.drawImage(overlayImg, 0, 0, rc.width, rc.height);
+                }
                 rctx.restore();
                 requestAnimationFrame(rloop);
             };
@@ -1015,6 +1022,12 @@
             const rctx = rc.getContext('2d');
             if (webcam) rctx.drawImage(webcam, 0, 0);
             if (window.enableGesture && drawing) rctx.drawImage(drawing, 0, 0);
+
+            // Bake overlay frame into photo
+            const overlayEl = document.getElementById('overlay-frame-img');
+            if (overlayEl && overlayEl.complete && overlayEl.naturalWidth > 0) {
+                rctx.drawImage(overlayEl, 0, 0, rc.width, rc.height);
+            }
 
             rc.toBlob((blob) => {
                 photoBlob = blob;
