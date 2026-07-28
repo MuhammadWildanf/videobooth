@@ -908,10 +908,29 @@
             let isRec = true;
             const rloop = () => {
                 if (!isRec) return;
-                rc.width = webcam.videoWidth; rc.height = webcam.videoHeight;
+
+                const vw = webcam.videoWidth || 1280;
+                const vh = webcam.videoHeight || 720;
+
+                // Always output portrait 9:16 — crop center from landscape source
+                const targetAspect = 9 / 16;
+                let cropW = vw, cropH = vh;
+                if (vw / vh > targetAspect) {
+                    // Source is wider than 9:16 → crop width
+                    cropW = Math.round(vh * targetAspect);
+                } else {
+                    // Source is taller than 9:16 → crop height
+                    cropH = Math.round(vw / targetAspect);
+                }
+                const sx = Math.round((vw - cropW) / 2);
+                const sy = Math.round((vh - cropH) / 2);
+
+                rc.width = cropW;
+                rc.height = cropH;
+
                 rctx.save();
-                rctx.drawImage(webcam, 0, 0);
-                if (window.enableGesture) rctx.drawImage(drawing, 0, 0);
+                rctx.drawImage(webcam, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
+                if (window.enableGesture) rctx.drawImage(drawing, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
                 // Bake overlay frame into recording
                 if (overlayImg.complete && overlayImg.naturalWidth > 0) {
                     rctx.drawImage(overlayImg, 0, 0, rc.width, rc.height);
@@ -1015,13 +1034,26 @@
                 setTimeout(() => flash.classList.remove('active'), 100);
             }
 
-            // Capture from rc canvas (already used in recording loop)
+            const vw = (webcam && webcam.videoWidth) ? webcam.videoWidth : 1280;
+            const vh = (webcam && webcam.videoHeight) ? webcam.videoHeight : 720;
+
+            // Always output portrait 9:16 — crop center from landscape source
+            const targetAspect = 9 / 16;
+            let cropW = vw, cropH = vh;
+            if (vw / vh > targetAspect) {
+                cropW = Math.round(vh * targetAspect);
+            } else {
+                cropH = Math.round(vw / targetAspect);
+            }
+            const sx = Math.round((vw - cropW) / 2);
+            const sy = Math.round((vh - cropH) / 2);
+
             const rc = document.createElement('canvas');
-            rc.width = (webcam && webcam.videoWidth) ? webcam.videoWidth : 1080;
-            rc.height = (webcam && webcam.videoHeight) ? webcam.videoHeight : 1920;
+            rc.width = cropW;
+            rc.height = cropH;
             const rctx = rc.getContext('2d');
-            if (webcam) rctx.drawImage(webcam, 0, 0);
-            if (window.enableGesture && drawing) rctx.drawImage(drawing, 0, 0);
+            if (webcam) rctx.drawImage(webcam, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
+            if (window.enableGesture && drawing) rctx.drawImage(drawing, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
 
             // Bake overlay frame into photo
             const overlayEl = document.getElementById('overlay-frame-img');
