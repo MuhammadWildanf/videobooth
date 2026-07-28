@@ -10,6 +10,10 @@
         const nums = "1234567890-/@:();\"+!?. ,*#&".split('');
         let deliveryMethod = 'whatsapp'; // Default, but we collect both now
 
+        // Pre-loaded overlay image for consistent baking into video & photo
+        const _bakeOverlayImg = new Image();
+        _bakeOverlayImg.src = '/FRAME.png';
+
         function drawKbd() {
             const isEmail = !num && activeInput?.id === 'email-input';
 
@@ -900,10 +904,6 @@
                 }, 50);
             }
 
-            // Pre-load overlay image for baking into video & photo
-            const overlayImg = new Image();
-            overlayImg.src = '/FRAME.png';
-
             const rc = document.createElement('canvas'); const rctx = rc.getContext('2d');
             let isRec = true;
             const rloop = () => {
@@ -932,8 +932,8 @@
                 rctx.drawImage(webcam, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
                 if (window.enableGesture) rctx.drawImage(drawing, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
                 // Bake overlay frame into recording
-                if (overlayImg.complete && overlayImg.naturalWidth > 0) {
-                    rctx.drawImage(overlayImg, 0, 0, rc.width, rc.height);
+                if (_bakeOverlayImg.complete && _bakeOverlayImg.naturalWidth > 0) {
+                    rctx.drawImage(_bakeOverlayImg, 0, 0, rc.width, rc.height);
                 }
                 rctx.restore();
                 requestAnimationFrame(rloop);
@@ -1055,10 +1055,9 @@
             if (webcam) rctx.drawImage(webcam, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
             if (window.enableGesture && drawing) rctx.drawImage(drawing, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
 
-            // Bake overlay frame into photo
-            const overlayEl = document.getElementById('overlay-frame-img');
-            if (overlayEl && overlayEl.complete && overlayEl.naturalWidth > 0) {
-                rctx.drawImage(overlayEl, 0, 0, rc.width, rc.height);
+            // Bake overlay frame into photo (use same pre-loaded image as video)
+            if (_bakeOverlayImg.complete && _bakeOverlayImg.naturalWidth > 0) {
+                rctx.drawImage(_bakeOverlayImg, 0, 0, rc.width, rc.height);
             }
 
             rc.toBlob((blob) => {
