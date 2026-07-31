@@ -1,129 +1,540 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScribbleBooth by Imajiwa Creative Studio</title>
-    <!-- Premium Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/landing.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imajiwa Creative Studio — Interactive Videobooth & Photo Services</title>
+<meta name="description" content="Premium interactive videobooth and photobooth solutions for weddings and corporate events with QRIS payment integration.">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/landing.css?v=3">
 </head>
 <body>
 
-    <nav>
-        <a href="#" class="logo">Imajiwa<span>.</span></a>
-        <div class="nav-links">
-            <a href="#services">Services</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#contact">Contact</a>
-        </div>
-    </nav>
+<nav>
+    <a href="#" class="logo">Imajiwa<span>.</span></a>
+    <div class="nav-links">
+        <a href="#services">Services</a>
+        <a href="#workflow">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </div>
+</nav>
 
-    <section class="hero">
-        <h1>Elevating Your Event <i>Experience.</i></h1>
-        <p>A premium videobooth and photobooth ecosystem designed to immortalize unforgettable memories with elegant touches and seamless interactive technology.</p>
-    </section>
-
-    <section class="services" id="services">
-        <div class="section-header">
-            <h2>Our Core Offerings</h2>
-            <p>We blend art and technology to deliver a seamless, high-end documentation experience for premium weddings and corporate activations.</p>
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <div class="hero-tag">Premium Event Technology</div>
+        <h1>Turn Moments Into <i>Cinema.</i></h1>
+        <p class="hero-sub">Interactive videobooth & photobooth experiences for weddings, galas, and corporate activations — where elegant design meets intelligent technology.</p>
+        <div class="hero-actions">
+            <a href="#workflow" class="btn-primary">See How It Works</a>
+            <a href="#contact" class="btn-secondary">Book a Demo</a>
         </div>
-        
-        <div class="grid-3">
-            <div class="service-card">
-                <div class="service-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                </div>
-                <h3>Cinematic Recording</h3>
-                <p>High-resolution video recording utilizing advanced automated camera systems, guaranteeing crisp and flawless visuals for every guest.</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-num">30+</span>
+                <span class="hero-stat-label">Events Hosted</span>
             </div>
-            <div class="service-card">
-                <div class="service-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                </div>
-                <h3>Brand Integration</h3>
-                <p>Fully tailored interfaces, bespoke digital frames, and custom color grading to perfectly match your event's exclusive aesthetics.</p>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">5K+</span>
+                <span class="hero-stat-label">Guests Served</span>
             </div>
-            <div class="service-card">
-                <div class="service-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">99%</span>
+                <span class="hero-stat-label">Delivery Rate</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="logos-bar">
+    <div class="logos-label">Trusted by leading event organizers</div>
+    <div class="logos-track">
+        <span>Wedding Organizer</span>
+        <span class="dot">·</span>
+        <span>Corporate Event</span>
+        <span class="dot">·</span>
+        <span>Brand Activation</span>
+        <span class="dot">·</span>
+        <span>Exhibition</span>
+        <span class="dot">·</span>
+        <span>Gala Dinner</span>
+        <span class="dot">·</span>
+        <span>Wedding Organizer</span>
+        <span class="dot">·</span>
+        <span>Corporate Event</span>
+        <span class="dot">·</span>
+        <span>Brand Activation</span>
+        <span class="dot">·</span>
+        <span>Exhibition</span>
+        <span class="dot">·</span>
+        <span>Gala Dinner</span>
+    </div>
+</section>
+
+<section class="services" id="services">
+    <div class="section-header">
+        <span class="section-eyebrow">What We Do</span>
+        <h2>Built for <i>Unforgettable</i> Events</h2>
+        <p>Every detail is crafted to create a seamless, cinematic experience — from the moment a guest steps up to the moment they relive it on their phone.</p>
+    </div>
+    <div class="services-grid">
+        <div class="service-card">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+            <h3>Cinematic Recording</h3>
+            <p>High-resolution automated camera systems capture every guest with broadcast-quality clarity — no operator needed, just pure cinema.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+            <h3>Custom Branding</h3>
+            <p>Every pixel reflects your brand. From overlay frames to color grading and UI theming — your event, your identity.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <h3>Instant Delivery</h3>
+            <p>Moments after recording, guests receive their video and photo via WhatsApp and Email — rendered, framed, and ready to share.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h3>Frictionless Payment</h3>
+            <p>QRIS-powered checkout with zero manual handling. Guests scan, pay, and receive — all in under 30 seconds.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <h3>Guest Engagement</h3>
+            <p>Built-in drawing canvas, gesture filters, and retake options keep guests entertained while creating shareable content for your brand.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+            <h3>On-Site Support</h3>
+            <p>Dedicated technical crew at every event. We handle setup, monitoring, and troubleshooting so you can focus on your guests.</p>
+        </div>
+    </div>
+</section>
+
+<section class="showcase">
+    <div class="showcase-inner">
+        <div class="showcase-text">
+            <span class="section-eyebrow">The Experience</span>
+            <h2>Step Up. Record. <i>Relive.</i></h2>
+            <p>Self-service kiosk with cinematic camera, custom overlays, and QRIS payment — designed for high-traffic events where every second counts.</p>
+            <ul class="showcase-list">
+                <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>10-second automated recording loop</span>
+                </li>
+                <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Real-time overlay preview on screen</span>
+                </li>
+                <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>QRIS scan-to-pay under 30 seconds</span>
+                </li>
+                <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>WhatsApp & Email auto-delivery</span>
+                </li>
+            </ul>
+            <a href="#workflow" class="btn-primary">View Full Workflow</a>
+        </div>
+        <div class="showcase-visual">
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="mockup-ui">
+                        <div class="mockup-header">Imajiwa<span>.</span></div>
+                        <div class="mockup-frame">
+                            <div class="mockup-camera"></div>
+                        </div>
+                        <div class="mockup-btn">START</div>
+                        <div class="mockup-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            <div class="showcase-float-card">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                <span>Auto-sent to guest's phone</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="workflow" id="workflow">
+    <div class="section-header">
+        <span class="section-eyebrow">Flow</span>
+        <h2>Four Steps. <i>Seamless.</i></h2>
+        <p>From start to delivery, the entire experience takes under 3 minutes per guest.</p>
+    </div>
+    <div class="steps-grid">
+        <div class="step-item">
+            <div class="step-number">01</div>
+            <div class="step-content">
+                <h3>Guest Starts</h3>
+                <p>One tap on the kiosk screen begins the experience. No login, no app download — just instant access.</p>
+            </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+            <div class="step-number">02</div>
+            <div class="step-content">
+                <h3>QRIS Payment</h3>
+                <p>Pay via QRIS to unlock the session. Scan with any e-wallet or mobile banking app — GoPay, OVO, DANA, BCA, Mandiri, and more.</p>
+            </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+            <div class="step-number">03</div>
+            <div class="step-content">
+                <h3>Record & Perform</h3>
+                <p>Guests record a 10–30 second video with automatic camera control. Optional photo capture with branded overlay frames.</p>
+            </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+            <div class="step-number">04</div>
+            <div class="step-content">
                 <h3>Instant Delivery</h3>
-                <p>Seamless on-site cloud processing allows guests to instantly download their moments via QR Code and WhatsApp.</p>
+                <p>Our server renders the video with overlays and sends it directly to the guest's WhatsApp and Email — typically within 60 seconds.</p>
             </div>
         </div>
-    </section>
+    </div>
+    <div class="workflow-note">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>All payments are processed via <strong>QRIS</strong> — the Indonesian national QR payment standard, fully regulated by Bank Indonesia.</span>
+    </div>
+</section>
 
-    <section class="pricing" id="pricing">
+<section class="pricing" id="pricing">
+    <div class="section-header">
+        <span class="section-eyebrow">Investment</span>
+        <h2>Simple, <i>Transparent</i> Pricing</h2>
+        <p>One price per guest session — no hidden fees, no monthly commitments. Pay only for what you use.</p>
+    </div>
+    <div class="pricing-grid">
+        <div class="pricing-card featured">
+            <div class="pricing-badge">Most Popular</div>
+            <h3>Standard Session</h3>
+            <div class="price">
+                <span class="price-currency">Rp</span>
+                <span class="price-amount">25.000</span>
+                <span class="price-period">/session</span>
+            </div>
+            <ul class="pricing-features">
+                <li>High-resolution video recording</li>
+                <li>Custom branded overlay frame</li>
+                <li>Photo capture with filter</li>
+                <li>WhatsApp & Email delivery</li>
+                <li>Cloud backup (30 days)</li>
+                <li>On-site technical support</li>
+            </ul>
+            <div class="pricing-qris">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Scan QRIS at the kiosk</span>
+            </div>
+        </div>
+        <div class="pricing-card">
+            <h3>Bespoke Activation</h3>
+            <div class="price">
+                <span class="price-currency">Custom</span>
+            </div>
+            <ul class="pricing-features">
+                <li>Tailor-made booth design</li>
+                <li>Advanced AI & slow-motion</li>
+                <li>White-label branding</li>
+                <li>Multi-camera setup</li>
+                <li>Dedicated project manager</li>
+                <li>Post-event analytics report</li>
+            </ul>
+            <div class="pricing-qris">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>Contact our team</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="testimonials">
+    <div class="section-header">
+        <span class="section-eyebrow">Social Proof</span>
+        <h2>What <i>Clients</i> Say</h2>
+    </div>
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <div class="testimonial-stars">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p>"The videobooth was the highlight of our wedding reception. Guests loved it, and we received all the footage beautifully packaged."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">R</div>
+                <div>
+                    <strong>Rina & Adi</strong>
+                    <span>Wedding, Jakarta — Feb 2026</span>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="testimonial-stars">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p>"Seamless integration with our brand theme. The custom overlays matched our campaign perfectly, and delivery was instant."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">B</div>
+                <div>
+                    <strong>Brand Activation Team</strong>
+                    <span>Corporate Event, BSD — Mar 2026</span>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="testimonial-stars">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p>"Setup was quick, the system ran flawlessly for 3 days straight. Zero downtime, zero complaints — just happy guests."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">D</div>
+                <div>
+                    <strong>Dian Permata</strong>
+                    <span>Exhibition Organizer, ICE BSD — Apr 2026</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about" id="about">
+    <div class="about-inner">
+        <div class="about-header">
+            <span class="section-eyebrow">About</span>
+            <h2>Who We <i>Are</i></h2>
+        </div>
+        <div class="about-body">
+            <div class="about-text">
+                <p><strong>PT Imajiwa Kreasi Visual</strong> is a creative technology company based in Jakarta, Indonesia. We design and operate self-service videobooth kiosks that turn event guests into the stars of their own cinematic moment.</p>
+                <p>Since our founding, we have served weddings, corporate galas, brand activations, and large-scale exhibitions across Indonesia — blending elegant design with reliable on-site technology.</p>
+                <div class="about-details">
+                    <div class="about-detail-item">
+                        <strong>Registered Entity</strong>
+                        <span>PT Imajiwa Kreasi Visual</span>
+                    </div>
+                    <div class="about-detail-item">
+                        <strong>Office</strong>
+                        <span>Jl. Kemang Dalam IV No.K24, Bangka, Mampang Prpt., Jakarta Selatan 12730</span>
+                    </div>
+                    <div class="about-detail-item">
+                        <strong>Email</strong>
+                        <span>visual.lab@imajiwa.id</span>
+                    </div>
+                    <div class="about-detail-item">
+                        <strong>Phone</strong>
+                        <span>+62 812-1729-2039</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq" id="faq">
+    <div class="section-header">
+        <span class="section-eyebrow">FAQ</span>
+        <h2>Common <i>Questions</i></h2>
+    </div>
+    <div class="faq-list">
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>How does payment work at the event?</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-answer">After recording, guests see a QRIS QR code on the kiosk screen. They scan it with GoPay, OVO, DANA, ShopeePay, LinkAja, or any QRIS-enabled mobile banking app (BCA, Mandiri, BRI, etc.). Payment is confirmed instantly, and the media is processed automatically.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>What payment methods do you accept?</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-answer">All QRIS-enabled payment methods: GoPay, OVO, DANA, ShopeePay, LinkAja, and all major Indonesian mobile banking apps (BCA Mobile, BRImo, Mandiri Livin', BNI Mobile, etc.).</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>What is your refund policy?</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-answer">Refunds are evaluated case-by-case. Full refunds are guaranteed for technical failures on our side (failed delivery, kiosk malfunction, duplicate payment). See our <a href="#" onclick="showModal('refund'); return false;">Refund Policy</a> for complete details.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>How do guests receive their video & photo?</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-answer">After payment, our server renders the video and photo with custom overlays and sends them directly to the guest's WhatsApp number and Email — typically within 60 seconds. No app download required.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>Is my data secure?</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-answer">Yes. We never store credit card or banking data. All QRIS payments go directly through regulated payment infrastructure. Our systems run on HTTPS/SSL, and personal data is retained only as long as necessary (30 days for media, 90 days for contact info).</div>
+        </div>
+    </div>
+</section>
+
+<section class="contact" id="contact">
+    <div class="contact-inner">
         <div class="section-header">
-            <h2>Investment</h2>
-            <p>Transparent pricing tailored for seamless offline integration.</p>
+            <span class="section-eyebrow">Connect</span>
+            <h2>Let's <i>Talk</i></h2>
+            <p>Ready to bring Imajiwa to your next event? Reach out — we'd love to hear from you.</p>
         </div>
-
-        <div class="grid-2">
-            <div class="pricing-card premium">
-                <h3>Standard Session</h3>
-                <div class="price">Rp 25.000 <span>/ session</span></div>
-                <ul>
-                    <li>Automated high-res video recording</li>
-                    <li>Customized digital overlay frame</li>
-                    <li>Direct WhatsApp delivery integration</li>
-                    <li>Instant cloud storage generation</li>
-                </ul>
-                <div class="payment-note">
-                    * Checkout and payments are processed securely via Xendit QRIS directly on our physical event kiosks.
-                </div>
+        <div class="contact-cards">
+            <div class="contact-card">
+                <div class="contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                <h4>Email</h4>
+                <a href="mailto:visual.lab@imajiwa.id">visual.lab@imajiwa.id</a>
+                <span class="contact-card-note">Response within 2×24 hours</span>
             </div>
-
-            <div class="pricing-card">
-                <h3>Bespoke Activation</h3>
-                <div class="price">Custom <span>/ request</span></div>
-                <ul>
-                    <li>Tailor-made booth architecture</li>
-                    <li>Advanced AI & slow-motion rendering</li>
-                    <li>White-label corporate branding</li>
-                    <li>Dedicated on-site technical support</li>
-                </ul>
-                <div class="payment-note" style="margin-top: auto;">
-                    * Contact our business team to discuss custom features and tailored offline integration for your brand.
-                </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+                <h4>Phone</h4>
+                <a href="tel:+6281217292039">+62 812-1729-2039</a>
+                <span class="contact-card-note">Mon–Sat, 09:00–18:00 WIB</span>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                <h4>Office</h4>
+                <span>Jl. Kemang Dalam IV No.K24<br>Jakarta Selatan 12730</span>
+                <span class="contact-card-note">By appointment only</span>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <footer class="mega-footer" id="contact">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <h2>Imajiwa Creative Studio.</h2>
-                <p>Imajiwa Creative Studio adalah agensi teknologi kreatif yang berspesialisasi dalam instalasi interaktif offline dan buku tamu digital untuk event premium.</p>
+<footer class="footer">
+    <div class="footer-top">
+        <div class="footer-brand">
+            <h3>Imajiwa<span>.</span></h3>
+            <p>PT Imajiwa Kreasi Visual — creative technology agency. Premium videobooth and photobooth solutions for unforgettable events.</p>
+            <div class="footer-badge">
+                <span class="footer-badge-label">Payment Accepted</span>
+                <span class="footer-badge-value">QRIS</span>
             </div>
-            
+        </div>
+        <div class="footer-links">
             <div class="footer-col">
-                <h4>Headquarters</h4>
-                <ul>
-                    <li><strong>Operational Office</strong></li>
-                    <li>Jl. Kemang Dalam IV No.K24, RT.3/RW.3</li>
-                    <li>Bangka, Kec. Mampang Prpt.</li>
-                    <li>Kota Jakarta Selatan, DKI Jakarta 12730</li>
-                </ul>
+                <h4>Navigate</h4>
+                <a href="#services">Services</a>
+                <a href="#workflow">How It Works</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#about">About</a>
             </div>
-
             <div class="footer-col">
-                <h4>Contact Us</h4>
-                <ul>
-                    <li><strong>Business Inquiries</strong></li>
-                    <li><a href="mailto:visual.lab@imajiwa.id">visual.lab@imajiwa.id</a></li>
-                    <li><br><strong>Customer Support</strong></li>
-                    <li><a href="tel:+6281217292039">+62 812-1729-2039</a></li>
-                </ul>
+                <h4>Policies</h4>
+                <a href="#" onclick="showModal('terms')">Terms of Service</a>
+                <a href="#" onclick="showModal('privacy')">Privacy Policy</a>
+                <a href="#" onclick="showModal('refund')">Refund Policy</a>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <a href="mailto:visual.lab@imajiwa.id">visual.lab@imajiwa.id</a>
+                <a href="tel:+6281217292039">+62 812-1729-2039</a>
+                <span>Jakarta, Indonesia</span>
             </div>
         </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; 2026 PT Imajiwa Kreasi Visual. All rights reserved.</span>
+    </div>
+</footer>
 
-        <div class="footer-bottom">
-            &copy; 2026 PT Imajiwa Kreasi Visual. All rights reserved. Xendit is our official payment gateway partner.
-        </div>
-    </footer>
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div id="modal-content"></div>
+    </div>
+</div>
+
+<script>
+const modalContents = {
+    terms: `
+        <h2>Terms of Service</h2>
+        <p><em>Last updated: July 2026</em></p>
+        <h3>1. Service Description</h3>
+        <p>PT Imajiwa Kreasi Visual ("Imajiwa") provides interactive videobooth and photobooth services at physical event locations. Guests interact with our kiosk system to record videos and capture photos, which are then processed and delivered digitally via WhatsApp and Email.</p>
+        <h3>2. Payment Terms</h3>
+        <p>All guest payments are processed through QRIS. By completing a payment, the guest agrees to the transaction amount displayed on the kiosk screen. Event organizers may arrange bulk billing or voucher-based access through separate agreement.</p>
+        <h3>3. User Responsibilities</h3>
+        <p>Guests agree to provide accurate contact information for delivery of their media. Imajiwa is not responsible for incorrect or undeliverable contact details provided by the guest.</p>
+        <h3>4. Intellectual Property</h3>
+        <p>The recorded video and photo are the property of the guest who created them. Imajiwa retains the right to use anonymized footage for portfolio purposes unless the guest explicitly opts out at the event.</p>
+        <h3>5. Limitation of Liability</h3>
+        <p>Imajiwa shall not be liable for indirect or consequential damages arising from technical failures at the event venue, force majeure, or third-party service disruptions.</p>
+        <h3>6. Governing Law</h3>
+        <p>These terms are governed by the laws of the Republic of Indonesia.</p>
+        <p><strong>Contact:</strong> visual.lab@imajiwa.id / +62 812-1729-2039</p>
+    `,
+    privacy: `
+        <h2>Privacy Policy</h2>
+        <p><em>Last updated: July 2026</em></p>
+        <h3>1. Information We Collect</h3>
+        <p>We collect name, phone number, email address, and video/photo recordings created at our kiosk, along with event metadata for service delivery.</p>
+        <h3>2. How We Use Your Information</h3>
+        <p>Your information is used for: (a) delivering video & photo via WhatsApp and Email, (b) customer support, (c) anonymized portfolio (with consent), and (d) legal compliance.</p>
+        <h3>3. Payment Data</h3>
+        <p>We do not store credit card numbers or banking details. QRIS transactions comply with Bank Indonesia regulations.</p>
+        <h3>4. Data Retention</h3>
+        <p>Media files are retained up to 30 days. Personal info up to 90 days. You may request earlier deletion by contacting our support team.</p>
+        <h3>5. Data Sharing</h3>
+        <p>We do not sell your data. Information is shared only with payment processors, WhatsApp API, and email delivery providers under strict confidentiality.</p>
+        <h3>6. Your Rights</h3>
+        <p>Under Indonesian PDP Law (UU 27/2022), you have the right to access, correct, or delete your data. Contact visual.lab@imajiwa.id for requests.</p>
+        <p><strong>Contact:</strong> visual.lab@imajiwa.id / +62 812-1729-2039</p>
+    `,
+    refund: `
+        <h2>Refund Policy</h2>
+        <p><em>Last updated: July 2026</em></p>
+        <h3>1. Scope</h3>
+        <p>This policy applies to guest transactions at physical event locations. Each session is a one-time, immediately rendered service.</p>
+        <h3>2. Guaranteed Refunds</h3>
+        <p>Full refund if: technical failure prevents delivery, duplicate payment occurred, or kiosk malfunction prevented completion.</p>
+        <h3>3. Discretionary Refunds</h3>
+        <p>Case-by-case evaluation for: accidental session trigger, incorrect contact info provided, or quality issues within our control.</p>
+        <h3>4. Non-Refundable</h3>
+        <p>Change of mind after delivery, dissatisfaction with personal appearance, expired payment session, or venue-caused technical issues.</p>
+        <h3>5. How to Request</h3>
+        <p>At event: speak to operator. After event: contact visual.lab@imajiwa.id within 7 days with event name, date, and phone number.</p>
+        <h3>6. Processing</h3>
+        <p>Approved refunds processed via original QRIS method within 5-14 business days depending on bank/e-wallet provider.</p>
+        <p><strong>Contact:</strong> visual.lab@imajiwa.id / +62 812-1729-2039</p>
+    `
+};
+
+function showModal(type) {
+    document.getElementById('modal-content').innerHTML = modalContents[type];
+    document.getElementById('modal-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+</script>
 
 </body>
 </html>
