@@ -5,6 +5,7 @@
 
         let allSessions = [];
         let activeEventDate = '2026-05-23';
+        let activeEventEndDate = '';
 
         document.addEventListener('DOMContentLoaded', async () => {
             // Set Back Button Link
@@ -54,6 +55,9 @@
             if (config.eventDate) {
                 activeEventDate = config.eventDate;
             }
+            if (config.eventEndDate) {
+                activeEventEndDate = config.eventEndDate;
+            }
 
             if (!isCustom) {
                 // Title and subtitle syncing
@@ -65,12 +69,27 @@
 
             if (config.gallerySubtitle || config.subtitle) {
                 try {
-                    const dateObj = new Date(activeEventDate);
-                    const formattedEventDate = dateObj.toLocaleDateString('en-US', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    });
+                    let formattedEventDate = '';
+                    if (activeEventEndDate && activeEventEndDate >= activeEventDate) {
+                        const startObj = new Date(activeEventDate + 'T00:00:00');
+                        const endObj = new Date(activeEventEndDate + 'T00:00:00');
+                        if (startObj.getFullYear() === endObj.getFullYear()) {
+                            const startStr = startObj.toLocaleDateString('en-US', { day: 'numeric', month: 'long' });
+                            const endStr = endObj.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+                            formattedEventDate = `${startStr} – ${endStr}`;
+                        } else {
+                            const startStr = startObj.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+                            const endStr = endObj.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+                            formattedEventDate = `${startStr} – ${endStr}`;
+                        }
+                    } else {
+                        const dateObj = new Date(activeEventDate + 'T00:00:00');
+                        formattedEventDate = dateObj.toLocaleDateString('en-US', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                        });
+                    }
                     const subEl = document.getElementById('gallerySubtitle');
                     if (subEl) subEl.innerHTML = `${config.gallerySubtitle || config.subtitle} &bull; <span style="color: var(--accent); font-weight: 700;">${formattedEventDate}</span>`;
                 } catch (e) {
@@ -262,7 +281,8 @@
 
         function filterGallery() {
             const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
-            const dateQuery = activeEventDate; // YYYY-MM-DD format from admin config config.json
+            const startDate = activeEventDate;
+            const endDate = activeEventEndDate;
 
             const filtered = allSessions.filter(s => {
                 // Name & phone filter
@@ -270,17 +290,24 @@
 
                 // Date filter
                 let dateMatches = true;
-                if (dateQuery) {
-                    const sessionDateStr = new Date(s.createdAt).toISOString().split('T')[0]; // Format: YYYY-MM-DD in UTC
+                if (startDate) {
+                    const createdDate = new Date(s.createdAt);
+                    const sessionUtcDateStr = createdDate.toISOString().split('T')[0]; // YYYY-MM-DD in UTC
 
-                    // Also support local timezone checking
-                    const sessionLocalDate = new Date(s.createdAt);
-                    const localYear = sessionLocalDate.getFullYear();
-                    const localMonth = String(sessionLocalDate.getMonth() + 1).padStart(2, '0');
-                    const localDay = String(sessionLocalDate.getDate()).padStart(2, '0');
+                    // Local timezone YYYY-MM-DD
+                    const localYear = createdDate.getFullYear();
+                    const localMonth = String(createdDate.getMonth() + 1).padStart(2, '0');
+                    const localDay = String(createdDate.getDate()).padStart(2, '0');
                     const sessionLocalDateStr = `${localYear}-${localMonth}-${localDay}`;
 
-                    dateMatches = (sessionDateStr === dateQuery) || (sessionLocalDateStr === dateQuery);
+                    if (endDate && endDate >= startDate) {
+                        // Range check (inclusive)
+                        dateMatches = (sessionUtcDateStr >= startDate && sessionUtcDateStr <= endDate) ||
+                                      (sessionLocalDateStr >= startDate && sessionLocalDateStr <= endDate);
+                    } else {
+                        // Single date match
+                        dateMatches = (sessionUtcDateStr === startDate) || (sessionLocalDateStr === startDate);
+                    }
                 }
 
                 return nameMatches && dateMatches;

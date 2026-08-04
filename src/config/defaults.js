@@ -113,6 +113,7 @@ const DEFAULT_CONFIG = {
     recordingDuration: 15,
     qrResetDuration: 45,
     eventDate: '2026-05-23',
+    eventEndDate: '',
 
     // Halaman result & gallery khusus per event.
     // Kosong = pakai halaman default sistem (result.html / gallery.html)

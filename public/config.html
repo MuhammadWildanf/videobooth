@@ -858,7 +858,7 @@
                     <small style="color:var(--text-muted); display:block; margin-bottom:8px;">Biarkan 0 untuk event gratis. Isi nominal (misal: 15000) untuk mengaktifkan pembayaran QRIS Xendit per sesi.</small>
                     <input type="number" id="sessionPrice" min="0" value="0">
                 </div>
-                <div class="grid-3">
+                <div class="grid-2">
                     <div class="input-group">
                         <label>Durasi Maksimal Video (Detik)</label>
                         <input type="number" id="recordingDuration">
@@ -867,9 +867,16 @@
                         <label>Durasi Auto-Reset QR Code (Detik)</label>
                         <input type="number" id="qrResetDuration">
                     </div>
+                </div>
+                <div class="grid-2" style="margin-top: 15px;">
                     <div class="input-group">
-                        <label>Tanggal Event Galeri Tamu (YYYY-MM-DD)</label>
+                        <label>Tanggal Mulai Event (YYYY-MM-DD)</label>
                         <input type="date" id="eventDate" style="color-scheme: dark;">
+                    </div>
+                    <div class="input-group">
+                        <label>Tanggal Selesai Event (YYYY-MM-DD / Range Tanggal)</label>
+                        <input type="date" id="eventEndDate" style="color-scheme: dark;">
+                        <small style="color: var(--text-muted); font-size: 11px;">Opsional. Isi jika event berlangsung beberapa hari.</small>
                     </div>
                 </div>
                 <div class="grid-2">

@@ -386,6 +386,7 @@
                     document.getElementById('recordingDuration').value = data.recordingDuration || 15;
                     document.getElementById('qrResetDuration').value = data.qrResetDuration || 45;
                     document.getElementById('eventDate').value = data.eventDate || '2026-05-23';
+                    document.getElementById('eventEndDate').value = data.eventEndDate || '';
                     document.getElementById('showLeftPanel').checked = data.showLeftPanel !== false;
                     document.getElementById('showRightPanel').checked = data.showRightPanel !== false;
                     document.getElementById('enableGesture').checked = data.enableGesture !== false;
@@ -729,6 +730,7 @@
                 recordingDuration: parseInt(document.getElementById('recordingDuration').value),
                 qrResetDuration: parseInt(document.getElementById('qrResetDuration').value),
                 eventDate: document.getElementById('eventDate').value,
+                eventEndDate: document.getElementById('eventEndDate').value,
                 showLeftPanel: document.getElementById('showLeftPanel').checked,
                 showRightPanel: document.getElementById('showRightPanel').checked,
                 idleHeadMode: document.querySelector('input[name="idleHeadMode"]:checked').value,
